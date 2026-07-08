@@ -1,0 +1,57 @@
+{
+  "name": "vscode-sfl",
+  "displayName": "SFL Language Support",
+  "description": "Language support for SFL 1.1 (.sfl) — syntax highlighting, diagnostics, completion, hover, go-to-definition, rename, and semantic tokens.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "stickyflow",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:sfl"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "sfl",
+        "aliases": [
+          "SFL",
+          "sfl"
+        ],
+        "extensions": [
+          ".sfl"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "sfl",
+        "scopeName": "source.sfl",
+        "path": "./syntaxes/sfl.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -p ./ --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.11"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}

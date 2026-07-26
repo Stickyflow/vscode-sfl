@@ -105,14 +105,53 @@ Link broken {
 ## Tests
 
 ```
-npm test
+npm test               # unit tests (vitest) — fast, no VS Code instance
+npm run test:integration   # integration tests (@vscode/test-electron) — launches a real VS Code
 ```
 
-Runs the ported core against `fixtures/valid/*.sfl` (round-trip parse +
-resolve with zero errors) plus dedicated SFL 1.2 syntax coverage (composition
-lists, Layout blocks, `style {}` sub-blocks, endpoint side/fraction), and unit
-tests for diagnostics, rename, references, document symbols, formatting, and
-hover documentation.
+`npm test` runs the ported core against `fixtures/valid/*.sfl` (round-trip
+parse + resolve with zero errors) plus dedicated SFL 1.2 syntax coverage
+(composition lists, Layout blocks, `style {}` sub-blocks, endpoint
+side/fraction), and unit tests for diagnostics, rename, references, document
+symbols, formatting, and hover documentation. These call the feature
+functions directly and never touch the actual extension host or LSP
+transport.
+
+`npm run test:integration` (`src/test/`) launches a real VS Code with the
+extension loaded and drives it through `vscode.commands.executeCommand`, to
+catch the class of bug the unit tests structurally can't: activation not
+firing, or the client↔server IPC never actually connecting. It opens
+`fixtures/valid/` as the test workspace and checks: the extension activates
+on a `.sfl` file, a duplicate-name diagnostic round-trips through the real
+language server, and hover returns a result through
+`vscode.executeHoverProvider`. In CI this runs headless via `xvfb-run` (see
+`.github/workflows/ci.yml`). **Running it locally inside a sandboxed/nested
+VS Code (e.g. an AI coding assistant's own extension host) can fail** with
+either a `Cannot find module '<workspace path>'` error (the parent process's
+`ELECTRON_RUN_AS_NODE=1` leaking into the spawned test instance — `unset` it
+first) or a `vscode-updating` mutex timeout on Windows (the host VS Code
+installation and the freshly-downloaded test instance contending over the
+same system-wide Inno Setup mutex — run it from a plain terminal outside any
+VS Code-hosted shell instead).
+
+## Publishing
+
+Not yet published — `private: true` and a placeholder `publisher`
+(`stickyflow-PLACEHOLDER-REPLACE-BEFORE-PUBLISHING`) are both deliberate.
+Before running `vsce publish`:
+
+1. Register a real publisher on the
+   [VS Code Marketplace](https://marketplace.visualstudio.com/manage) and
+   replace the `publisher` field.
+2. Decide on and add a `license` field + `LICENSE` file (currently absent by
+   choice — this repo/extension's license hasn't been decided yet).
+3. Remove `"private": true`.
+4. Run `npm run package` (`vsce package`) locally first to sanity-check the
+   `.vsix` contents (`vsce ls --tree`) — it already works today (426 files,
+   ~600 KB, all legitimate LSP-client runtime deps), it just isn't meant to
+   be published yet. `vsce` will also flag that the extension isn't bundled
+   (no esbuild/webpack step) — worth doing before a real release to cut the
+   file count/size, not required for internal use.
 
 ## Notes
 
@@ -129,5 +168,3 @@ hover documentation.
   the extension would need to detect `vscode.window.activeColorTheme.kind` at
   runtime and write the customization itself; that wasn't done here to avoid
   an extension writing to user settings without being asked.
-- `publisher` in `package.json` is a placeholder — update it before actually
-  publishing to the Marketplace.

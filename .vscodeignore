@@ -1,5 +1,7 @@
 .vscode/**
+.vscode-test/**
 src/**
+out/test/**
 .gitignore
 tsconfig.json
 vitest.config.ts

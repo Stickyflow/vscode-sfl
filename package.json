@@ -4,7 +4,23 @@
   "description": "Language support for SFL 1.2 (.sfl) — syntax highlighting, diagnostics, completion, hover, go-to-definition, rename, find references, outline, and format document.",
   "version": "0.1.0",
   "private": true,
-  "publisher": "stickyflow",
+  "publisher": "stickyflow-PLACEHOLDER-REPLACE-BEFORE-PUBLISHING",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/D-Queck/StickyFlow.git",
+    "directory": "packages/vscode-sfl"
+  },
+  "bugs": {
+    "url": "https://github.com/D-Queck/StickyFlow/issues"
+  },
+  "keywords": [
+    "sfl",
+    "sticky flow",
+    "language server",
+    "diagram",
+    "modeling",
+    "dsl"
+  ],
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -46,23 +62,91 @@
     "configurationDefaults": {
       "editor.tokenColorCustomizations": {
         "textMateRules": [
-          { "scope": ["keyword.control.sfl", "keyword.other.header.sfl"], "settings": { "foreground": "#c678dd", "fontStyle": "bold" } },
-          { "scope": "keyword.control.container.sfl", "settings": { "foreground": "#56b6c2", "fontStyle": "bold" } },
-          { "scope": "keyword.other.subblock.sfl", "settings": { "foreground": "#a78bfa", "fontStyle": "italic" } },
-          { "scope": "entity.name.function.sfl", "settings": { "foreground": "#e5c07b" } },
-          { "scope": "entity.other.inherited-class.sfl", "settings": { "foreground": "#d19a66" } },
-          { "scope": "variable.other.property.sfl", "settings": { "foreground": "#61afef" } },
-          { "scope": ["string.quoted.double.sfl", "string.quoted.triple.sfl", "constant.character.escape.sfl"], "settings": { "foreground": "#c3c9d3" } },
-          { "scope": "constant.numeric.sfl", "settings": { "foreground": "#d19a66" } },
-          { "scope": "constant.language.sfl", "settings": { "foreground": "#98c379" } },
-          { "scope": "comment.line.double-slash.sfl", "settings": { "foreground": "#7f848e", "fontStyle": "italic" } },
           {
             "scope": [
-              "punctuation.sfl", "punctuation.separator.colon.sfl", "punctuation.separator.comma.sfl",
-              "punctuation.accessor.sfl", "punctuation.definition.block.begin.sfl", "punctuation.definition.block.end.sfl",
-              "punctuation.definition.list.begin.sfl", "punctuation.definition.list.end.sfl"
+              "keyword.control.sfl",
+              "keyword.other.header.sfl"
             ],
-            "settings": { "foreground": "#abb2bf" }
+            "settings": {
+              "foreground": "#c678dd",
+              "fontStyle": "bold"
+            }
+          },
+          {
+            "scope": "keyword.control.container.sfl",
+            "settings": {
+              "foreground": "#56b6c2",
+              "fontStyle": "bold"
+            }
+          },
+          {
+            "scope": "keyword.other.subblock.sfl",
+            "settings": {
+              "foreground": "#a78bfa",
+              "fontStyle": "italic"
+            }
+          },
+          {
+            "scope": "entity.name.function.sfl",
+            "settings": {
+              "foreground": "#e5c07b"
+            }
+          },
+          {
+            "scope": "entity.other.inherited-class.sfl",
+            "settings": {
+              "foreground": "#d19a66"
+            }
+          },
+          {
+            "scope": "variable.other.property.sfl",
+            "settings": {
+              "foreground": "#61afef"
+            }
+          },
+          {
+            "scope": [
+              "string.quoted.double.sfl",
+              "string.quoted.triple.sfl",
+              "constant.character.escape.sfl"
+            ],
+            "settings": {
+              "foreground": "#c3c9d3"
+            }
+          },
+          {
+            "scope": "constant.numeric.sfl",
+            "settings": {
+              "foreground": "#d19a66"
+            }
+          },
+          {
+            "scope": "constant.language.sfl",
+            "settings": {
+              "foreground": "#98c379"
+            }
+          },
+          {
+            "scope": "comment.line.double-slash.sfl",
+            "settings": {
+              "foreground": "#7f848e",
+              "fontStyle": "italic"
+            }
+          },
+          {
+            "scope": [
+              "punctuation.sfl",
+              "punctuation.separator.colon.sfl",
+              "punctuation.separator.comma.sfl",
+              "punctuation.accessor.sfl",
+              "punctuation.definition.block.begin.sfl",
+              "punctuation.definition.block.end.sfl",
+              "punctuation.definition.list.begin.sfl",
+              "punctuation.definition.list.end.sfl"
+            ],
+            "settings": {
+              "foreground": "#abb2bf"
+            }
           }
         ]
       }
@@ -72,7 +156,10 @@
     "compile": "tsc -p ./",
     "watch": "tsc -p ./ --watch",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "pretest:integration": "tsc -p ./",
+    "test:integration": "node ./out/test/runTest.js",
+    "package": "vsce package"
   },
   "dependencies": {
     "vscode-languageclient": "^9.0.1",
@@ -80,8 +167,13 @@
     "vscode-languageserver-textdocument": "^1.0.11"
   },
   "devDependencies": {
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20.14.0",
     "@types/vscode": "^1.90.0",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^3.9.2",
+    "glob": "^13.0.6",
+    "mocha": "^11.7.6",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   }

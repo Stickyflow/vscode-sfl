@@ -26,7 +26,13 @@ Language support for [SFL 1.2](../../docs/SFL/sfl-1.2-spezifikation.md) (`.sfl` 
     block header, and in-document Entity/Group/Container names inside
     `from:`/`to:`.
   - **Hover** — a Style's/Layout's effective (inherited) properties; an
-    Entity's kind + text; a known `kind:` value's meaning from the spec.
+    Entity's kind + text; a known `kind:` value's meaning from the spec;
+    documentation for a bare block keyword (`Entity`, `Container`, …) or a
+    property key (`shape`, `route`, `position`, …), including its accepted
+    values where there's a closed vocabulary — sourced from
+    `src/server/features/sflDocs.ts`, which follows StickyFlow-Web's SFL
+    language reference page (§6/§8/§9/§12). The same descriptions show up as
+    completion-item documentation too.
   - **Go to Definition** — Ctrl/Cmd+click a composition ref or a `from:`/`to:`
     path segment to jump to its declaration.
   - **Rename (F2)** — renaming a block updates its declaration and every
@@ -42,6 +48,14 @@ Language support for [SFL 1.2](../../docs/SFL/sfl-1.2-spezifikation.md) (`.sfl` 
   - **Semantic tokens** — capability is registered but intentionally emits no
     tokens right now; see the comment in `src/server/features/semanticTokens.ts`
     for why (it was fighting the color-parity goal above).
+- **File icon** — an optional file icon theme (`icons/sfl-icon-theme.json`)
+  that shows the StickyFlow logo for `.sfl` files. **Opt-in, and it replaces
+  your current file icon theme entirely** — VS Code has no API to add a
+  single icon into an existing theme (e.g. Seti, Material Icon Theme); a file
+  icon theme is one exclusive setting. This one ships minimal generic
+  file/folder icons alongside the SFL one so it's usable standalone, but
+  everything else will look plainer than a full icon pack. To try it:
+  `Ctrl+Shift+P` → **"File Icon Theme"** → **"SFL File Icons"**.
 
 ## Debugging (F5)
 
@@ -66,6 +80,11 @@ smoke-test:
 - `fixtures/valid/minimal-entity.sfl` — smallest valid document.
 - `fixtures/valid/value-kinds.sfl` — property value variety, incl. a local
   `style {}` sub-block and endpoint side/fraction syntax.
+
+Also try hovering over a bare `Entity`/`Container`/`Style` keyword, or a
+property key like `route`/`position`/`shape`, to see the new documentation
+tooltips — and `Ctrl+Shift+P` → "File Icon Theme" → "SFL File Icons" to see
+the `.sfl` file icon in the Explorer.
 
 To see diagnostics in action, duplicate a block name or point a `from:` at a
 name that doesn't exist:
@@ -92,7 +111,8 @@ npm test
 Runs the ported core against `fixtures/valid/*.sfl` (round-trip parse +
 resolve with zero errors) plus dedicated SFL 1.2 syntax coverage (composition
 lists, Layout blocks, `style {}` sub-blocks, endpoint side/fraction), and unit
-tests for diagnostics, rename, references, document symbols, and formatting.
+tests for diagnostics, rename, references, document symbols, formatting, and
+hover documentation.
 
 ## Notes
 

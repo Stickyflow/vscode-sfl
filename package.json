@@ -36,6 +36,13 @@
         "path": "./syntaxes/sfl.tmLanguage.json"
       }
     ],
+    "iconThemes": [
+      {
+        "id": "sfl-icons",
+        "label": "SFL File Icons",
+        "path": "./icons/sfl-icon-theme.json"
+      }
+    ],
     "configurationDefaults": {
       "editor.tokenColorCustomizations": {
         "textMateRules": [

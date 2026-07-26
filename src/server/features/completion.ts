@@ -16,10 +16,11 @@ import {
   allBlocks, BLOCK_KINDS, collectBlockNames, compositionParentRef, effectiveLayoutProperties, effectiveStyleProperties,
   valueToDisplayString, type BlockKind,
 } from '../sfl-core';
+import { BLOCK_KIND_DOCS, PROPERTY_DOCS } from './sflDocs';
 
 export const BLOCK_KEYWORDS = [...BLOCK_KINDS, 'layout', 'style'];
 export const PROPERTY_KEYS = [
-  'id', 'kind', 'text', 'shape', 'fill', 'stroke', 'strokeWidth', 'strokeStyle', 'textColor',
+  'id', 'kind', 'text', 'tags', 'caption', 'shape', 'fill', 'stroke', 'strokeWidth', 'strokeStyle', 'textColor',
   'fontSize', 'fontWeight', 'fontFamily', 'textAlign', 'verticalAlign', 'cornerRadius',
   'opacity', 'dash', 'lineHeight', 'letterSpacing', 'shadow', 'orientation', 'lanes',
   'from', 'to', 'condition', 'weight', 'segments', 'route', 'marker', 'markerStart', 'markerEnd',
@@ -68,8 +69,16 @@ export function computeCompletions(model: DocumentModel, docText: string, positi
   }
 
   return [
-    ...BLOCK_KEYWORDS.map(k => ({ label: k, kind: CompletionItemKind.Keyword })),
-    ...PROPERTY_KEYS.map(k => ({ label: k, kind: CompletionItemKind.Property })),
+    ...BLOCK_KEYWORDS.map(k => ({
+      label: k,
+      kind: CompletionItemKind.Keyword,
+      documentation: BLOCK_KIND_DOCS[k as keyof typeof BLOCK_KIND_DOCS],
+    })),
+    ...PROPERTY_KEYS.map(k => ({
+      label: k,
+      kind: CompletionItemKind.Property,
+      documentation: PROPERTY_DOCS[k]?.description,
+    })),
   ];
 }
 

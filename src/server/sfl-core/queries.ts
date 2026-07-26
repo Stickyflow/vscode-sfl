@@ -43,6 +43,7 @@ function inRange(pos: SflPosition, range: SflRange): boolean {
 
 /** What the cursor is currently sitting on, for hover/definition/rename. */
 export type PositionHit =
+  | { type: 'blockKind'; block: SflBlock }
   | { type: 'blockName'; block: SflBlock }
   | { type: 'compositionRef'; block: SflBlock; name: string; refIndex: number; range: SflRange }
   | { type: 'propertyKey'; block: SflBlock; property: SflProperty }
@@ -68,6 +69,10 @@ export function findAtPosition(doc: SflDocument, pos: SflPosition): PositionHit 
 
   walkBlocks(doc.blocks, (block) => {
     if (hit) return;
+    if (block.kindRange && inRange(pos, block.kindRange)) {
+      hit = { type: 'blockKind', block };
+      return;
+    }
     if (block.nameRange && inRange(pos, block.nameRange)) {
       hit = { type: 'blockName', block };
       return;

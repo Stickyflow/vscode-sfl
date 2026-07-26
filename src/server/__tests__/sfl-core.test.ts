@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { parse, resolveDocument } from '../sfl-core';
+import { parse, resolveDocument, emit } from '../sfl-core';
 
 const fixturesDir = path.join(__dirname, '../../../../../fixtures/valid');
 const fixtureFiles = fs.readdirSync(fixturesDir).filter(f => f.endsWith('.sfl'));
@@ -58,5 +58,97 @@ describe('sfl-core against fixtures/valid', () => {
     };
     walk(doc.blocks);
     expect(sawEndpointWithRanges).toBe(true);
+  });
+});
+
+// These exercise the SFL 1.2 grammar additions specifically (§8/§10/§16),
+// not just "old 1.1-shaped tests still happen to pass" — composition lists
+// with '&', a reusable Layout block, a local style{} sub-block, the new
+// endpoint side/fraction syntax, and the ';' property terminator.
+describe('SFL 1.2 syntax', () => {
+  const SAMPLE = `sfl 1.2
+
+Style BasePill { shape: pill; fill: "#fff" }
+
+Layout Card {
+  size: 200, 100
+}
+
+Entity a : BasePill & Card {
+  kind: process
+  text: "A"
+
+  style {
+    stroke: "#000"
+  }
+}
+
+Entity b {
+  kind: process
+  text: "B"
+}
+
+Link a_to_b {
+  from: a, right (0.5)
+  to: b, left
+}
+`;
+
+  it('parses a composition list with Style + Layout refs and resolves with zero errors', () => {
+    const doc = parse(SAMPLE);
+    const { errors } = resolveDocument(doc);
+    expect(errors).toEqual([]);
+  });
+
+  it('classifies each composition ref by target kind (not by position)', () => {
+    const doc = parse(SAMPLE);
+    const a = doc.blocks.find(b => b.name === 'a')!;
+    expect(a.composition).toEqual(['BasePill', 'Card']);
+    expect(a.compositionRanges).toHaveLength(2);
+  });
+
+  it('parses a local style{} sub-block alongside a composition list', () => {
+    const doc = parse(SAMPLE);
+    const a = doc.blocks.find(b => b.name === 'a')!;
+    const styleEntry = a.entries.find(e => e.type === 'style');
+    expect(styleEntry).toBeDefined();
+  });
+
+  it('parses endpoint side + fraction in the new ", side (fraction)" form', () => {
+    const doc = parse(SAMPLE);
+    const link = doc.blocks.find(b => b.name === 'a_to_b')!;
+    const fromEntry = link.entries.find(e => e.type === 'property' && e.property.key === 'from') as any;
+    expect(fromEntry.property.value).toMatchObject({ side: 'right', fraction: 0.5 });
+    const toEntry = link.entries.find(e => e.type === 'property' && e.property.key === 'to') as any;
+    expect(toEntry.property.value).toMatchObject({ side: 'left' });
+    expect(toEntry.property.value.fraction).toBeUndefined();
+  });
+
+  it('parses the compact single-line Style/Layout definition form (";"-separated)', () => {
+    const doc = parse(SAMPLE);
+    const basePill = doc.blocks.find(b => b.name === 'BasePill')!;
+    const props = basePill.entries.filter(e => e.type === 'property').map((e: any) => e.property.key);
+    expect(props).toEqual(['shape', 'fill']);
+  });
+
+  it('rejects a Group that references a Layout (§11: use a Container instead)', () => {
+    const text = `sfl 1.2
+
+Layout Card { size: 200, 100 }
+
+Group g : Card {
+  text: "g"
+}
+`;
+    const doc = parse(text);
+    const { errors } = resolveDocument(doc);
+    expect(errors.some(e => /must not reference a Layout/.test(e.message))).toBe(true);
+  });
+
+  it('round-trips through emit() without resolver errors on the re-parsed output', () => {
+    const doc = parse(SAMPLE);
+    const emitted = emit(doc);
+    const reparsed = parse(emitted);
+    expect(resolveDocument(reparsed).errors).toEqual([]);
   });
 });

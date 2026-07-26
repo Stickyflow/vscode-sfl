@@ -1,25 +1,29 @@
 // packages/vscode-sfl/src/server/features/completion.ts
 //
 // Vocabulary lists ported from
-// frontend/src/features/sidepanels/right/components/sfl/sflAutocomplete.ts
-// (BLOCK_KEYWORDS/PROPERTY_KEYS/VALUE_SUGGESTIONS). Two things the sidepanel
-// version doesn't do, added here: style-name completion after ':' in a block
-// header, and in-document block-name completion inside from:/to: endpoints.
-// Filtering-by-typed-prefix is left to the LSP client (VS Code matches
-// CompletionItem labels against the current word automatically via the
-// language's wordPattern), unlike the sidepanel's manual prefix filter.
+// frontend/src/features/sfl-language/sfl/editor/sflAutocomplete.ts
+// (BLOCK_KEYWORDS/PROPERTY_KEYS/VALUE_SUGGESTIONS). Things the sidepanel
+// version doesn't do, added here: composition-ref completion after ':' or
+// '&' in a block header (Style *and* Layout names, §8), and in-document
+// block-name completion inside from:/to: endpoints. Filtering-by-typed-
+// prefix is left to the LSP client (VS Code matches CompletionItem labels
+// against the current word automatically via the language's wordPattern),
+// unlike the sidepanel's manual prefix filter.
 
 import { CompletionItem, CompletionItemKind, Position } from 'vscode-languageserver/node';
 import type { DocumentModel } from '../documentModel';
-import { allBlocks, collectBlockNames, effectiveStyleProperties, valueToDisplayString } from '../sfl-core';
+import {
+  allBlocks, BLOCK_KINDS, collectBlockNames, compositionParentRef, effectiveLayoutProperties, effectiveStyleProperties,
+  valueToDisplayString, type BlockKind,
+} from '../sfl-core';
 
-export const BLOCK_KEYWORDS = ['Project', 'Flow', 'Group', 'Container', 'Entity', 'Link', 'Style', 'layout'];
+export const BLOCK_KEYWORDS = [...BLOCK_KINDS, 'layout', 'style'];
 export const PROPERTY_KEYS = [
-  'id', 'kind', 'text', 'shape', 'fill', 'stroke', 'strokeWidth', 'textColor',
+  'id', 'kind', 'text', 'shape', 'fill', 'stroke', 'strokeWidth', 'strokeStyle', 'textColor',
   'fontSize', 'fontWeight', 'fontFamily', 'textAlign', 'verticalAlign', 'cornerRadius',
   'opacity', 'dash', 'lineHeight', 'letterSpacing', 'shadow', 'orientation', 'lanes',
-  'from', 'to', 'condition', 'weight', 'segments', 'route', 'markerStart', 'markerEnd',
-  'color', 'icon', 'parent', 'position', 'size', 'rotation', 'order',
+  'from', 'to', 'condition', 'weight', 'segments', 'route', 'marker', 'markerStart', 'markerEnd',
+  'color', 'icon', 'asset', 'parent', 'position', 'size', 'rotation', 'order',
 ];
 export const VALUE_SUGGESTIONS: Record<string, string[]> = {
   kind: ['process', 'decision', 'start', 'end', 'note', 'frame', 'swimlane', 'input', 'output'],
@@ -32,9 +36,14 @@ export const VALUE_SUGGESTIONS: Record<string, string[]> = {
   markerEnd: ['none', 'arrow', 'circle', 'diamond'],
 };
 
-const REFERENCEABLE_KINDS = ['Project', 'Flow', 'Group', 'Container', 'Entity'] as const;
+const REFERENCEABLE_KINDS: readonly BlockKind[] = ['Project', 'Model', 'Group', 'Container', 'Entity'];
 
-const HEADER_STYLE_RE = /^\s*(Project|Flow|Group|Container|Entity|Link|Style)\s+[A-Za-z_][A-Za-z0-9_]*\s*:\s*$/;
+// Matches a block header up through ':' plus zero or more already-typed
+// `Ref & ` groups, i.e. the cursor sits right where the next composition
+// reference belongs (`Entity foo : `, `Entity foo : StyleA & `, …).
+const HEADER_COMPOSITION_RE = new RegExp(
+  `^\\s*(${BLOCK_KINDS.join('|')})\\s+[A-Za-z_][A-Za-z0-9_]*\\s*:\\s*([A-Za-z_][A-Za-z0-9_]*\\s*&\\s*)*$`,
+);
 const PROPERTY_VALUE_RE = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*$/;
 const WORD_RE = /[A-Za-z_][A-Za-z0-9_]*$/;
 
@@ -45,8 +54,8 @@ export function computeCompletions(model: DocumentModel, docText: string, positi
   const word = before.match(WORD_RE)?.[0] ?? '';
   const linePrefix = before.slice(0, before.length - word.length);
 
-  if (HEADER_STYLE_RE.test(linePrefix)) {
-    return styleNameItems(model);
+  if (HEADER_COMPOSITION_RE.test(linePrefix)) {
+    return compositionRefItems(model);
   }
 
   const propMatch = linePrefix.match(PROPERTY_VALUE_RE);
@@ -64,16 +73,17 @@ export function computeCompletions(model: DocumentModel, docText: string, positi
   ];
 }
 
-function styleNameItems(model: DocumentModel): CompletionItem[] {
+function compositionRefItems(model: DocumentModel): CompletionItem[] {
   if (!model.doc) return [];
   const doc = model.doc;
-  return allBlocks(doc).filter(b => b.kind === 'Style').map((target) => {
-    const props = effectiveStyleProperties(doc, target);
+  return allBlocks(doc).filter(b => b.kind === 'Style' || b.kind === 'Layout').map((target) => {
+    const props = target.kind === 'Style' ? effectiveStyleProperties(doc, target) : effectiveLayoutProperties(doc, target);
     const preview = [...props.entries()].map(([k, v]) => `${k}: ${valueToDisplayString(v)}`).join('\n');
+    const parentRef = compositionParentRef(doc, target);
     return {
       label: target.name,
-      kind: CompletionItemKind.Class,
-      detail: target.style ? `extends ${target.style}` : undefined,
+      kind: target.kind === 'Style' ? CompletionItemKind.Class : CompletionItemKind.Struct,
+      detail: parentRef ? `${target.kind}, extends ${parentRef}` : target.kind,
       documentation: preview || undefined,
     };
   });

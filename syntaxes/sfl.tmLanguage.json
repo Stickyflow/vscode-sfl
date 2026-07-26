@@ -2,17 +2,16 @@
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
   "name": "SFL",
   "scopeName": "source.sfl",
-  "comment": "Regex-based TextMate grammar. Mirrors the token classification already proven in frontend/src/features/sfl/highlight.ts (block keywords at header position vs. property keys vs. value constants vs. style refs after ':'). Semantic tokens from the language server refine what this regex approximation can't reliably tell apart (e.g. a reference vs. a keyword).",
+  "comment": "Regex-based TextMate grammar for SFL 1.2. Scope names are chosen to line up 1:1 with the token classes in frontend/src/features/sfl-language/sfl/highlight.ts (kw/kwc/layout/name/type/prop/str/num/const/comment/punct), and are colored to match that same palette via package.json's configurationDefaults (editor.tokenColorCustomizations, scoped to this language) — see that file for the exact hex values. Composition lists and property values use begin/end regions rather than single `match` rules, since a `: A & B & C` list or a `from: a.b, right (0.5)` value can contain an arbitrary number of tokens that each need their own scope.",
   "patterns": [
     { "include": "#comments" },
     { "include": "#header-line" },
     { "include": "#block-header-container" },
     { "include": "#block-header-leaf" },
-    { "include": "#layout-header" },
-    { "include": "#property-key" },
+    { "include": "#subblock-header" },
+    { "include": "#property" },
     { "include": "#strings" },
     { "include": "#numbers" },
-    { "include": "#colon-value" },
     { "include": "#punctuation" }
   ],
   "repository": {
@@ -21,45 +20,62 @@
       "name": "comment.line.double-slash.sfl"
     },
     "header-line": {
-      "comment": "The document header: `sfl 1.1`",
+      "comment": "The document header: `sfl 1.2`",
       "match": "^\\s*\\b(sfl)\\b\\s+(-?\\d+(?:\\.\\d+)?)",
       "captures": {
         "1": { "name": "keyword.other.header.sfl" },
-        "2": { "name": "constant.numeric.version.sfl" }
+        "2": { "name": "constant.numeric.sfl" }
       }
     },
     "block-header-container": {
-      "comment": "Project/Flow/Group/Container — blocks that may contain nested blocks",
-      "match": "^\\s*\\b(Project|Flow|Group|Container)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)(?:\\s*(:)\\s*([A-Za-z_][A-Za-z0-9_]*))?",
-      "captures": {
+      "comment": "Project/Model/Group/Container — blocks that may contain nested blocks (kwc)",
+      "begin": "^\\s*\\b(Project|Model|Group|Container)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "beginCaptures": {
         "1": { "name": "keyword.control.container.sfl" },
-        "2": { "name": "entity.name.type.sfl" },
-        "3": { "name": "punctuation.separator.colon.sfl" },
-        "4": { "name": "entity.other.inherited-class.sfl" }
-      }
+        "2": { "name": "entity.name.function.sfl" }
+      },
+      "end": "\\{",
+      "endCaptures": { "0": { "name": "punctuation.definition.block.begin.sfl" } },
+      "patterns": [{ "include": "#composition-list" }]
     },
     "block-header-leaf": {
-      "comment": "Entity/Link/Style — leaf blocks",
-      "match": "^\\s*\\b(Entity|Link|Style)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)(?:\\s*(:)\\s*([A-Za-z_][A-Za-z0-9_]*))?",
-      "captures": {
-        "1": { "name": "storage.type.sfl" },
-        "2": { "name": "entity.name.function.sfl" },
-        "3": { "name": "punctuation.separator.colon.sfl" },
-        "4": { "name": "entity.other.inherited-class.sfl" }
-      }
+      "comment": "Entity/Link/Layout/Style — leaf blocks (kw)",
+      "begin": "^\\s*\\b(Entity|Link|Layout|Style)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "beginCaptures": {
+        "1": { "name": "keyword.control.sfl" },
+        "2": { "name": "entity.name.function.sfl" }
+      },
+      "end": "\\{",
+      "endCaptures": { "0": { "name": "punctuation.definition.block.begin.sfl" } },
+      "patterns": [{ "include": "#composition-list" }]
     },
-    "layout-header": {
-      "match": "^\\s*\\b(layout)\\b",
-      "captures": {
-        "1": { "name": "keyword.other.layout.sfl" }
-      }
+    "composition-list": {
+      "comment": "The `: RefA & RefB` part of a block header (§8) — each ref gets its own token (`type` class).",
+      "patterns": [
+        { "match": ":", "name": "punctuation.separator.colon.sfl" },
+        { "match": "&", "name": "punctuation.sfl" },
+        { "match": "[A-Za-z_][A-Za-z0-9_]*", "name": "entity.other.inherited-class.sfl" }
+      ]
     },
-    "property-key": {
-      "comment": "identifier directly before ':' at the start of a (trimmed) line — a property key",
-      "match": "^\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*(?=:)",
-      "captures": {
-        "1": { "name": "variable.other.property.sfl" }
-      }
+    "subblock-header": {
+      "comment": "`layout {` / `style {` — a same-named property is disambiguated by the lack of a following '{'",
+      "match": "^\\s*\\b(layout|style)\\b(?=\\s*\\{)",
+      "captures": { "1": { "name": "keyword.other.subblock.sfl" } }
+    },
+    "property": {
+      "comment": "`key: value` through end of line or ';' (§5). Values are colored uniformly as `const`, matching the app's own lexical (non-resolving) highlighter — see semanticTokens.ts for why this deliberately isn't refined further.",
+      "begin": "^\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*(:)",
+      "beginCaptures": {
+        "1": { "name": "variable.other.property.sfl" },
+        "2": { "name": "punctuation.separator.colon.sfl" }
+      },
+      "end": "(?=;)|$",
+      "patterns": [
+        { "include": "#strings" },
+        { "include": "#numbers" },
+        { "match": "[.,()\\[\\]&]", "name": "punctuation.sfl" },
+        { "match": "[A-Za-z_][A-Za-z0-9_]*", "name": "constant.language.sfl" }
+      ]
     },
     "strings": {
       "patterns": [
@@ -85,21 +101,17 @@
       "match": "-?\\d+(?:\\.\\d+)?",
       "name": "constant.numeric.sfl"
     },
-    "colon-value": {
-      "comment": "`: value` on a property line — bare identifier/keyword/path (kind: decision, from: cart.load_cart, top 0.5, ...). Header colons are already consumed by the block-header rules above, so this only fires on property lines.",
-      "match": "(:)\\s*([A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*)",
-      "captures": {
-        "1": { "name": "punctuation.separator.colon.sfl" },
-        "2": { "name": "constant.language.sfl" }
-      }
-    },
     "punctuation": {
       "patterns": [
         { "match": "\\{", "name": "punctuation.definition.block.begin.sfl" },
         { "match": "\\}", "name": "punctuation.definition.block.end.sfl" },
         { "match": "\\[", "name": "punctuation.definition.list.begin.sfl" },
         { "match": "\\]", "name": "punctuation.definition.list.end.sfl" },
+        { "match": "\\(", "name": "punctuation.sfl" },
+        { "match": "\\)", "name": "punctuation.sfl" },
         { "match": ",", "name": "punctuation.separator.comma.sfl" },
+        { "match": ";", "name": "punctuation.sfl" },
+        { "match": "&", "name": "punctuation.sfl" },
         { "match": "\\.", "name": "punctuation.accessor.sfl" },
         { "match": ":", "name": "punctuation.separator.colon.sfl" }
       ]

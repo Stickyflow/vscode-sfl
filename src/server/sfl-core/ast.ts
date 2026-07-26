@@ -1,13 +1,14 @@
 // packages/vscode-sfl/src/server/sfl-core/ast.ts
 //
-// Ported from frontend/src/features/sfl/ast.ts (SFL 1.1 AST), the same way
-// backend/app/services/ai/sfl/ast.py is a 1:1 port for the backend. This copy
-// adds one thing the frontend original doesn't need: source Ranges on the
-// nodes that editor features (hover/definition/rename) have to point at —
-// block names, style references, property keys, and ident/endpoint path
-// segments. Everything else mirrors the original exactly.
+// Ported from frontend/src/features/sfl-language/sfl/ast.ts (SFL 1.2 AST),
+// the same way backend/app/services/ai/sfl/ast.py is a 1:1 port for the
+// backend. This copy adds one thing the frontend original doesn't need:
+// source Ranges on the nodes editor features (hover/definition/rename/
+// semantic tokens) have to point at — the block-kind keyword, the block
+// name, each composition-list reference, property keys, and ident/endpoint
+// path segments. Everything else mirrors the original exactly.
 //
-// See docs/sfl-1.1-spezifikation.md §17 (EBNF) for the grammar this mirrors.
+// See docs/sfl-1.2-spezifikation.md §17 (EBNF) for the grammar this mirrors.
 
 /** 0-based line/character position (LSP convention), unlike the 1-based Token.line/col in lexer.ts. */
 export interface SflPosition {
@@ -20,40 +21,58 @@ export interface SflRange {
   end: SflPosition;
 }
 
-export type BlockKind = 'Project' | 'Flow' | 'Group' | 'Container' | 'Entity' | 'Link' | 'Style';
+// `Container` = spatial container (Frame/Swimlane/…, distinguished via
+// `kind:`); holds grouped or individual Entities. `Entity` remains the leaf.
+// `Layout`/`Style` are reusable, referenceable leaves (§8/§9), like `Entity`.
+export type BlockKind =
+  | 'Project' | 'Model' | 'Group' | 'Container' | 'Entity' | 'Link' | 'Layout' | 'Style'
+  | 'Columns' | 'Column' | 'Rows' | 'Row';
 
 export const BLOCK_KINDS: readonly BlockKind[] = [
-  'Project', 'Flow', 'Group', 'Container', 'Entity', 'Link', 'Style',
+  'Project', 'Model', 'Group', 'Container', 'Entity', 'Link', 'Layout', 'Style',
+  'Columns', 'Column', 'Rows', 'Row',
 ];
 
 export type Side = 'top' | 'bottom' | 'left' | 'right';
 
 export const SIDES: readonly Side[] = ['top', 'bottom', 'left', 'right'];
 
-/** Document root: `sfl 1.1` header + a sequence of top-level blocks. */
+/** Document root: `sfl 1.2` header + a sequence of top-level blocks. */
 export interface SflDocument {
   version: string;
   blocks: SflBlock[];
 }
 
-/** A block: `Kind Name [: Style] { entries }`. */
+/**
+ * A block: `Kind Name [: composition-list] { entries }`.
+ * `composition` holds the raw identifiers after the colon, in authored order
+ * (§8/§17: `identifier , { "&" , identifier }`). Whether a given ref is a
+ * Style or a Layout reference is a semantic question resolved by looking up
+ * the ref's target block kind (§9) — the parser stays purely syntactic and
+ * does not classify them.
+ */
 export interface SflBlock {
   kind: BlockKind;
+  /** Range of the block-kind keyword token itself (e.g. "Entity", "Model") — needed to color/distinguish container vs. leaf keywords. */
+  kindRange?: SflRange;
   name: string;
   /** Range of the name token — the definition site for go-to-definition/rename. */
   nameRange?: SflRange;
-  style?: string;
-  /** Range of the style-reference identifier after ':' in the block header, if present. */
-  styleRange?: SflRange;
+  composition: string[];
+  /** Range of each composition-list reference, parallel to `composition`. */
+  compositionRanges?: SflRange[];
+  /** Full span of the block, from the kind keyword through the closing '}' — needed for the Outline/document-symbols tree. */
+  range?: SflRange;
   entries: SflEntry[];
 }
 
 export type SflEntry =
   | { type: 'property'; property: SflProperty }
   | { type: 'block'; block: SflBlock }
-  | { type: 'layout'; layout: SflLayout };
+  | { type: 'layout'; layout: SflLayout }
+  | { type: 'style'; style: SflStyle };
 
-/** `key: value` (newline-terminated). */
+/** `key: value` (newline- or `;`-terminated). */
 export interface SflProperty {
   key: string;
   /** Range of the property key token. */
@@ -63,6 +82,11 @@ export interface SflProperty {
 
 /** The `layout { … }` sub-block — only properties, no nested blocks (§5). */
 export interface SflLayout {
+  properties: SflProperty[];
+}
+
+/** The `style { … }` sub-block — only properties, no nested blocks (§5). */
+export interface SflStyle {
   properties: SflProperty[];
 }
 
@@ -112,7 +136,8 @@ export interface SflIdentValue {
 }
 
 /**
- * `from`/`to` only (§11.1): `path [side [fraction]]`.
+ * `from`/`to` only (§10/§16): `path [ "," side [ "(" fraction ")" ] ]`.
+ * Not a general value type — the parser produces it exclusively for from/to.
  */
 export interface SflEndpointValue {
   type: 'endpoint';

@@ -1,17 +1,26 @@
 // packages/vscode-sfl/src/server/sfl-core/parser.ts
 //
-// Ported from frontend/src/features/sfl/parser.ts, with one addition: every
-// node that an editor feature needs to point at (block names, style refs,
+// Ported from frontend/src/features/sfl-language/sfl/parser.ts (SFL 1.2),
+// with one addition: every node an editor feature needs to point at (the
+// block-kind keyword, block names, each composition-list reference,
 // property keys, ident/endpoint path segments) now also records a source
 // SflRange, converted from the lexer's 1-based Token.line/col to 0-based LSP
 // positions via `tokenRange()`. The grammar and control flow are otherwise
 // unchanged from the original.
 //
+// Two semantic rules are wired in here:
+//   • `from`/`to` are read as endpoints (path [ "," side [ "(" fraction ")" ] ], §10/§16);
+//     any other value is an ordinary value (keyword/path share `ident`, §6).
+//   • `layout { … }` / `style { … }` are their own sub-blocks, distinguished
+//     from a same-named property by whether `{` or `:` follows.
+// Properties terminate at end-of-line OR at `;` (§5) — both are valid, even
+// mixed within the same block.
+//
 // Spec: §17 (Grammatik).
 
 import {
   type SflDocument, type SflBlock, type SflEntry, type SflProperty,
-  type SflLayout, type SflValue, type SflValue as V, type SflRange,
+  type SflLayout, type SflStyle, type SflValue, type SflValue as V, type SflRange,
   isBlockKind, isSide, type Side,
 } from './ast';
 import { tokenize, type Token, type TokenType } from './lexer';
@@ -71,7 +80,7 @@ class Parser {
     return { version: ver.value, blocks };
   }
 
-  // ─── block = kind name [":" style] "{" { entry } "}" ─────────────────────
+  // ─── block = kind name [":" composition-list] "{" { entry } "}" ──────────
   private parseBlock(): SflBlock {
     const kindTok = this.expect('ident', 'block kind');
     if (!isBlockKind(kindTok.value)) {
@@ -79,13 +88,19 @@ class Parser {
     }
     const nameTok = this.expect('ident', 'block name');
 
-    let style: string | undefined;
-    let styleRange: SflRange | undefined;
+    const composition: string[] = [];
+    const compositionRanges: SflRange[] = [];
     if (this.at('colon')) {
       this.next();
-      const styleTok = this.expect('ident', 'style name after ":"');
-      style = styleTok.value;
-      styleRange = tokenRange(styleTok);
+      const first = this.expect('ident', 'reference name after ":"');
+      composition.push(first.value);
+      compositionRanges.push(tokenRange(first));
+      while (this.at('amp')) {
+        this.next();
+        const ref = this.expect('ident', 'reference name after "&"');
+        composition.push(ref.value);
+        compositionRanges.push(tokenRange(ref));
+      }
     }
 
     this.skipNewlines();
@@ -97,16 +112,25 @@ class Parser {
       entries.push(this.parseEntry());
       this.skipNewlines();
     }
-    this.expect('rbrace', "'}'");
+    const closeTok = this.expect('rbrace', "'}'");
 
-    return { kind: kindTok.value, name: nameTok.value, nameRange: tokenRange(nameTok), style, styleRange, entries };
+    return {
+      kind: kindTok.value,
+      kindRange: tokenRange(kindTok),
+      name: nameTok.value,
+      nameRange: tokenRange(nameTok),
+      composition,
+      compositionRanges,
+      range: { start: tokenRange(kindTok).start, end: tokenRange(closeTok).end },
+      entries,
+    };
   }
 
-  // ─── entry = property | block | layout-block ─────────────────────────────
+  // ─── entry = property | block | layout-block | style-block ───────────────
   private parseEntry(): SflEntry {
     const t = this.peek();
     if (t.type !== 'ident') {
-      throw new SflParseError(`expected property, block, or layout — got '${t.value || t.type}'`, t.line, t.col);
+      throw new SflParseError(`expected property, block, layout, or style — got '${t.value || t.type}'`, t.line, t.col);
     }
 
     // Nested block: block-kind followed by a name identifier.
@@ -117,6 +141,11 @@ class Parser {
     // layout-block: `layout {` (a property `layout:` is disambiguated by the ':')
     if (t.value === 'layout' && this.peek(1).type === 'lbrace') {
       return { type: 'layout', layout: this.parseLayout() };
+    }
+
+    // style-block: `style {` (a property `style:` is disambiguated by the ':')
+    if (t.value === 'style' && this.peek(1).type === 'lbrace') {
+      return { type: 'style', style: this.parseStyle() };
     }
 
     return { type: 'property', property: this.parseProperty() };
@@ -137,7 +166,22 @@ class Parser {
     return { properties };
   }
 
-  // ─── property = identifier ":" value newline ─────────────────────────────
+  private parseStyle(): SflStyle {
+    this.next(); // 'style'
+    this.skipNewlines();
+    this.expect('lbrace', "'{'");
+    const properties: SflProperty[] = [];
+    this.skipNewlines();
+    while (!this.at('rbrace')) {
+      if (this.at('eof')) throw new SflParseError('unterminated style block', this.peek().line, this.peek().col);
+      properties.push(this.parseProperty());
+      this.skipNewlines();
+    }
+    this.expect('rbrace', "'}'");
+    return { properties };
+  }
+
+  // ─── property = identifier ":" value (newline | ";") ─────────────────────
   private parseProperty(): SflProperty {
     const keyTok = this.expect('ident', 'property key');
     const key = keyTok.value;
@@ -147,22 +191,32 @@ class Parser {
     return { key, keyRange: tokenRange(keyTok), value };
   }
 
-  /** A property terminates at newline (or the closing brace / EOF — §4.1). */
+  /** A property terminates at newline, ";", or the closing brace / EOF (§5). */
   private consumeTerminator(): void {
     if (this.at('newline')) { this.next(); return; }
+    if (this.at('semi')) { this.next(); return; }
     if (this.at('rbrace') || this.at('eof')) return;
     const t = this.peek();
     throw new SflParseError(`unexpected '${t.value || t.type}' after property value`, t.line, t.col);
   }
 
-  // ─── endpoint = path [side [fraction]]  (from/to only, §11.1) ─────────────
+  // ─── endpoint = path [ "," side [ "(" fraction ")" ] ]  (from/to only, §10/§16) ──
   private parseEndpoint(): SflValue {
     const { segments, ranges } = this.parsePathSegments();
     let side: Side | undefined;
     let fraction: number | undefined;
-    if (this.at('ident') && isSide(this.peek().value)) {
-      side = this.next().value as Side;
-      if (this.at('number')) fraction = this.next().numberValue;
+    if (this.at('comma')) {
+      this.next(); // ','
+      const sideTok = this.expect('ident', 'side after ","');
+      if (!isSide(sideTok.value)) {
+        throw new SflParseError(`expected a side (top/right/bottom/left), got '${sideTok.value}'`, sideTok.line, sideTok.col);
+      }
+      side = sideTok.value as Side;
+      if (this.at('lparen')) {
+        this.next(); // '('
+        fraction = this.expect('number', 'fraction inside "("').numberValue;
+        this.expect('rparen', "')'");
+      }
     }
     return { type: 'endpoint', segments, segmentRanges: ranges, side, fraction };
   }

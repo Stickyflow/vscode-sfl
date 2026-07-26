@@ -1,7 +1,7 @@
 {
   "name": "vscode-sfl",
   "displayName": "SFL Language Support",
-  "description": "Language support for SFL 1.1 (.sfl) — syntax highlighting, diagnostics, completion, hover, go-to-definition, rename, and semantic tokens.",
+  "description": "Language support for SFL 1.2 (.sfl) — syntax highlighting, diagnostics, completion, hover, go-to-definition, rename, find references, outline, and format document.",
   "version": "0.1.0",
   "private": true,
   "publisher": "stickyflow",
@@ -35,7 +35,31 @@
         "scopeName": "source.sfl",
         "path": "./syntaxes/sfl.tmLanguage.json"
       }
-    ]
+    ],
+    "configurationDefaults": {
+      "editor.tokenColorCustomizations": {
+        "textMateRules": [
+          { "scope": ["keyword.control.sfl", "keyword.other.header.sfl"], "settings": { "foreground": "#c678dd", "fontStyle": "bold" } },
+          { "scope": "keyword.control.container.sfl", "settings": { "foreground": "#56b6c2", "fontStyle": "bold" } },
+          { "scope": "keyword.other.subblock.sfl", "settings": { "foreground": "#a78bfa", "fontStyle": "italic" } },
+          { "scope": "entity.name.function.sfl", "settings": { "foreground": "#e5c07b" } },
+          { "scope": "entity.other.inherited-class.sfl", "settings": { "foreground": "#d19a66" } },
+          { "scope": "variable.other.property.sfl", "settings": { "foreground": "#61afef" } },
+          { "scope": ["string.quoted.double.sfl", "string.quoted.triple.sfl", "constant.character.escape.sfl"], "settings": { "foreground": "#c3c9d3" } },
+          { "scope": "constant.numeric.sfl", "settings": { "foreground": "#d19a66" } },
+          { "scope": "constant.language.sfl", "settings": { "foreground": "#98c379" } },
+          { "scope": "comment.line.double-slash.sfl", "settings": { "foreground": "#7f848e", "fontStyle": "italic" } },
+          {
+            "scope": [
+              "punctuation.sfl", "punctuation.separator.colon.sfl", "punctuation.separator.comma.sfl",
+              "punctuation.accessor.sfl", "punctuation.definition.block.begin.sfl", "punctuation.definition.block.end.sfl",
+              "punctuation.definition.list.begin.sfl", "punctuation.definition.list.end.sfl"
+            ],
+            "settings": { "foreground": "#abb2bf" }
+          }
+        ]
+      }
+    }
   },
   "scripts": {
     "compile": "tsc -p ./",

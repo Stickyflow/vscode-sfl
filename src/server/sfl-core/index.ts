@@ -6,3 +6,4 @@ export * from './lexer';
 export * from './parser';
 export * from './resolver';
 export * from './queries';
+export * from './emitter';

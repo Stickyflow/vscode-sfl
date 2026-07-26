@@ -1,18 +1,22 @@
 // packages/vscode-sfl/src/server/features/hover.ts
 //
-// On a Style reference (block-header `: StyleName` or a Style block's own
-// name): the resolved effective style, merging the §9.2 inheritance chain, as
-// a markdown fenced block. On an Entity/Group/Container/Flow/Project
-// reference (from/to endpoint, or any resolvable bare path): its kind + text.
-// On a `kind:` value that isn't a reference: the semantic meaning from §12 of
-// the spec, so hovering `kind: decision` explains what that means without
-// leaving the editor.
+// On a composition reference (block-header `: Ref & Ref`, §8 — Style or
+// Layout — or the Style/Layout block's own name): the resolved effective
+// properties, merging the §9.2 inheritance chain, as a markdown fenced
+// block. On an Entity/Group/Container/Model/Project reference (from/to
+// endpoint, or any resolvable bare path): its kind + text. On a `kind:`
+// value that isn't a reference: the semantic meaning from §12 of the spec,
+// so hovering `kind: decision` explains what that means without leaving
+// the editor.
 
 import { Hover, MarkupKind, Position } from 'vscode-languageserver/node';
 import type { DocumentModel } from '../documentModel';
-import { findAtPosition, effectiveStyleProperties, valueToDisplayString, type SflBlock } from '../sfl-core';
+import {
+  findAtPosition, effectiveLayoutProperties, effectiveStyleProperties, compositionParentRef,
+  valueToDisplayString, type SflBlock,
+} from '../sfl-core';
 
-// §12 kind axis — mirrors the descriptions in docs/sfl-1.1-spezifikation.md / SFLLanguage.tsx Table 7.
+// §12 kind axis — mirrors the descriptions in docs/sfl-1.2-spezifikation.md / SFLLanguage.tsx Table 7.
 const KIND_DESCRIPTIONS: Record<string, string> = {
   start: 'Model entry point — no incoming links expected.',
   end: 'Model exit point — no outgoing links expected.',
@@ -27,11 +31,13 @@ const KIND_DESCRIPTIONS: Record<string, string> = {
   custom: 'User-defined meaning — no predefined constraint.',
 };
 
-function styleHoverMarkdown(model: DocumentModel, style: SflBlock): string {
-  const props = effectiveStyleProperties(model.doc!, style);
+function compositionHoverMarkdown(model: DocumentModel, target: SflBlock): string {
+  const doc = model.doc!;
+  const props = target.kind === 'Style' ? effectiveStyleProperties(doc, target) : effectiveLayoutProperties(doc, target);
   const lines = [...props.entries()].map(([k, v]) => `${k}: ${valueToDisplayString(v)}`);
-  const chain = style.style ? `\n\n_extends ${style.style}_` : '';
-  return `**Style** \`${style.name}\`${chain}\n\n\`\`\`\n${lines.join('\n')}\n\`\`\``;
+  const parentRef = compositionParentRef(doc, target);
+  const chain = parentRef ? `\n\n_extends ${parentRef}_` : '';
+  return `**${target.kind}** \`${target.name}\`${chain}\n\n\`\`\`\n${lines.join('\n')}\n\`\`\``;
 }
 
 function blockHoverMarkdown(block: SflBlock): string {
@@ -42,7 +48,7 @@ function blockHoverMarkdown(block: SflBlock): string {
   let md = `**${block.kind}** \`${block.name}\``;
   if (kind) md += `  \nkind: ${kind}`;
   if (text) md += `  \ntext: ${text}`;
-  if (block.style) md += `  \nstyle: ${block.style}`;
+  if (block.composition.length) md += `  \n: ${block.composition.join(' & ')}`;
   return md;
 }
 
@@ -52,14 +58,16 @@ export function computeHover(model: DocumentModel, position: Position): Hover | 
   if (!hit) return undefined;
 
   if (hit.type === 'blockName') {
-    const md = hit.block.kind === 'Style' ? styleHoverMarkdown(model, hit.block) : blockHoverMarkdown(hit.block);
+    const md = (hit.block.kind === 'Style' || hit.block.kind === 'Layout')
+      ? compositionHoverMarkdown(model, hit.block)
+      : blockHoverMarkdown(hit.block);
     return { contents: { kind: MarkupKind.Markdown, value: md }, range: hit.block.nameRange };
   }
 
-  if (hit.type === 'styleRef') {
-    const target = model.resolveResult.resolveStyleRef(hit.block, hit.name);
+  if (hit.type === 'compositionRef') {
+    const target = model.resolveResult.resolveCompositionRef(hit.block, hit.name);
     if (!target) return undefined;
-    return { contents: { kind: MarkupKind.Markdown, value: styleHoverMarkdown(model, target) }, range: hit.range };
+    return { contents: { kind: MarkupKind.Markdown, value: compositionHoverMarkdown(model, target) }, range: hit.range };
   }
 
   if (hit.type === 'pathSegment') {

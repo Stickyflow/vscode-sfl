@@ -1,10 +1,15 @@
 // packages/vscode-sfl/src/server/sfl-core/resolver.ts
 //
-// Ported verbatim from frontend/src/features/sfl/resolver.ts. No range
-// changes needed here: it resolves names against the AST built by the local
-// parser.ts, and that AST's SflBlock nodes already carry nameRange/styleRange
-// — resolve() returning a SflBlock is enough for callers (definition/hover/
-// rename) to reach those ranges themselves.
+// Ported from frontend/src/features/sfl-language/sfl/resolver.ts (SFL 1.2).
+// Two things added on top of the port, both for LSP diagnostics/features
+// (absent in the frontend original):
+//   • Each SflResolveError now carries the offending `block` and, where a
+//     more precise location exists (a composition ref, an endpoint path),
+//     a `range` — so diagnostics can underline the exact span instead of
+//     falling back to the whole block's name.
+//   • `resolveCompositionRef` exposes the scope-chain lookup that
+//     `classifyComposition` already does internally, for hover/definition/
+//     rename on a `: Ref & Ref` composition reference.
 //
 // Resolution rule for a name X in scope S (§10):
 //   1. search S's direct children
@@ -12,7 +17,7 @@
 //   3. dot-path (a.b.c): first segment via 1–2, further segments must be
 //      direct children of the previously resolved container.
 
-import type { SflDocument, SflBlock, BlockKind, SflRange } from './ast';
+import type { SflDocument, SflBlock, SflProperty, BlockKind, SflRange } from './ast';
 
 export interface SflResolveError {
   message: string;
@@ -20,7 +25,7 @@ export interface SflResolveError {
   ref?: string;
   /** The block the error is attached to (added for LSP diagnostics; absent in the frontend original). */
   block?: SflBlock;
-  /** A more precise range than block.nameRange, when one is available (e.g. an endpoint path). */
+  /** A more precise range than block.nameRange, when one is available (a composition ref, an endpoint path). */
   range?: SflRange;
 }
 
@@ -29,19 +34,26 @@ export interface ResolveResult {
   /** Resolve a dot-path from a given block's scope. Undefined if unresolved. */
   resolve: (fromBlock: SflBlock, segments: string[]) => SflBlock | undefined;
   /**
-   * Resolve a `: StyleName` reference from a given block's scope (§9). Unlike
-   * `resolve`, this only walks the scope chain upward (no dot-path descent,
-   * no global fallback — Styles are excluded from the global name index) and
-   * requires the hit to actually be a Style block. Added for LSP features
-   * (hover/definition/rename on style refs); the original resolver only
-   * validated this internally without exposing it.
+   * Resolve a single composition-list reference (`: Ref & Ref`, §8) from a
+   * given block's scope — a scope-chain-only lookup (no dot-path descent, no
+   * global fallback: Style/Layout are excluded from the global name index),
+   * requiring the hit to be a Style or a Layout block. Added for LSP features
+   * (hover/definition/rename on composition refs); the original resolver
+   * only validated this internally via `classifyComposition`.
    */
-  resolveStyleRef: (fromBlock: SflBlock, name: string) => SflBlock | undefined;
+  resolveCompositionRef: (fromBlock: SflBlock, name: string) => SflBlock | undefined;
 }
 
 // `Container` (Frame/Swimlane, §12.1) nests its Groups/Entities and forms its
-// own scope; `Entity` remains a leaf.
-const CONTAINER_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>(['Project', 'Flow', 'Group', 'Container']);
+// own scope; `Entity` remains a leaf. `Layout`/`Style` are leaves like
+// `Entity` (§8, Table 4) and open no scope of their own.
+const CONTAINER_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>(['Project', 'Model', 'Group', 'Container']);
+
+// Required-field rules per block kind (§14, Table 8), checked directly on a
+// block's own properties — this is validation, not name resolution.
+const ENTITY_CONTENT_KEYS = ['text', 'kind', 'asset'] as const;
+
+const NON_GLOBAL_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>(['Style', 'Layout', 'Columns', 'Column', 'Rows', 'Row']);
 
 interface Scope {
   block?: SflBlock;               // undefined for the document root
@@ -63,7 +75,7 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
   // ── Phase A: build the scope tree, catch duplicate names ────────────────
   const build = (blocks: SflBlock[], scope: Scope) => {
     for (const block of blocks) {
-      if (block.kind !== 'Style' && !globalByName.has(block.name)) globalByName.set(block.name, block);
+      if (!NON_GLOBAL_KINDS.has(block.kind) && !globalByName.has(block.name)) globalByName.set(block.name, block);
       if (scope.childrenByName.has(block.name)) {
         errors.push({
           message: `duplicate name '${block.name}' in the same scope`,
@@ -84,8 +96,8 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
           .map(e => (e as any).block as SflBlock);
         build(nested, child);
       } else {
-        // Non-container blocks (Entity/Link/Style) still belong to this scope
-        // for lookups, but define no inner scope.
+        // Non-container blocks still belong to this scope for lookups, but
+        // define no inner scope.
         scopeOfBlock.set(block, scope);
       }
     }
@@ -102,9 +114,9 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
   };
 
   // scopeOfBlock maps a container block to its OWN inner scope, and a
-  // non-container block (Entity/Link/Style) to the scope it lives in. So a
-  // Link starts its lookup at its owner scope, and a dot-path descends into a
-  // resolved container via that container's inner scope.
+  // non-container block to the scope it lives in. So a Link starts its
+  // lookup at its owner scope, and a dot-path descends into a resolved
+  // container via that container's inner scope.
   const resolve = (fromBlock: SflBlock, segments: string[]): SflBlock | undefined => {
     if (segments.length === 0) return undefined;
     const startScope = scopeOfBlock.get(fromBlock) ?? root;
@@ -123,32 +135,93 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
     return current;
   };
 
+  const refRange = (block: SflBlock, ref: string): SflRange | undefined => {
+    const i = block.composition.indexOf(ref);
+    return i >= 0 ? block.compositionRanges?.[i] : undefined;
+  };
+
   // ── Phase B: validate references ────────────────────────────────────────
-  const styleBlocksByName = collectStylesByName(doc);
+  const styleBlocksByName = collectBlocksByKind(doc, 'Style');
+  const layoutBlocksByName = collectBlocksByKind(doc, 'Layout');
+
+  // Classifies a block's composition-list refs by the target's block kind
+  // (§9: at most one direct Style, at most one direct Layout). A ref that
+  // resolves to neither, or doesn't resolve at all, is an error. Memoized per
+  // block (via `composed`) so cycle detection can reuse the classification
+  // without re-pushing the same errors a second time.
+  const composed = new Map<SflBlock, { styleRef?: string; layoutRef?: string }>();
+  const classifyComposition = (block: SflBlock): { styleRef?: string; layoutRef?: string } => {
+    const cached = composed.get(block);
+    if (cached) return cached;
+    const scope = scopeOfBlock.get(block) ?? root;
+    let styleRef: string | undefined;
+    let layoutRef: string | undefined;
+    for (const ref of block.composition) {
+      const target = lookupFirst(scope, ref);
+      if (!target) {
+        errors.push({ message: `unresolved reference '${ref}' on ${block.kind} '${block.name}'`, ref, block, range: refRange(block, ref) });
+        continue;
+      }
+      if (target.kind === 'Style') {
+        if (styleRef) errors.push({ message: `${block.kind} '${block.name}' references more than one Style ('${styleRef}', '${ref}')`, ref, block, range: refRange(block, ref) });
+        else styleRef = ref;
+      } else if (target.kind === 'Layout') {
+        if (layoutRef) errors.push({ message: `${block.kind} '${block.name}' references more than one Layout ('${layoutRef}', '${ref}')`, ref, block, range: refRange(block, ref) });
+        else layoutRef = ref;
+      } else {
+        errors.push({ message: `reference '${ref}' on ${block.kind} '${block.name}' is neither a Style nor a Layout`, ref, block, range: refRange(block, ref) });
+      }
+    }
+    const result = { styleRef, layoutRef };
+    composed.set(block, result);
+    return result;
+  };
+
   const walkValidate = (blocks: SflBlock[]) => {
     for (const block of blocks) {
-      // Style reference (`: StyleName`) must resolve to a Style.
-      if (block.style) {
-        const target = lookupFirst(scopeOfBlock.get(block) ?? root, block.style);
-        if (!target || target.kind !== 'Style') {
-          errors.push({ message: `unresolved style '${block.style}' on ${block.kind} '${block.name}'`, ref: block.style, block, range: block.styleRange ?? block.nameRange });
+      const { layoutRef } = classifyComposition(block);
+
+      // Group is purely semantic re: GEOMETRY (§11): no Layout reference, no
+      // local layout{} — whoever carries a position/size is a Container. A
+      // Style reference or a local style{} (pure look: color/icon) stays
+      // allowed on Group.
+      if (block.kind === 'Group') {
+        if (layoutRef) {
+          errors.push({ message: `Group '${block.name}' must not reference a Layout — use a Container`, ref: block.name, block, range: refRange(block, layoutRef) ?? block.nameRange });
+        }
+        const localLayout = block.entries.find(e => e.type === 'layout');
+        if (localLayout) {
+          errors.push({ message: `Group '${block.name}' must not have a local layout {} block — use a Container`, ref: block.name, block, range: block.nameRange });
         }
       }
 
       if (block.kind === 'Link') {
+        const props = block.entries.filter(e => e.type === 'property').map(e => (e as any).property as SflProperty);
         for (const key of ['from', 'to'] as const) {
-          const entry = block.entries.find(e => e.type === 'property' && (e as any).property.key === key) as any;
-          const val = entry?.property?.value;
-          if (val && val.type === 'endpoint') {
-            const target = resolve(block, val.segments);
+          const entry = props.find(p => p.key === key);
+          if (!entry) {
+            errors.push({ message: `Link '${block.name}' is missing required '${key}'`, ref: block.name, block, range: block.nameRange });
+            continue;
+          }
+          if (entry.value.type === 'endpoint') {
+            const target = resolve(block, entry.value.segments);
             if (!target) {
-              const ranges: SflRange[] | undefined = val.segmentRanges;
+              const ranges = entry.value.segmentRanges;
               const range = ranges && ranges.length > 0
                 ? { start: ranges[0].start, end: ranges[ranges.length - 1].end }
                 : block.nameRange;
-              errors.push({ message: `Link '${block.name}': ${key} endpoint '${val.segments.join('.')}' does not resolve`, ref: val.segments.join('.'), block, range });
+              errors.push({ message: `Link '${block.name}': ${key} endpoint '${entry.value.segments.join('.')}' does not resolve`, ref: entry.value.segments.join('.'), block, range });
             }
           }
+        }
+      }
+
+      // Required content (§14, Table 8): an Entity needs a name plus at
+      // least one of text/kind/asset so it isn't an anonymous canvas object.
+      if (block.kind === 'Entity') {
+        const props = block.entries.filter(e => e.type === 'property').map(e => (e as any).property as SflProperty);
+        if (!ENTITY_CONTENT_KEYS.some(key => props.some(p => p.key === key))) {
+          errors.push({ message: `Entity '${block.name}' needs at least one of text, kind, or asset`, ref: block.name, block, range: block.nameRange });
         }
       }
 
@@ -159,32 +232,59 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
   walkValidate(doc.blocks);
 
   // Style-inheritance cycles (§9.2): flat single-parent, cycles are an error.
+  // A Style's parent is whichever of its own composition refs resolves to
+  // another Style (`Style FilledPill : BasePill`).
+  const styleParent = (style: SflBlock): SflBlock | undefined => {
+    const { styleRef } = classifyComposition(style);
+    return styleRef ? styleBlocksByName.get(styleRef) : undefined;
+  };
   for (const style of styleBlocksByName.values()) {
     const seen = new Set<string>();
     let cur: SflBlock | undefined = style;
-    while (cur && cur.style) {
+    while (cur) {
       if (seen.has(cur.name)) {
-        errors.push({ message: `style inheritance cycle at '${style.name}'`, ref: style.name, block: style, range: style.styleRange ?? style.nameRange });
+        const { styleRef } = classifyComposition(cur);
+        errors.push({ message: `style inheritance cycle at '${style.name}'`, ref: style.name, block: cur, range: (styleRef ? refRange(cur, styleRef) : undefined) ?? style.nameRange });
         break;
       }
       seen.add(cur.name);
-      cur = styleBlocksByName.get(cur.style);
+      cur = styleParent(cur);
     }
   }
 
-  const resolveStyleRef = (fromBlock: SflBlock, name: string): SflBlock | undefined => {
+  // Layout-inheritance cycles: same shallow single-parent rule as Style, for
+  // symmetry (a Layout may extend one other Layout).
+  const layoutParent = (layout: SflBlock): SflBlock | undefined => {
+    const { layoutRef } = classifyComposition(layout);
+    return layoutRef ? layoutBlocksByName.get(layoutRef) : undefined;
+  };
+  for (const layout of layoutBlocksByName.values()) {
+    const seen = new Set<string>();
+    let cur: SflBlock | undefined = layout;
+    while (cur) {
+      if (seen.has(cur.name)) {
+        const { layoutRef } = classifyComposition(cur);
+        errors.push({ message: `layout inheritance cycle at '${layout.name}'`, ref: layout.name, block: cur, range: (layoutRef ? refRange(cur, layoutRef) : undefined) ?? layout.nameRange });
+        break;
+      }
+      seen.add(cur.name);
+      cur = layoutParent(cur);
+    }
+  }
+
+  const resolveCompositionRef = (fromBlock: SflBlock, name: string): SflBlock | undefined => {
     const target = lookupFirst(scopeOfBlock.get(fromBlock) ?? root, name);
-    return target && target.kind === 'Style' ? target : undefined;
+    return target && (target.kind === 'Style' || target.kind === 'Layout') ? target : undefined;
   };
 
-  return { errors, resolve, resolveStyleRef };
+  return { errors, resolve, resolveCompositionRef };
 }
 
-function collectStylesByName(doc: SflDocument): Map<string, SflBlock> {
+function collectBlocksByKind(doc: SflDocument, kind: BlockKind): Map<string, SflBlock> {
   const map = new Map<string, SflBlock>();
   const walk = (blocks: SflBlock[]) => {
     for (const b of blocks) {
-      if (b.kind === 'Style') map.set(b.name, b);
+      if (b.kind === kind) map.set(b.name, b);
       walk(b.entries.filter(e => e.type === 'block').map(e => (e as any).block as SflBlock));
     }
   };

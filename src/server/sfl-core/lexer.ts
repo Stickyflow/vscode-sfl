@@ -1,8 +1,10 @@
 // packages/vscode-sfl/src/server/sfl-core/lexer.ts
 //
-// Ported verbatim from frontend/src/features/sfl/lexer.ts. No changes needed:
-// Token already carries 1-based line/col, which parser.ts converts to 0-based
-// LSP Ranges at the point of use.
+// Ported from frontend/src/features/sfl-language/sfl/lexer.ts (SFL 1.2 adds
+// four tokens over 1.1: `(`/`)` for endpoint fractions, `;` as an alternative
+// property terminator, and `&` for composition lists). Token already carries
+// 1-based line/col, which parser.ts converts to 0-based LSP Ranges at the
+// point of use.
 //
 // Spec: §4 (lexikalische Struktur), §17 (Grammatik).
 
@@ -14,9 +16,13 @@ export type TokenType =
   | 'rbrace'    // }
   | 'lbracket'  // [
   | 'rbracket'  // ]
+  | 'lparen'    // ( — endpoint fraction, §10/§16
+  | 'rparen'    // )
   | 'colon'     // :
   | 'comma'     // ,
+  | 'semi'      // ; — alternative property separator, §5/§16
   | 'dot'       // .
+  | 'amp'       // & (composition-list separator, §4/§16)
   | 'newline'
   | 'eof';
 
@@ -91,8 +97,12 @@ export function tokenize(input: string): Token[] {
     if (ch === '}') { advance(); tokens.push({ type: 'rbrace', value: '}', line: startLine, col: startCol }); continue; }
     if (ch === '[') { advance(); tokens.push({ type: 'lbracket', value: '[', line: startLine, col: startCol }); continue; }
     if (ch === ']') { advance(); tokens.push({ type: 'rbracket', value: ']', line: startLine, col: startCol }); continue; }
+    if (ch === '(') { advance(); tokens.push({ type: 'lparen', value: '(', line: startLine, col: startCol }); continue; }
+    if (ch === ')') { advance(); tokens.push({ type: 'rparen', value: ')', line: startLine, col: startCol }); continue; }
     if (ch === ':') { advance(); tokens.push({ type: 'colon', value: ':', line: startLine, col: startCol }); continue; }
     if (ch === ',') { advance(); tokens.push({ type: 'comma', value: ',', line: startLine, col: startCol }); continue; }
+    if (ch === ';') { advance(); tokens.push({ type: 'semi', value: ';', line: startLine, col: startCol }); continue; }
+    if (ch === '&') { advance(); tokens.push({ type: 'amp', value: '&', line: startLine, col: startCol }); continue; }
 
     // Strings
     if (ch === '"') {

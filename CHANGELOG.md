@@ -31,6 +31,14 @@ First working version. Not yet published to the Marketplace (`publisher` in
   - Format Document (canonical serialization).
 - Optional file icon theme ("SFL File Icons") showing the StickyFlow logo for
   `.sfl` files.
+- `Table` block kind (§12.1a) — parsing, resolution, highlighting, hover
+  docs, completion, and outline support, including its `Columns`/`Rows`/
+  `Column`/`Row` structure and table-specific `style`/`layout` properties
+  (`showHeader`, `headerFill`, `gridColor`, `gridWidth`, `borderStyle`,
+  `headerRuleStyle`, `rowHeight`). Added after discovering the extension had
+  fallen behind the language: `Table` shipped elsewhere in the repo on
+  2026-07-20/25 and this was the first time anyone checked whether the
+  extension still matched.
 
 ### Known limitations
 

@@ -46,7 +46,10 @@ export interface ResolveResult {
 
 // `Container` (Frame/Swimlane, §12.1) nests its Groups/Entities and forms its
 // own scope; `Entity` remains a leaf. `Layout`/`Style` are leaves like
-// `Entity` (§8, Table 4) and open no scope of their own.
+// `Entity` (§8, Table 4) and open no scope of their own. `Table` (§12.1a) is
+// deliberately excluded too — it holds a fixed Columns/Rows schema, not
+// freely placeable children, so its Column/Row names aren't resolved through
+// this scope mechanism (same treatment as the frontend's resolver.ts).
 const CONTAINER_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>(['Project', 'Model', 'Group', 'Container']);
 
 // Required-field rules per block kind (§14, Table 8), checked directly on a

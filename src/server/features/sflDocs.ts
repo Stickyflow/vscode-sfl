@@ -22,10 +22,11 @@ export const BLOCK_KIND_DOCS: Record<BlockKind, string> = {
   Link: 'Connects two endpoints (`from`/`to`) through stable name references, making the relationship analyzable. May carry `text`, a `condition`, and route/marker styling.',
   Layout: 'A reusable, named bundle of spatial properties (size, rotation, order, …) that other blocks can inherit through their composition list (`: MyLayout`). At most one direct Layout per block.',
   Style: 'A reusable, named bundle of visual properties (shape, fill, stroke, typography, …) that other blocks can inherit through their composition list (`: MyStyle`). At most one direct Style per block; single-parent inheritance via its own composition list.',
-  Columns: 'A grid arrangement of Column children laid out side by side.',
-  Column: 'A single slot within a parent Columns grid.',
-  Rows: 'A grid arrangement of Row children stacked vertically.',
-  Row: 'A single slot within a parent Rows grid.',
+  Table: "A table: its own geometry (`layout`/`style`) like a Container, but a fixed schema instead of freely placeable children — addressable `Columns`/`Rows` structure blocks (§12.1a). Column names are stable column IDs; a Row's own properties are its cell values, keyed by column name. The legacy `Container name { kind: table … }` spelling still parses, but canonical output always uses `Table`.",
+  Columns: 'The column-schema block of a Table — holds named `Column` children.',
+  Column: "A single column of a Table. Its own name is the stable column ID that a Row's cell properties key against.",
+  Rows: 'The data block of a Table — holds `Row` children.',
+  Row: 'A single row of a Table. Its own properties are the cell values, one per Column name.',
 };
 
 interface PropertyDoc {
@@ -83,6 +84,17 @@ export const PROPERTY_DOCS: Record<string, PropertyDoc> = {
   segments: { description: "Explicit routing waypoints/offsets for a Link's path, for manual route overrides." },
   orientation: { description: 'Axis orientation for a Container acting as a swimlane (e.g. horizontal/vertical).', appliesTo: 'Container' },
   lanes: { description: 'Named lane definitions for a swimlane-style Container.', appliesTo: 'Container' },
+
+  // Table (§12.1a)
+  rowHeight: { description: 'Row height for a Table.', appliesTo: 'layout {} on a Table' },
+  width: { description: 'Column width, in the same units as `size`.', appliesTo: 'Column' },
+  showHeader: { description: 'Whether a Table draws its header row.', appliesTo: 'style {}, Style on a Table' },
+  headerFill: { description: "A Table header row's background fill.", appliesTo: 'style {}, Style on a Table' },
+  headerRuleStyle: { description: "The rule line style under a Table's header row (e.g. `solid`, `double`).", appliesTo: 'style {}, Style on a Table' },
+  gridColor: { description: "A Table's cell grid line color.", appliesTo: 'style {}, Style on a Table' },
+  gridWidth: { description: "A Table's cell grid line thickness.", appliesTo: 'style {}, Style on a Table' },
+  borderStyle: { description: "A Table's outer border style (e.g. `solid`, `double`).", appliesTo: 'style {}, Style on a Table' },
+  cellType: { description: 'Legacy: marks a boolean checkbox column. Only read for older Column definitions — new tables use plain text cells and can omit this.', appliesTo: 'Column (legacy)' },
 };
 
 // §12 kind axis (Table 7) — the analytical meaning of each predefined `kind:` value.

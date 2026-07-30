@@ -24,12 +24,17 @@ export interface SflRange {
 // `Container` = spatial container (Frame/Swimlane/…, distinguished via
 // `kind:`); holds grouped or individual Entities. `Entity` remains the leaf.
 // `Layout`/`Style` are reusable, referenceable leaves (§8/§9), like `Entity`.
+// `Table` (§12.1a) has its own geometry like `Container`, but deliberately
+// isn't one: it holds a fixed `Columns`/`Rows` schema instead of freely
+// placeable children, so it's a leaf here too (no scope of its own) — the
+// legacy `Container name { kind: table … }` spelling still parses fine as
+// an ordinary Container, no special-casing needed for it.
 export type BlockKind =
-  | 'Project' | 'Model' | 'Group' | 'Container' | 'Entity' | 'Link' | 'Layout' | 'Style'
+  | 'Project' | 'Model' | 'Group' | 'Container' | 'Table' | 'Entity' | 'Link' | 'Layout' | 'Style'
   | 'Columns' | 'Column' | 'Rows' | 'Row';
 
 export const BLOCK_KINDS: readonly BlockKind[] = [
-  'Project', 'Model', 'Group', 'Container', 'Entity', 'Link', 'Layout', 'Style',
+  'Project', 'Model', 'Group', 'Container', 'Table', 'Entity', 'Link', 'Layout', 'Style',
   'Columns', 'Column', 'Rows', 'Row',
 ];
 

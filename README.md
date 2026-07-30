@@ -17,7 +17,10 @@ Language support for [SFL 1.2](../../docs/SFL/sfl-1.2-spezifikation.md) (`.sfl` 
 - **Language server** (`src/server/`), built on a ported copy of
   [`frontend/src/features/sfl-language/sfl/`](../../frontend/src/features/sfl-language/sfl/)'s
   lexer/parser/resolver/emitter (see `src/server/sfl-core/`), extended to
-  track source ranges:
+  track source ranges. Covers all 13 block kinds, including `Table`
+  (§12.1a — its own geometry, but a fixed `Columns`/`Rows` schema instead of
+  free children; the legacy `Container name { kind: table … }` spelling still
+  parses too):
   - **Diagnostics** — parse errors, unresolved `from:`/`to:` endpoints,
     unresolved composition refs, duplicate names, style/layout-inheritance
     cycles, a Group referencing a Layout (use a Container instead).
@@ -160,7 +163,14 @@ Before running `vsce publish`:
   already used for `backend/app/services/ai/sfl/`. It doesn't re-export from
   `frontend/` to keep this extension fully self-contained; **if the frontend
   parser's grammar changes again (as it did from 1.1 to 1.2), port the change
-  here too** — nothing enforces the two staying in sync automatically.
+  here too** — nothing enforces the two staying in sync automatically. This
+  already happened once for real: the `Table` block kind (§12.1a) shipped in
+  `frontend/`/`backend/`/`packages/stickyflow.js` on 2026-07-20/25 and only
+  reached this extension afterward, once noticed — a real `.sfl` file with a
+  table would have hit "unknown block kind 'Table'" in the meantime. There
+  are now **four** independent SFL parser copies in this repo (frontend,
+  backend, stickyflow.js, this extension); nothing currently catches this
+  class of drift automatically across all of them.
 - Color parity (`configurationDefaults` in `package.json`) ships the app's
   **dark** palette only. `editor.tokenColorCustomizations` has no generic
   "if the active theme is dark" switch — only exact theme-name keys — so a

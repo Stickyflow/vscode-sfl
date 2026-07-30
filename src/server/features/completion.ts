@@ -25,6 +25,7 @@ export const PROPERTY_KEYS = [
   'opacity', 'dash', 'lineHeight', 'letterSpacing', 'shadow', 'orientation', 'lanes',
   'from', 'to', 'condition', 'weight', 'segments', 'route', 'marker', 'markerStart', 'markerEnd',
   'color', 'icon', 'asset', 'parent', 'position', 'size', 'rotation', 'order',
+  'rowHeight', 'width', 'showHeader', 'headerFill', 'headerRuleStyle', 'gridColor', 'gridWidth', 'borderStyle', 'cellType',
 ];
 export const VALUE_SUGGESTIONS: Record<string, string[]> = {
   kind: ['process', 'decision', 'start', 'end', 'note', 'frame', 'swimlane', 'input', 'output'],
@@ -37,7 +38,7 @@ export const VALUE_SUGGESTIONS: Record<string, string[]> = {
   markerEnd: ['none', 'arrow', 'circle', 'diamond'],
 };
 
-const REFERENCEABLE_KINDS: readonly BlockKind[] = ['Project', 'Model', 'Group', 'Container', 'Entity'];
+const REFERENCEABLE_KINDS: readonly BlockKind[] = ['Project', 'Model', 'Group', 'Container', 'Table', 'Entity'];
 
 // Matches a block header up through ':' plus zero or more already-typed
 // `Ref & ` groups, i.e. the cursor sits right where the next composition

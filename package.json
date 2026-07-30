@@ -30,6 +30,9 @@
   "activationEvents": [
     "onLanguage:sfl"
   ],
+  "extensionPack": [
+    "stickyflow-PLACEHOLDER-REPLACE-BEFORE-PUBLISHING.vscode-sfl-preview"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "languages": [

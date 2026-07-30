@@ -39,8 +39,8 @@
       "patterns": [{ "include": "#composition-list" }]
     },
     "block-header-leaf": {
-      "comment": "Entity/Link/Layout/Style — leaf blocks (kw)",
-      "begin": "^\\s*\\b(Entity|Link|Layout|Style)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "comment": "Entity/Link/Layout/Style/Table — leaf blocks (kw). Table (§12.1a) has its own geometry like Container but a fixed Columns/Rows schema, so the app's own highlighter colors it like Entity, not like a container keyword.",
+      "begin": "^\\s*\\b(Entity|Link|Layout|Style|Table)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
       "beginCaptures": {
         "1": { "name": "keyword.control.sfl" },
         "2": { "name": "entity.name.function.sfl" }

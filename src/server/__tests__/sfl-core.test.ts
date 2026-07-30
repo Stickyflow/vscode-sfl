@@ -152,3 +152,78 @@ Group g : Card {
     expect(resolveDocument(reparsed).errors).toEqual([]);
   });
 });
+
+// Table (§12.1a) — added to the language after the initial 1.2 port; a leaf
+// like Entity (its own geometry, but no scope of its own — Column/Row names
+// aren't resolved through the normal container scope mechanism).
+describe('Table (§12.1a)', () => {
+  const TABLE_SAMPLE = `sfl 1.2
+
+Table users {
+  text: "Users"
+
+  Columns schema {
+    Column field {
+      text: "Field"
+      width: 160
+    }
+    Column type {
+      text: "Type"
+      width: 120
+    }
+  }
+
+  Rows data {
+    Row row_1 {
+      field: "id"
+      type: "uuid"
+    }
+  }
+
+  layout {
+    rowHeight: 28
+  }
+
+  style {
+    showHeader: true
+    headerFill: "#f1f5f9"
+    gridColor: "#cbd5e1"
+    gridWidth: 1
+    borderStyle: double
+    headerRuleStyle: double
+  }
+}
+`;
+
+  it('parses the spec example and resolves with zero errors', () => {
+    const doc = parse(TABLE_SAMPLE);
+    const { errors } = resolveDocument(doc);
+    expect(errors).toEqual([]);
+  });
+
+  it('is a leaf: Columns/Rows do not open a resolvable scope for from/to', () => {
+    const doc = parse(TABLE_SAMPLE);
+    const table = doc.blocks.find(b => b.name === 'users')!;
+    expect(table.kind).toBe('Table');
+  });
+
+  it('legacy `Container name { kind: table … }` still parses and resolves cleanly', () => {
+    const legacy = `sfl 1.2
+
+Container users {
+  kind: table
+  text: "Users"
+}
+`;
+    const doc = parse(legacy);
+    const { errors } = resolveDocument(doc);
+    expect(errors).toEqual([]);
+  });
+
+  it('round-trips through emit() without resolver errors on the re-parsed output', () => {
+    const doc = parse(TABLE_SAMPLE);
+    const emitted = emit(doc);
+    const reparsed = parse(emitted);
+    expect(resolveDocument(reparsed).errors).toEqual([]);
+  });
+});

@@ -15,6 +15,7 @@ const SYMBOL_KIND: Record<BlockKind, SymbolKind> = {
   Model: SymbolKind.Module,
   Group: SymbolKind.Package,
   Container: SymbolKind.Struct,
+  Table: SymbolKind.Struct,
   Entity: SymbolKind.Object,
   Link: SymbolKind.Interface,
   Layout: SymbolKind.Struct,

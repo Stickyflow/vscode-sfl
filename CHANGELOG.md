@@ -28,6 +28,8 @@ First working version. Not yet published to the Marketplace (`publisher` in
   - Rename (F2), with identifier/collision validation.
   - Find All References.
   - Outline / document symbols.
+- Bundled with the new `vscode-sfl-preview` extension via `extensionPack`, so
+  installing this extension also installs the diagram preview.
   - Format Document (canonical serialization).
 - Optional file icon theme ("SFL File Icons") showing the StickyFlow logo for
   `.sfl` files.

@@ -1,0 +1,47 @@
+sfl 1.2
+ 
+Model M {
+  Table t {
+    text: "users"
+    Columns cols {
+      Column field {
+        text: "Field"
+        width: 150
+      }
+      Column type {
+        text: "Type"
+        width: 110
+      }
+      Column pk {
+        text: "PK"
+        cellType: boolean
+        width: 60
+      }
+    }
+    Rows rows {
+      Row row1 {
+        field: "id"
+        type: "uuid"
+        pk: true
+      }
+      Row row2 {
+        field: "email"
+        type: "text"
+        pk: false
+      }
+    }
+    style {
+      fill: "#ffffff"
+      stroke: "#475569"
+      strokeWidth: 1
+      textColor: "#0f172a"
+      headerFill: "#f1f5f9"
+      gridColor: "#cbd5e1"
+    }
+    layout {
+      position: 0, 0
+      size: 320, 100
+    }
+  }
+}
+ 

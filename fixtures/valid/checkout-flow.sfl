@@ -1,0 +1,125 @@
+sfl 1.2
+
+Style FolderGroup {
+  color: "#449b2e"
+  icon: folder
+}
+
+Style BasePill {
+  shape: pill
+  stroke: "#d9ff00"
+}
+
+Style FilledPill : BasePill {
+  fill: "#d9ff00"
+  textColor: "#000000"
+}
+
+Style OutlinePill : BasePill {
+  fill: none
+  textColor: "#d9ff00"
+}
+
+Style DecisionPill : BasePill {
+  shape: diamond
+  fill: none
+}
+
+Style FlowLink {
+  route: orthogonal
+  stroke: "#d9ff00"
+  markerStart: circle
+  markerEnd: arrow
+}
+
+Model checkout {
+  text: "Checkout Flow"
+
+  caption: "Userflow für den Checkout.\nZeigt Warenkorb, Prüfung und Übergabe an die Lieferung."
+
+  Group cart : FolderGroup {
+    text: "Warenkorb"
+    tags: ["checkout", "cart"]
+
+    Entity add_products : FilledPill {
+      kind: process
+      text: "Produkte hinzufügen"
+
+      layout {
+        position: 100, 100
+        size: 240, 80
+      }
+    }
+
+    Link add_to_load : FlowLink {
+      from: add_products, bottom (0.5)
+      to: load_cart, top (0.5)
+      text: "automatisch"
+    }
+
+    Entity load_cart : OutlinePill {
+      kind: process
+      text: "Warenkorb laden"
+
+      layout {
+        position: 100, 240
+        size: 240, 80
+      }
+    }
+  }
+
+  Link cart_to_check : FlowLink {
+    from: cart.load_cart, right (0.5)
+    to: delivery.check_cart, left (0.5)
+  }
+
+  Group delivery : FolderGroup {
+    text: "Lieferung"
+
+    Entity check_cart : DecisionPill {
+      kind: decision
+      text: "Warenkorb gültig?"
+
+      layout {
+        position: 460, 240
+        size: 200, 100
+      }
+    }
+
+    Link if_valid : FlowLink {
+      from: check_cart, bottom (0.5)
+      to: enter_address, top (0.5)
+      condition: "gültig"
+    }
+
+    Link if_invalid : FlowLink {
+      from: check_cart, right (0.5)
+      to: rejected, left (0.5)
+      condition: "ungültig"
+    }
+
+    Entity enter_address : OutlinePill {
+      kind: input
+      text: "Lieferadresse eingeben"
+
+      layout {
+        position: 460, 400
+        size: 240, 80
+      }
+    }
+
+    Entity rejected : FilledPill {
+      kind: end
+      text: "Keine Lieferung möglich"
+
+      style {
+        fill: "#ff0000"
+      }
+
+      layout {
+        position: 760, 240
+        size: 240, 80
+      }
+    }
+  }
+}

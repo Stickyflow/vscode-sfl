@@ -1,0 +1,49 @@
+sfl 1.2
+
+Model value_kinds {
+  text: "Value kind coverage"
+
+  caption: """
+  Deckt jeden Wert-Typ aus §7/§17 ab: string, multiline string, tuple, list,
+  number, path/keyword, endpoint mit und ohne side/fraction.
+  """
+
+  Group container_a {
+    tags: ["alpha", "beta", "gamma"]
+
+    Entity source_node {
+      kind: component
+      text: "Quelle"
+
+      layout {
+        position: 0, 0
+        size: 200, 100
+        rotation: 15
+      }
+    }
+
+    Entity target_node {
+      kind: component
+
+      style {
+        shape: cart.load_cart
+      }
+
+      layout {
+        position: 300, 0
+      }
+    }
+
+    Link explicit_endpoint {
+      from: source_node, right (0.75)
+      to: target_node, left
+      text: "mit Seite und Bruch"
+    }
+
+    Link bare_endpoint {
+      from: source_node
+      to: target_node
+      text: "ohne Seite"
+    }
+  }
+}

@@ -11,7 +11,7 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-const fixturePath = path.resolve(__dirname, '../../../../../fixtures/valid/checkout-flow.sfl');
+const fixturePath = path.resolve(__dirname, '../../../fixtures/valid/checkout-flow.sfl');
 
 async function waitFor<T>(get: () => T | Thenable<T>, ok: (value: T) => boolean, timeoutMs = 10000): Promise<T> {
   const start = Date.now();

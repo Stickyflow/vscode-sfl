@@ -17,9 +17,9 @@ async function main() {
   try {
     const extensionDevelopmentPath = path.resolve(__dirname, '../../');
     const extensionTestsPath = path.resolve(__dirname, './suite/index');
-    // Open the repo's shared fixtures as the test workspace — real, valid
+    // Open this repo's own fixtures as the test workspace — real, valid
     // SFL 1.2 documents already used by the unit tests.
-    const workspacePath = path.resolve(__dirname, '../../../../fixtures/valid');
+    const workspacePath = path.resolve(__dirname, '../../fixtures/valid');
 
     await runTests({
       extensionDevelopmentPath,

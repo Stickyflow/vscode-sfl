@@ -1,4 +1,4 @@
-// Round-trips the repo's shared fixtures/valid/*.sfl documents through the
+// Round-trips this repo's own fixtures/valid/*.sfl documents through the
 // ported parser + resolver: every fixture must parse cleanly and resolve
 // with zero errors, and the declaration/reference ranges the LSP features
 // depend on must actually be populated.
@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { parse, resolveDocument, emit } from '../sfl-core';
 
-const fixturesDir = path.join(__dirname, '../../../../../fixtures/valid');
+const fixturesDir = path.join(__dirname, '../../../fixtures/valid');
 const fixtureFiles = fs.readdirSync(fixturesDir).filter(f => f.endsWith('.sfl'));
 
 describe('sfl-core against fixtures/valid', () => {

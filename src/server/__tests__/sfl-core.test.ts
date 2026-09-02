@@ -61,6 +61,120 @@ describe('sfl-core against fixtures/valid', () => {
   });
 });
 
+// fixtures/sfl-1.4/ holds valid SFL *1.4* documents using block kinds not yet
+// ported into src/server/sfl-core/ — currently `Symbol`/`Port` (needs
+// entity.port endpoint resolution) and `Path`. parse() still throws on them.
+// The Chart kinds (`Chart`/`Axis`/`Series`/`Rule`) HAVE been ported, so their
+// fixtures moved into fixtures/valid/ and are covered by the zero-error sweep
+// above. This block is a reminder: when the remaining kinds are added to
+// BLOCK_KINDS in ast.ts (+ scope rules in resolver.ts), these flip red — the
+// cue to move the files into fixtures/valid/ and delete this describe. See
+// that folder's README.md.
+describe('fixtures/sfl-1.4 (SFL 1.4 kinds not ported yet — Symbol/Port/Path)', () => {
+  const dir = path.join(__dirname, '../../../fixtures/sfl-1.4');
+  const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.sfl')) : [];
+
+  it('has sample files', () => {
+    expect(files.length).toBeGreaterThan(0);
+  });
+
+  for (const file of files) {
+    it(`${file}: not parseable by the ported grammar yet`, () => {
+      const text = fs.readFileSync(path.join(dir, file), 'utf8');
+      expect(() => parse(text)).toThrow();
+    });
+  }
+});
+
+// Chart (SFL 1.4 §5.4) — added to the ported grammar after Table. Chart carries
+// its own geometry like a Container but a fixed Axis/Series/Rule schema, so it
+// (and its three child kinds) are leaves: no resolvable scope, and their names
+// stay out of the global bare-name index. `Rule` (§5.4.8) is a reference line,
+// distinct from Axis/Series. See also fixtures/valid/chart-bar.sfl + chart-pie.sfl.
+describe('Chart (SFL 1.4 §5.4)', () => {
+  const CHART_SAMPLE = `sfl 1.2
+
+Model board {
+  Chart revenue {
+    text: "Revenue"
+    type: bar
+    stacked: true
+
+    Axis x {
+      categories: ["Q1", "Q2", "Q3", "Q4"]
+    }
+    Axis y {
+      min: 0
+      max: 100
+      step: 10
+      unit: "k€"
+      label: "Net"
+    }
+
+    Series product_a {
+      color: "#7c3aed"
+      label: "Product A"
+      values: [10, 20, 35, 40]
+    }
+    Series product_b {
+      label: "Product B"
+      values: [30, 5, 15, 25]
+      error: [3, none, 4, 2]
+    }
+
+    Rule target {
+      at: 60
+      text: "Target"
+      color: "#ef4444"
+    }
+
+    layout {
+      position: 0, 0
+      size: 480, 300
+    }
+    style {
+      fill: "#f8fafc"
+      gridColor: "#e2e8f0"
+    }
+  }
+}
+`;
+
+  it('parses a Chart with Axis/Series/Rule children and resolves with zero errors', () => {
+    const doc = parse(CHART_SAMPLE);
+    const { errors } = resolveDocument(doc);
+    expect(errors).toEqual([]);
+  });
+
+  it('recognizes Chart/Axis/Series/Rule as block kinds (not properties)', () => {
+    const doc = parse(CHART_SAMPLE);
+    const chart = doc.blocks[0].entries.find(e => e.type === 'block' && e.block.kind === 'Chart');
+    expect(chart && chart.type === 'block').toBe(true);
+    const childKinds = chart && chart.type === 'block'
+      ? chart.block.entries.filter(e => e.type === 'block').map(e => (e as any).block.kind).sort()
+      : [];
+    expect(childKinds).toEqual(['Axis', 'Axis', 'Rule', 'Series', 'Series']);
+  });
+
+  it('is a leaf: a Chart opens no scope, so its child names stay out of the global index', () => {
+    // `Series product_a` must NOT become resolvable as a bare `from:`/`to:` target.
+    const withBadLink = CHART_SAMPLE.replace(
+      '  }\n}\n',
+      '  }\n\n  Link l {\n    from: product_a\n    to: product_b\n  }\n}\n',
+    );
+    const doc = parse(withBadLink);
+    const { errors } = resolveDocument(doc);
+    expect(errors.some(e => /does not resolve/.test(e.message))).toBe(true);
+  });
+
+  it('round-trips through emit() without resolver errors on the re-parsed output', () => {
+    const doc = parse(CHART_SAMPLE);
+    const emitted = emit(doc);
+    const reparsed = parse(emitted);
+    expect(resolveDocument(reparsed).errors).toEqual([]);
+  });
+});
+
 // These exercise the SFL 1.2 grammar additions specifically (§8/§10/§16),
 // not just "old 1.1-shaped tests still happen to pass" — composition lists
 // with '&', a reusable Layout block, a local style{} sub-block, the new

@@ -29,13 +29,22 @@ export interface SflRange {
 // placeable children, so it's a leaf here too (no scope of its own) — the
 // legacy `Container name { kind: table … }` spelling still parses fine as
 // an ordinary Container, no special-casing needed for it.
+// `Chart` (SFL 1.4 §5.4) is the same shape as `Table`: its own geometry, but
+// a fixed schema of `Axis` / `Series` / `Rule` child blocks rather than free
+// content — so `Chart` and its three child kinds are all leaves here too (no
+// scope of their own; nothing resolves a name through a Chart). `Rule` is a
+// reference line (§5.4.8), distinct from `Axis`/`Series`. This mirrors
+// `stickyflow.js`'s own `src/sfl/ast.ts`; `Symbol`/`Port`/`Path`/`Net` from
+// the same 1.4 batch are not ported yet (see fixtures/sfl-1.4/README.md).
 export type BlockKind =
   | 'Project' | 'Model' | 'Group' | 'Container' | 'Table' | 'Entity' | 'Link' | 'Layout' | 'Style'
-  | 'Columns' | 'Column' | 'Rows' | 'Row';
+  | 'Columns' | 'Column' | 'Rows' | 'Row'
+  | 'Chart' | 'Axis' | 'Series' | 'Rule';
 
 export const BLOCK_KINDS: readonly BlockKind[] = [
   'Project', 'Model', 'Group', 'Container', 'Table', 'Entity', 'Link', 'Layout', 'Style',
   'Columns', 'Column', 'Rows', 'Row',
+  'Chart', 'Axis', 'Series', 'Rule',
 ];
 
 export type Side = 'top' | 'bottom' | 'left' | 'right';

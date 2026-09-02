@@ -17,10 +17,12 @@ Language support for [SFL 1.2](../../docs/SFL/sfl-1.2-spezifikation.md) (`.sfl` 
 - **Language server** (`src/server/`), built on a ported copy of
   [`frontend/src/features/sfl-language/sfl/`](../../frontend/src/features/sfl-language/sfl/)'s
   lexer/parser/resolver/emitter (see `src/server/sfl-core/`), extended to
-  track source ranges. Covers all 13 block kinds, including `Table`
+  track source ranges. Covers 17 block kinds — the SFL 1.2 set plus `Table`
   (§12.1a — its own geometry, but a fixed `Columns`/`Rows` schema instead of
   free children; the legacy `Container name { kind: table … }` spelling still
-  parses too):
+  parses too) and the SFL 1.4 `Chart` / `Axis` / `Series` / `Rule` chart
+  kinds (§5.4). `Symbol` / `Port` / `Path` from the 1.4 batch are not ported
+  yet — see `fixtures/sfl-1.4/README.md`.
   - **Diagnostics** — parse errors, unresolved `from:`/`to:` endpoints,
     unresolved composition refs, duplicate names, style/layout-inheritance
     cycles, a Group referencing a Layout (use a Container instead).

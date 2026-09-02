@@ -1,0 +1,19 @@
+sfl 1.4
+
+Symbol OpAmp {
+  points: [[0, 0], [1, 0.5], [0, 1]]
+
+  Port in_plus  { at: 0, 0.25 }
+  Port in_minus { at: 0, 0.75 }
+  Port out      { at: 1, 0.5 }
+}
+
+Model board {
+  Entity amp1 { shape: OpAmp; layout { position: 0, 0; size: 100, 60 } }
+  Entity amp2 { shape: OpAmp; layout { position: 300, 0; size: 100, 60 } }
+
+  Link feedback {
+    from: amp1.out
+    to: amp2.in_minus
+  }
+}

@@ -27,6 +27,10 @@ export const BLOCK_KIND_DOCS: Record<BlockKind, string> = {
   Column: "A single column of a Table. Its own name is the stable column ID that a Row's cell properties key against.",
   Rows: 'The data block of a Table — holds `Row` children.',
   Row: 'A single row of a Table. Its own properties are the cell values, one per Column name.',
+  Chart: "A data chart (SFL 1.4 §5.4): its own geometry (`layout`/`style`) like a Container, but a fixed schema of `Axis`, `Series`, and `Rule` child blocks instead of freely placeable content. `type:` picks the chart form (`bar`, `line`, `pie`, `scatter`, …); `stacked: true` stacks a bar/area chart's series.",
+  Axis: "An axis of a `Chart` (SFL 1.4), conventionally named `x` / `y`. Carries either `categories` (an ordered label list) or a numeric range (`min`, `max`, `step`), plus an optional `unit` and `label`.",
+  Series: "One data series of a `Chart` (SFL 1.4): `values` (a number list, one per category), a `label`, an optional `color`, and optional per-point `error` magnitudes.",
+  Rule: "A reference line on a `Chart` (SFL 1.4 §5.4.8) — a labelled threshold drawn `at:` a given axis value. A distinct leaf kind from `Axis` and `Series`.",
 };
 
 interface PropertyDoc {
@@ -84,6 +88,19 @@ export const PROPERTY_DOCS: Record<string, PropertyDoc> = {
   segments: { description: "Explicit routing waypoints/offsets for a Link's path, for manual route overrides." },
   orientation: { description: 'Axis orientation for a Container acting as a swimlane (e.g. horizontal/vertical).', appliesTo: 'Container' },
   lanes: { description: 'Named lane definitions for a swimlane-style Container.', appliesTo: 'Container' },
+
+  // Chart (SFL 1.4 §5.4)
+  type: { description: "The chart form for a `Chart` — one of `bar`, `line`, `scatter`, `radar`, `radial`, `field`, `heatmap`, `boxplot`, `sankey`, `treemap`, `mekko`, `hexbin`, `pie`, `matrix`, `grid`, `custom`.", appliesTo: 'Chart' },
+  stacked: { description: 'Whether a bar/area `Chart` stacks its series instead of drawing them side by side.', appliesTo: 'Chart' },
+  categories: { description: 'The ordered category labels for a categorical `Axis` (e.g. a bar chart\'s x-axis).', appliesTo: 'Axis' },
+  min: { description: 'Lower bound of a numeric `Axis`.', appliesTo: 'Axis' },
+  max: { description: 'Upper bound of a numeric `Axis`.', appliesTo: 'Axis' },
+  step: { description: 'Tick interval of a numeric `Axis`.', appliesTo: 'Axis' },
+  unit: { description: 'Unit suffix shown on a numeric `Axis`\'s tick labels (e.g. `"k€"`).', appliesTo: 'Axis' },
+  label: { description: 'The visible label of an `Axis` or a `Series`.', appliesTo: 'Axis, Series' },
+  values: { description: 'The data points of a `Series` — a list of numbers, one per category.', appliesTo: 'Series' },
+  error: { description: 'Per-point error-bar magnitudes for a `Series`, aligned with `values`; `none` skips a point.', appliesTo: 'Series' },
+  at: { description: 'The axis value a `Rule` reference line is drawn at.', appliesTo: 'Rule' },
 
   // Table (§12.1a)
   rowHeight: { description: 'Row height for a Table.', appliesTo: 'layout {} on a Table' },

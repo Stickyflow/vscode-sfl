@@ -41,6 +41,18 @@ First working version. Not yet published to the Marketplace (`publisher` in
   fallen behind the language: `Table` shipped elsewhere in the repo on
   2026-07-20/25 and this was the first time anyone checked whether the
   extension still matched.
+- `Chart` block kind (SFL 1.4 §5.4) and its `Axis` / `Series` / `Rule` child
+  kinds — parsing, resolution, highlighting, hover docs, completion, and
+  outline support. `Chart` carries its own geometry like a `Container` but a
+  fixed schema, so it (like `Table`) opens no resolvable scope; `Axis` /
+  `Series` / `Rule` names stay out of the global reference index. Adds the
+  chart property vocabulary (`type`, `stacked`, `categories`, `min` / `max` /
+  `step`, `unit`, `label`, `values`, `error`, `at`) and the `type:` value
+  list (`bar`, `line`, `pie`, `scatter`, …). Real `.sfl` chart files
+  previously hit `expected ':'` / `unknown block kind` in the editor while
+  rendering fine in the preview (which runs the up-to-date `stickyflow.js`
+  parser). `Symbol` / `Port` / `Path` from the same 1.4 batch are still not
+  ported — see `fixtures/sfl-1.4/README.md`.
 
 ### Known limitations
 

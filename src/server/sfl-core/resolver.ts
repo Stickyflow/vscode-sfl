@@ -50,13 +50,22 @@ export interface ResolveResult {
 // deliberately excluded too — it holds a fixed Columns/Rows schema, not
 // freely placeable children, so its Column/Row names aren't resolved through
 // this scope mechanism (same treatment as the frontend's resolver.ts).
+// `Chart` (SFL 1.4 §5.4) is excluded for the same reason: its Axis/Series/Rule
+// children are a fixed schema, never referenced by a dot-path or a from/to
+// endpoint, so a Chart opens no resolvable scope either.
 const CONTAINER_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>(['Project', 'Model', 'Group', 'Container']);
 
 // Required-field rules per block kind (§14, Table 8), checked directly on a
 // block's own properties — this is validation, not name resolution.
 const ENTITY_CONTENT_KEYS = ['text', 'kind', 'asset'] as const;
 
-const NON_GLOBAL_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>(['Style', 'Layout', 'Columns', 'Column', 'Rows', 'Row']);
+// Kinds kept out of the global bare-name index: structural children that are
+// only ever addressed positionally within their parent, never as a standalone
+// `from:`/`to:` target or dot-path root. `Axis`/`Series`/`Rule` (SFL 1.4
+// Chart children) join `Table`'s Columns/Rows structure blocks here.
+const NON_GLOBAL_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>([
+  'Style', 'Layout', 'Columns', 'Column', 'Rows', 'Row', 'Axis', 'Series', 'Rule',
+]);
 
 interface Scope {
   block?: SflBlock;               // undefined for the document root

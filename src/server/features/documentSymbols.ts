@@ -28,6 +28,11 @@ const SYMBOL_KIND: Record<BlockKind, SymbolKind> = {
   Axis: SymbolKind.Field,
   Series: SymbolKind.Array,
   Rule: SymbolKind.Field,
+  Path: SymbolKind.Object,
+  Symbol: SymbolKind.Class,
+  Port: SymbolKind.Field,
+  Net: SymbolKind.Interface,
+  Footer: SymbolKind.Field,
 };
 
 function detailFor(block: SflBlock): string | undefined {

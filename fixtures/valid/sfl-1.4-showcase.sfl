@@ -1,0 +1,93 @@
+sfl 1.4
+
+// Every SFL 1.4 block kind the language server now knows, in one document —
+// also usable as a manual render check in the preview / Extension Dev Host.
+
+Style Chip {
+  shape: rounded_rectangle
+  fill: "#eef2ff"
+  stroke: "#4338ca"
+}
+
+// A Symbol carries only geometry — the instance's own style paints it.
+Style OpAmpBody {
+  fill: "#c7d2fe"
+  stroke: "#4338ca"
+  strokeWidth: 2
+}
+
+// §5.5 Symbol — a reusable named shape, referenced as the value of `shape:`.
+Symbol OpAmp {
+  points: [[0, 0], [1, 0.5], [0, 1]]
+  tension: 0
+
+  // §3.5 Port — named connection points, addressed as `entity.portName`.
+  Port in_plus { at: 0, 0.25 }
+  Port in_minus { at: 0, 0.75 }
+  Port out { at: 1, 0.5 }
+}
+
+Model schematic {
+  text: "SFL 1.4 showcase"
+
+  Entity amp1 : OpAmpBody {
+    shape: OpAmp
+    layout { position: 40, 40; size: 120, 80 }
+  }
+
+  Entity amp2 : OpAmpBody {
+    shape: OpAmp
+    layout { position: 320, 40; size: 120, 80 }
+  }
+
+  Entity sink : Chip {
+    kind: end
+    text: "Output"
+    layout { position: 600, 60; size: 140, 60 }
+  }
+
+  // §3.5 named-port endpoints — `amp1.out` resolves to the Port on OpAmp.
+  Link fb { from: amp1.out; to: amp2.in_minus; text: "feedback" }
+  Link drive { from: amp2.out; to: sink, left (0.5) }
+
+  // §3.5 Net — one multi-terminal net instead of N-1 hand-written links.
+  Net gnd {
+    members: [amp1, amp2, sink]
+    text: "GND"
+  }
+
+  // §3.3 Path — a freeform closed shape carrying a scalar value.
+  Path region {
+    points: [[40, 200], [440, 200], [440, 320], [40, 320]]
+    closed: true
+    value: 12.5
+    style { fill: "#fee2e2"; stroke: "#ef4444" }
+  }
+
+  // §5.4 Chart — its own geometry, a fixed Axis/Series/Rule schema.
+  Chart load {
+    text: "Load"
+    type: bar
+    Axis x { categories: ["Q1", "Q2", "Q3"] }
+    Axis y { min: 0; max: 100; step: 20; unit: "%" }
+    Series a { label: "amp1"; values: [30, 55, 70] }
+    Series b { label: "amp2"; values: [20, 40, 65] }
+    Rule limit { at: 90; text: "max"; color: "#ef4444" }
+    layout { position: 520, 200; size: 320, 200 }
+  }
+
+  // §12.1a Table with a §3.6 Footer summary row.
+  Table budget {
+    text: "Budget"
+    Columns cols {
+      Column item { text: "Item"; width: 160 }
+      Column cost { text: "Cost"; width: 90 }
+    }
+    Rows rows {
+      Row parts { item: "Parts"; cost: "40" }
+      Row build { item: "Build"; cost: "60" }
+    }
+    Footer total { item: "Total"; cost: "100" }
+    layout { position: 40, 360; size: 260, 160 }
+  }
+}

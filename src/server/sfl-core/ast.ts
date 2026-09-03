@@ -33,18 +33,32 @@ export interface SflRange {
 // a fixed schema of `Axis` / `Series` / `Rule` child blocks rather than free
 // content — so `Chart` and its three child kinds are all leaves here too (no
 // scope of their own; nothing resolves a name through a Chart). `Rule` is a
-// reference line (§5.4.8), distinct from `Axis`/`Series`. This mirrors
-// `stickyflow.js`'s own `src/sfl/ast.ts`; `Symbol`/`Port`/`Path`/`Net` from
-// the same 1.4 batch are not ported yet (see fixtures/sfl-1.4/README.md).
+// reference line (§5.4.8), distinct from `Axis`/`Series`.
+//
+// The rest of the SFL 1.4 batch, mirroring `stickyflow.js`'s own
+// `src/sfl/language/ast.ts`:
+//   • `Path` (§3.3) — a freeform named shape (`points` / `closed` / `value`),
+//     a leaf like `Entity` and, like it, a valid `from:`/`to:` endpoint.
+//   • `Symbol` (§5.5) — a reusable named shape referenced as the *value* of
+//     `shape:` (not via a `:` composition list); holds `Port` children. Leaf.
+//   • `Port` (§3.5) — a named connection point inside a `Symbol`, addressed as
+//     `entity.portName` on a Link endpoint (the entity's `shape:` points at
+//     the Symbol). Leaf.
+//   • `Net` (§3.5, "pattern C") — a multi-terminal net authored once instead
+//     of N-1 Links; `members` is a bare-name list. Parse-only, leaf.
+//   • `Footer` (§3.6) — a Table summary row, sibling to `Rows`, cell values
+//     keyed by Column name like a `Row`. Leaf.
 export type BlockKind =
   | 'Project' | 'Model' | 'Group' | 'Container' | 'Table' | 'Entity' | 'Link' | 'Layout' | 'Style'
   | 'Columns' | 'Column' | 'Rows' | 'Row'
-  | 'Chart' | 'Axis' | 'Series' | 'Rule';
+  | 'Chart' | 'Axis' | 'Series' | 'Rule'
+  | 'Path' | 'Symbol' | 'Port' | 'Net' | 'Footer';
 
 export const BLOCK_KINDS: readonly BlockKind[] = [
   'Project', 'Model', 'Group', 'Container', 'Table', 'Entity', 'Link', 'Layout', 'Style',
   'Columns', 'Column', 'Rows', 'Row',
   'Chart', 'Axis', 'Series', 'Rule',
+  'Path', 'Symbol', 'Port', 'Net', 'Footer',
 ];
 
 export type Side = 'top' | 'bottom' | 'left' | 'right';

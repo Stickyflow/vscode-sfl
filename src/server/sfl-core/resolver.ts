@@ -52,19 +52,27 @@ export interface ResolveResult {
 // this scope mechanism (same treatment as the frontend's resolver.ts).
 // `Chart` (SFL 1.4 §5.4) is excluded for the same reason: its Axis/Series/Rule
 // children are a fixed schema, never referenced by a dot-path or a from/to
-// endpoint, so a Chart opens no resolvable scope either.
+// endpoint, so a Chart opens no resolvable scope either. `Symbol` (§5.5) is
+// likewise a leaf: its `Port` children are reached through named-port endpoint
+// resolution below, not a dot-path descent through the Symbol.
 const CONTAINER_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>(['Project', 'Model', 'Group', 'Container']);
 
 // Required-field rules per block kind (§14, Table 8), checked directly on a
-// block's own properties — this is validation, not name resolution.
-const ENTITY_CONTENT_KEYS = ['text', 'kind', 'asset'] as const;
+// block's own properties — this is validation, not name resolution. `shape`
+// joins the set for SFL 1.4: an entity that only carries `shape:` (a built-in
+// shape, or the name of a `Symbol`) is a real canvas object, not an anonymous
+// one — matches stickyflow.js, where `Entity a { shape: OpAmp }` is valid.
+const ENTITY_CONTENT_KEYS = ['text', 'kind', 'asset', 'shape'] as const;
 
 // Kinds kept out of the global bare-name index: structural children that are
 // only ever addressed positionally within their parent, never as a standalone
 // `from:`/`to:` target or dot-path root. `Axis`/`Series`/`Rule` (SFL 1.4
-// Chart children) join `Table`'s Columns/Rows structure blocks here.
+// Chart children) and `Symbol`/`Port`/`Net`/`Footer` (the rest of the 1.4
+// batch) join `Table`'s Columns/Rows structure blocks here. `Path` is *not*
+// listed — it is a freeform shape and a valid link endpoint, like `Entity`.
 const NON_GLOBAL_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>([
-  'Style', 'Layout', 'Columns', 'Column', 'Rows', 'Row', 'Axis', 'Series', 'Rule',
+  'Style', 'Layout', 'Columns', 'Column', 'Rows', 'Row',
+  'Axis', 'Series', 'Rule', 'Symbol', 'Port', 'Net', 'Footer',
 ]);
 
 interface Scope {
@@ -155,6 +163,29 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
   // ── Phase B: validate references ────────────────────────────────────────
   const styleBlocksByName = collectBlocksByKind(doc, 'Style');
   const layoutBlocksByName = collectBlocksByKind(doc, 'Layout');
+  const symbolBlocksByName = collectBlocksByKind(doc, 'Symbol');
+
+  // Named-port endpoint (§3.5): `entity.portName` — the last segment names a
+  // `Port` on the `Symbol` that the entity's `shape:` points at. It is a
+  // dot-path, so it never reaches resolve()'s container descent (an Entity
+  // opens no scope). Mirrors stickyflow.js's linkEndpointReader: only the last
+  // two segments matter, so `board.amp1.out` works the same as `amp1.out`.
+  const isNamedPortEndpoint = (segments: string[]): boolean => {
+    if (segments.length < 2) return false;
+    const portName = segments[segments.length - 1];
+    const entity = globalByName.get(segments[segments.length - 2]);
+    if (entity?.kind !== 'Entity') return false;
+    for (const entry of entity.entries) {
+      if (entry.type !== 'property' || entry.property.key !== 'shape') continue;
+      const value = entry.property.value;
+      if (value.type !== 'ident') continue;
+      const symbol = symbolBlocksByName.get(value.segments[0]);
+      if (symbol?.entries.some(e => e.type === 'block' && e.block.kind === 'Port' && e.block.name === portName)) {
+        return true;
+      }
+    }
+    return false;
+  };
 
   // Classifies a block's composition-list refs by the target's block kind
   // (§9: at most one direct Style, at most one direct Layout). A ref that
@@ -217,7 +248,7 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
           }
           if (entry.value.type === 'endpoint') {
             const target = resolve(block, entry.value.segments);
-            if (!target) {
+            if (!target && !isNamedPortEndpoint(entry.value.segments)) {
               const ranges = entry.value.segmentRanges;
               const range = ranges && ranges.length > 0
                 ? { start: ranges[0].start, end: ranges[ranges.length - 1].end }

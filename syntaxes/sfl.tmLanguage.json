@@ -28,8 +28,8 @@
       }
     },
     "block-header-container": {
-      "comment": "Project/Model/Group/Container/Chart — blocks that may contain nested blocks (kwc). Chart (SFL 1.4 §5.4) nests Axis/Series/Rule.",
-      "begin": "^\\s*\\b(Project|Model|Group|Container|Chart)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "comment": "Project/Model/Group/Container/Chart/Symbol — blocks that may contain nested blocks (kwc). Chart (SFL 1.4 §5.4) nests Axis/Series/Rule; Symbol (§5.5) nests Port.",
+      "begin": "^\\s*\\b(Project|Model|Group|Container|Chart|Symbol)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
       "beginCaptures": {
         "1": { "name": "keyword.control.container.sfl" },
         "2": { "name": "entity.name.function.sfl" }
@@ -39,8 +39,8 @@
       "patterns": [{ "include": "#composition-list" }]
     },
     "block-header-leaf": {
-      "comment": "Entity/Link/Layout/Style/Table/Axis/Series/Rule — leaf blocks (kw). Table (§12.1a) and Axis/Series/Rule (SFL 1.4 §5.4, the Chart child kinds) hold a fixed schema rather than free children, so they're colored like Entity, not like a container keyword.",
-      "begin": "^\\s*\\b(Entity|Link|Layout|Style|Table|Axis|Series|Rule)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "comment": "Entity/Link/Layout/Style/Table/Axis/Series/Rule/Path/Net/Port/Footer — leaf blocks (kw). Table, the Chart child kinds, and the rest of the SFL 1.4 batch (Path §3.3, Net §3.5, Port §3.5, Footer §3.6) hold a fixed schema or no children rather than free content, so they're colored like Entity, not like a container keyword.",
+      "begin": "^\\s*\\b(Entity|Link|Layout|Style|Table|Axis|Series|Rule|Path|Net|Port|Footer)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
       "beginCaptures": {
         "1": { "name": "keyword.control.sfl" },
         "2": { "name": "entity.name.function.sfl" }

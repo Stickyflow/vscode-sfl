@@ -51,8 +51,17 @@ First working version. Not yet published to the Marketplace (`publisher` in
   list (`bar`, `line`, `pie`, `scatter`, …). Real `.sfl` chart files
   previously hit `expected ':'` / `unknown block kind` in the editor while
   rendering fine in the preview (which runs the up-to-date `stickyflow.js`
-  parser). `Symbol` / `Port` / `Path` from the same 1.4 batch are still not
-  ported — see `fixtures/sfl-1.4/README.md`.
+  parser).
+- `Path` (§3.3), `Symbol` / `Port` (§5.5 / §3.5), `Net` (§3.5) and `Footer`
+  (§3.6) block kinds — the rest of the SFL 1.4 batch. Brings the ported
+  grammar to parity with `stickyflow.js`'s own SFL. `Path` is a freeform
+  shape and, like `Entity`, a valid `from:`/`to:` endpoint; `Symbol` / `Port`
+  / `Net` / `Footer` are leaves kept out of the global reference index.
+  Adds `entity.portName` named-port endpoint resolution — a `Link` endpoint
+  whose last segment names a `Port` on the `Symbol` the entity's `shape:`
+  points at — plus the `points` / `closed` / `value` / `tension` / `members`
+  property vocabulary and hover docs. The `fixtures/sfl-1.4/` staging area is
+  gone; its samples moved into `fixtures/valid/` under the zero-error sweep.
 
 ### Known limitations
 

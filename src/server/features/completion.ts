@@ -27,6 +27,7 @@ export const PROPERTY_KEYS = [
   'color', 'icon', 'asset', 'parent', 'position', 'size', 'rotation', 'order',
   'rowHeight', 'width', 'showHeader', 'headerFill', 'headerRuleStyle', 'gridColor', 'gridWidth', 'borderStyle', 'cellType',
   'type', 'stacked', 'categories', 'min', 'max', 'step', 'unit', 'label', 'values', 'error', 'at',
+  'points', 'closed', 'value', 'tension', 'members',
 ];
 export const VALUE_SUGGESTIONS: Record<string, string[]> = {
   kind: ['process', 'decision', 'start', 'end', 'note', 'frame', 'swimlane', 'input', 'output'],
@@ -39,9 +40,12 @@ export const VALUE_SUGGESTIONS: Record<string, string[]> = {
   markerEnd: ['none', 'arrow', 'circle', 'diamond'],
   // Chart `type:` vocabulary (SFL 1.4 §5.4) — mirrors stickyflow.js's CHART_TYPES.
   type: ['bar', 'line', 'scatter', 'radar', 'radial', 'field', 'heatmap', 'boxplot', 'sankey', 'treemap', 'mekko', 'hexbin', 'pie', 'matrix', 'grid', 'custom'],
+  closed: ['true', 'false'],
 };
 
-const REFERENCEABLE_KINDS: readonly BlockKind[] = ['Project', 'Model', 'Group', 'Container', 'Table', 'Entity'];
+// Kinds whose names a `from:`/`to:` endpoint (or dot-path) can target. `Path`
+// (SFL 1.4 §3.3) is a freeform shape and, like an Entity, linkable.
+const REFERENCEABLE_KINDS: readonly BlockKind[] = ['Project', 'Model', 'Group', 'Container', 'Table', 'Entity', 'Path'];
 
 // Matches a block header up through ':' plus zero or more already-typed
 // `Ref & ` groups, i.e. the cursor sits right where the next composition

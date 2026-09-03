@@ -61,29 +61,96 @@ describe('sfl-core against fixtures/valid', () => {
   });
 });
 
-// fixtures/sfl-1.4/ holds valid SFL *1.4* documents using block kinds not yet
-// ported into src/server/sfl-core/ — currently `Symbol`/`Port` (needs
-// entity.port endpoint resolution) and `Path`. parse() still throws on them.
-// The Chart kinds (`Chart`/`Axis`/`Series`/`Rule`) HAVE been ported, so their
-// fixtures moved into fixtures/valid/ and are covered by the zero-error sweep
-// above. This block is a reminder: when the remaining kinds are added to
-// BLOCK_KINDS in ast.ts (+ scope rules in resolver.ts), these flip red — the
-// cue to move the files into fixtures/valid/ and delete this describe. See
-// that folder's README.md.
-describe('fixtures/sfl-1.4 (SFL 1.4 kinds not ported yet — Symbol/Port/Path)', () => {
-  const dir = path.join(__dirname, '../../../fixtures/sfl-1.4');
-  const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.sfl')) : [];
+// Symbol / Port / Path / Net / Footer (SFL 1.4) — the rest of the 1.4 batch,
+// bringing the ported grammar to parity with stickyflow.js. Path is a freeform
+// shape and, like Entity, a valid link endpoint; the other four are leaves kept
+// out of the global bare-name index. The interesting bit is `entity.portName`:
+// a Link endpoint whose last segment names a Port on the Symbol the entity's
+// `shape:` points at. See fixtures/valid/{symbol-ports,path-choropleth,net-and-footer}.sfl.
+describe('Symbol / Port / Path / Net / Footer (SFL 1.4)', () => {
+  const SAMPLE = `sfl 1.4
 
-  it('has sample files', () => {
-    expect(files.length).toBeGreaterThan(0);
+Symbol OpAmp {
+  points: [[0, 0], [1, 0.5], [0, 1]]
+  Port in_minus { at: 0, 0.75 }
+  Port out { at: 1, 0.5 }
+}
+
+Model board {
+  Entity amp1 { shape: OpAmp; layout { position: 0, 0; size: 100, 60 } }
+  Entity amp2 { shape: OpAmp; layout { position: 300, 0; size: 100, 60 } }
+
+  Path region {
+    points: [[0, 0], [100, 0], [100, 100]]
+    closed: true
+    value: 42.5
+  }
+
+  Net rail { members: [amp1, amp2]; text: "+5V" }
+
+  Link fb { from: amp1.out; to: amp2.in_minus }
+  Link into_region { from: amp2, right (0.5); to: region, left (0.5) }
+}
+`;
+
+  it('parses and resolves the 1.4 batch with zero errors', () => {
+    const doc = parse(SAMPLE);
+    expect(resolveDocument(doc).errors).toEqual([]);
   });
 
-  for (const file of files) {
-    it(`${file}: not parseable by the ported grammar yet`, () => {
-      const text = fs.readFileSync(path.join(dir, file), 'utf8');
-      expect(() => parse(text)).toThrow();
-    });
+  it('recognizes each new kind as a block, not a property', () => {
+    const doc = parse(SAMPLE);
+    const kinds = new Set<string>();
+    const walk = (blocks: typeof doc.blocks) => {
+      for (const b of blocks) {
+        kinds.add(b.kind);
+        walk(b.entries.filter(e => e.type === 'block').map(e => (e as any).block));
+      }
+    };
+    walk(doc.blocks);
+    for (const k of ['Symbol', 'Port', 'Path', 'Net']) expect(kinds.has(k)).toBe(true);
+  });
+
+  it('resolves an `entity.portName` endpoint against the Symbol the entity\'s shape points at', () => {
+    // `amp1.out` is not a scope descent (an Entity opens no scope) — it only
+    // resolves because Symbol OpAmp has a Port named `out`.
+    const doc = parse(SAMPLE);
+    expect(resolveDocument(doc).errors).toEqual([]);
+  });
+
+  it('flags a named-port endpoint whose port does not exist on the Symbol', () => {
+    const bad = SAMPLE.replace('from: amp1.out', 'from: amp1.nonexistent');
+    const { errors } = resolveDocument(parse(bad));
+    expect(errors.some(e => /endpoint 'amp1\.nonexistent' does not resolve/.test(e.message))).toBe(true);
+  });
+
+  it('keeps Symbol/Port/Net/Footer out of the global bare-name index (Path stays in)', () => {
+    // A bare `from: out` (a Port name) must not resolve; `from: region` (a Path) must.
+    const badPort = SAMPLE.replace('from: amp1.out', 'from: out');
+    expect(resolveDocument(parse(badPort)).errors.some(e => /does not resolve/.test(e.message))).toBe(true);
+
+    const pathLink = SAMPLE.replace('to: region, left (0.5)', 'to: region');
+    expect(resolveDocument(parse(pathLink)).errors).toEqual([]);
+  });
+
+  it('supports a Footer alongside Rows on a Table', () => {
+    const withFooter = `sfl 1.4
+
+Model m {
+  Table t {
+    Columns c { Column a { text: "A" } }
+    Rows r { Row r1 { a: "1" } }
+    Footer f { a: "total" }
   }
+}
+`;
+    expect(resolveDocument(parse(withFooter)).errors).toEqual([]);
+  });
+
+  it('round-trips through emit() without resolver errors on the re-parsed output', () => {
+    const doc = parse(SAMPLE);
+    expect(resolveDocument(parse(emit(doc))).errors).toEqual([]);
+  });
 });
 
 // Chart (SFL 1.4 §5.4) — added to the ported grammar after Table. Chart carries

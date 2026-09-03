@@ -31,6 +31,11 @@ export const BLOCK_KIND_DOCS: Record<BlockKind, string> = {
   Axis: "An axis of a `Chart` (SFL 1.4), conventionally named `x` / `y`. Carries either `categories` (an ordered label list) or a numeric range (`min`, `max`, `step`), plus an optional `unit` and `label`.",
   Series: "One data series of a `Chart` (SFL 1.4): `values` (a number list, one per category), a `label`, an optional `color`, and optional per-point `error` magnitudes.",
   Rule: "A reference line on a `Chart` (SFL 1.4 §5.4.8) — a labelled threshold drawn `at:` a given axis value. A distinct leaf kind from `Axis` and `Series`.",
+  Path: "A freeform named shape (SFL 1.4 §3.3): an explicit `points` polyline, optionally `closed`, with an optional scalar `value` (choropleth regions). A leaf like `Entity`, and a valid `from:`/`to:` endpoint.",
+  Symbol: "A reusable named shape (SFL 1.4 §5.5): normalized `points` (0..1 of the referencing instance's box) plus optional `Port` children. Referenced as the *value* of `shape:` (e.g. `Entity amp { shape: OpAmp }`), not through a `:` composition list.",
+  Port: "A named connection point of a `Symbol` (SFL 1.4 §3.5): `at:` a normalized (0..1) position. Addressed as `entity.portName` on a Link endpoint, where the entity's `shape:` points at the owning Symbol.",
+  Net: 'A multi-terminal net (SFL 1.4 §3.5, "pattern C") — authored once via a `members` list instead of N-1 hand-written Links. Parse-only: the renderer star-decomposes it (first member = hub) into ordinary links.',
+  Footer: "A Table summary row (SFL 1.4 §3.6), a sibling to `Rows`. Its own properties are cell values keyed by Column name, like a `Row`, but it is a totals line rather than a data row. At most one per Table.",
 };
 
 interface PropertyDoc {
@@ -100,7 +105,14 @@ export const PROPERTY_DOCS: Record<string, PropertyDoc> = {
   label: { description: 'The visible label of an `Axis` or a `Series`.', appliesTo: 'Axis, Series' },
   values: { description: 'The data points of a `Series` — a list of numbers, one per category.', appliesTo: 'Series' },
   error: { description: 'Per-point error-bar magnitudes for a `Series`, aligned with `values`; `none` skips a point.', appliesTo: 'Series' },
-  at: { description: 'The axis value a `Rule` reference line is drawn at.', appliesTo: 'Rule' },
+  at: { description: 'A `Rule` reference line: the axis value it is drawn at. A `Port`: its normalized (0..1) position on the owning Symbol.', appliesTo: 'Rule, Port' },
+
+  // Path / Symbol / Net (SFL 1.4 §3.3 / §5.5 / §3.5)
+  points: { description: 'An explicit list of `[x, y]` coordinate pairs — the polyline of a `Path` (diagram units) or of a `Symbol` (normalized 0..1 of the referencing instance\'s box).', appliesTo: 'Path, Symbol' },
+  closed: { description: 'Whether a `Path` polyline is closed into a filled region.', appliesTo: 'Path' },
+  value: { description: 'An optional scalar carried by a `Path` — e.g. the magnitude behind a choropleth region\'s fill.', appliesTo: 'Path' },
+  tension: { description: 'Optional curve smoothing for a `Symbol` outline (0 = straight segments).', appliesTo: 'Symbol' },
+  members: { description: 'The ordered member list of a `Net` — bare entity names. The first is the hub; every other member connects to it.', appliesTo: 'Net' },
 
   // Table (§12.1a)
   rowHeight: { description: 'Row height for a Table.', appliesTo: 'layout {} on a Table' },

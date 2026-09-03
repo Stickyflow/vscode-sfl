@@ -1,0 +1,40 @@
+sfl 1.2
+
+Style Card { shape: rectangle; fill: "#ffffff"; stroke: "#e2e8f0" }
+
+Style CardEmphasis : Card { stroke: "#2563eb"; strokeWidth: 2 }
+
+Layout Tile { size: 180, 96 }
+
+Layout WideTile : Tile { size: 320, 96 }
+
+Model gallery {
+  text: "Component gallery"
+
+  Entity plain : Card & Tile {
+    kind: component
+    text: "Plain tile"
+
+    layout {
+      position: 0, 0
+    }
+  }
+
+  Entity emphasised : CardEmphasis & WideTile {
+    kind: component
+    text: "Wide, emphasised"
+
+    style {
+      textColor: "#2563eb"
+    }
+
+    layout {
+      position: 0, 140
+    }
+  }
+
+  Link link_1 {
+    from: plain, right (0.5)
+    to: emphasised, right (0.5)
+  }
+}

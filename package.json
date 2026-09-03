@@ -1,7 +1,7 @@
 {
   "name": "vscode-sfl",
   "displayName": "SFL Language Support",
-  "description": "Language support for SFL 1.2 (.sfl) — syntax highlighting, diagnostics, completion, hover, go-to-definition, rename, find references, outline, and format document.",
+  "description": "Language support for SFL 1.4 (.sfl) — syntax highlighting, diagnostics, completion, hover, go-to-definition, rename, find references, outline, and format document.",
   "version": "0.1.0",
   "private": true,
   "publisher": "stickyflow-PLACEHOLDER-REPLACE-BEFORE-PUBLISHING",

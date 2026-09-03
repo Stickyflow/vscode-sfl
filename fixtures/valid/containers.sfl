@@ -1,0 +1,99 @@
+sfl 1.2
+
+Style Box {
+  shape: rectangle
+  stroke: "#334155"
+}
+
+Style FlowEdge {
+  route: orthogonal
+  markerEnd: arrow
+}
+
+Layout Standard {
+  size: 200, 72
+}
+
+Model warehouse {
+  text: "Fulfilment"
+
+  Container floor : Box {
+    kind: frame
+    text: "Warehouse floor"
+
+    layout {
+      position: 0, 0
+      size: 720, 420
+    }
+
+    Group inbound {
+      text: "Inbound"
+
+      Entity receive : Standard {
+        kind: process
+        text: "Receive pallet"
+
+        layout {
+          position: 40, 60
+        }
+      }
+
+      Entity putaway : Standard {
+        kind: process
+        text: "Put away"
+
+        layout {
+          position: 40, 180
+        }
+      }
+    }
+
+    Entity scanner {
+      kind: component
+      asset: "icons/barcode.svg"
+
+      layout {
+        position: 320, 60
+        size: 96, 96
+      }
+    }
+  }
+
+  Container lanes {
+    kind: swimlane
+    text: "Dispatch lanes"
+
+    layout {
+      position: 760, 0
+      size: 360, 420
+    }
+
+    Entity pick : Standard {
+      kind: process
+      text: "Pick order"
+
+      layout {
+        position: 800, 60
+      }
+    }
+
+    Entity pack : Standard {
+      kind: process
+      text: "Pack order"
+
+      layout {
+        position: 800, 180
+      }
+    }
+  }
+
+  Link flow_1 : FlowEdge {
+    from: floor.inbound.putaway, right (0.5)
+    to: lanes.pick, left (0.25)
+  }
+
+  Link flow_2 : FlowEdge {
+    from: pick, bottom (0.5)
+    to: pack, top (0.5)
+  }
+}

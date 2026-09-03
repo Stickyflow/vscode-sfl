@@ -24,6 +24,10 @@ const SYMBOL_KIND: Record<BlockKind, SymbolKind> = {
   Column: SymbolKind.Field,
   Rows: SymbolKind.Array,
   Row: SymbolKind.Field,
+  Chart: SymbolKind.Struct,
+  Axis: SymbolKind.Field,
+  Series: SymbolKind.Array,
+  Rule: SymbolKind.Field,
 };
 
 function detailFor(block: SflBlock): string | undefined {

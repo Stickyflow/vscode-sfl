@@ -26,6 +26,7 @@ export const PROPERTY_KEYS = [
   'from', 'to', 'condition', 'weight', 'segments', 'route', 'marker', 'markerStart', 'markerEnd',
   'color', 'icon', 'asset', 'parent', 'position', 'size', 'rotation', 'order',
   'rowHeight', 'width', 'showHeader', 'headerFill', 'headerRuleStyle', 'gridColor', 'gridWidth', 'borderStyle', 'cellType',
+  'type', 'stacked', 'categories', 'min', 'max', 'step', 'unit', 'label', 'values', 'error', 'at',
 ];
 export const VALUE_SUGGESTIONS: Record<string, string[]> = {
   kind: ['process', 'decision', 'start', 'end', 'note', 'frame', 'swimlane', 'input', 'output'],
@@ -36,6 +37,8 @@ export const VALUE_SUGGESTIONS: Record<string, string[]> = {
   verticalAlign: ['top', 'middle', 'bottom'],
   markerStart: ['none', 'arrow', 'circle', 'diamond'],
   markerEnd: ['none', 'arrow', 'circle', 'diamond'],
+  // Chart `type:` vocabulary (SFL 1.4 §5.4) — mirrors stickyflow.js's CHART_TYPES.
+  type: ['bar', 'line', 'scatter', 'radar', 'radial', 'field', 'heatmap', 'boxplot', 'sankey', 'treemap', 'mekko', 'hexbin', 'pie', 'matrix', 'grid', 'custom'],
 };
 
 const REFERENCEABLE_KINDS: readonly BlockKind[] = ['Project', 'Model', 'Group', 'Container', 'Table', 'Entity'];

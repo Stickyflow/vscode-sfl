@@ -8,6 +8,8 @@
 // vscode-languageclient/vscode-languageserver IPC).
 
 import * as assert from 'assert';
+import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -37,23 +39,44 @@ suite('SFL extension (integration)', () => {
   });
 
   test('language server reports a diagnostic for a duplicate name', async () => {
-    const uri = vscode.Uri.parse('untitled:duplicate-name-test.sfl');
-    const doc = await vscode.workspace.openTextDocument(uri);
-    await vscode.languages.setTextDocumentLanguage(doc, 'sfl');
-    const editor = await vscode.window.showTextDocument(doc);
-    await editor.edit((edit) => {
-      edit.insert(
-        new vscode.Position(0, 0),
-        'sfl 1.2\n\nEntity a {\n  text: "A"\n}\n\nEntity a {\n  text: "B"\n}\n',
-      );
-    });
-
-    const diagnostics = await waitFor(
-      () => vscode.languages.getDiagnostics(doc.uri),
-      (d) => d.length > 0,
+    // The language client only attaches to `file:`-scheme documents (see the
+    // documentSelector in extension.ts), so this has to be a real file on
+    // disk — an `untitled:` buffer is never handed to the server, so no
+    // diagnostics are ever published for it. Write it outside the workspace
+    // (a temp dir) so the fixtures/valid sweep in the unit tests, which
+    // requires every file there to resolve with zero errors, never sees it.
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vscode-sfl-it-'));
+    const tmpFile = path.join(tmpDir, 'duplicate-name-test.sfl');
+    fs.writeFileSync(
+      tmpFile,
+      'sfl 1.2\n\nModel M {\n  Entity a {\n    text: "A"\n  }\n\n  Entity a {\n    text: "B"\n  }\n}\n',
+      'utf8',
     );
-    assert.ok(diagnostics.length > 0, 'expected at least one diagnostic for a duplicate name');
-    assert.ok(diagnostics.some((d) => /duplicate name/i.test(d.message)), 'expected a duplicate-name diagnostic specifically');
+
+    try {
+      const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(tmpFile));
+      await vscode.window.showTextDocument(doc);
+      assert.strictEqual(doc.languageId, 'sfl', '.sfl file should be recognized as the sfl language');
+
+      const diagnostics = await waitFor(
+        () => vscode.languages.getDiagnostics(doc.uri),
+        (d) => d.some((x) => /duplicate name/i.test(x.message)),
+      );
+      assert.ok(
+        diagnostics.some((d) => /duplicate name/i.test(d.message)),
+        'expected a duplicate-name diagnostic from the language server',
+      );
+    } finally {
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+      // Best-effort: on Windows the language client can still hold the file
+      // handle briefly after the editor closes, so a hard delete races with
+      // an EPERM. The temp dir is the OS's to reap — never fail the test on it.
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+      } catch {
+        /* ignore — leftover temp file, harmless */
+      }
+    }
   });
 
   test('hover on the Entity keyword returns documentation via the real LSP round-trip', async () => {

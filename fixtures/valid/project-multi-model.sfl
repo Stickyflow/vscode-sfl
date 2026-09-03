@@ -1,0 +1,80 @@
+sfl 1.2
+
+Style Node {
+  shape: pill
+  fill: "#eef2ff"
+  stroke: "#4338ca"
+}
+
+Style Accent : Node {
+  fill: "#4338ca"
+  textColor: "#ffffff"
+}
+
+Style FlowLink {
+  route: orthogonal
+  stroke: "#4338ca"
+  markerEnd: arrow
+}
+
+Project onboarding {
+  text: "Onboarding suite"
+
+  Model signup {
+    text: "Sign-up"
+
+    Entity form : Node {
+      kind: input
+      text: "Registration form"
+
+      layout {
+        position: 0, 0
+        size: 220, 80
+      }
+    }
+
+    Entity verify : Accent {
+      kind: process
+      text: "Verify e-mail"
+
+      layout {
+        position: 0, 160
+        size: 220, 80
+      }
+    }
+
+    Link submit : FlowLink {
+      from: form, bottom (0.5)
+      to: verify, top (0.5)
+    }
+  }
+
+  Model activation {
+    text: "Activation"
+
+    Entity welcome : Accent {
+      kind: process
+      text: "Welcome tour"
+
+      layout {
+        position: 0, 0
+        size: 220, 80
+      }
+    }
+
+    Entity done : Node {
+      kind: end
+      text: "Activated"
+
+      layout {
+        position: 0, 160
+        size: 220, 80
+      }
+    }
+
+    Link finish : FlowLink {
+      from: welcome, bottom (0.5)
+      to: done, top (0.5)
+    }
+  }
+}

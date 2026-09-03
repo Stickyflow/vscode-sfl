@@ -1,0 +1,47 @@
+sfl 1.4
+
+Model board {
+  Chart revenue {
+    text: "Revenue"
+    type: bar
+    stacked: true
+
+    Axis x {
+      categories: ["Q1", "Q2", "Q3", "Q4"]
+    }
+    Axis y {
+      min: 0
+      max: 100
+      step: 10
+      unit: "k€"
+      label: "Net"
+    }
+
+    Series product_a {
+      color: "#7c3aed"
+      label: "Product A"
+      values: [10, 20, 35, 40]
+    }
+    Series product_b {
+      color: "#0ea5e9"
+      label: "Product B"
+      values: [30, 5, 15, 25]
+      error: [3, none, 4, 2]
+    }
+
+    Rule target {
+      at: 60
+      text: "Target"
+      color: "#ef4444"
+    }
+
+    layout {
+      position: 0, 0
+      size: 480, 300
+    }
+    style {
+      fill: "#f8fafc"
+      gridColor: "#e2e8f0"
+    }
+  }
+}

@@ -28,8 +28,8 @@
       }
     },
     "block-header-container": {
-      "comment": "Project/Model/Group/Container — blocks that may contain nested blocks (kwc)",
-      "begin": "^\\s*\\b(Project|Model|Group|Container)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "comment": "Project/Model/Group/Container/Chart — blocks that may contain nested blocks (kwc). Chart (SFL 1.4 §5.4) nests Axis/Series/Rule.",
+      "begin": "^\\s*\\b(Project|Model|Group|Container|Chart)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
       "beginCaptures": {
         "1": { "name": "keyword.control.container.sfl" },
         "2": { "name": "entity.name.function.sfl" }
@@ -39,8 +39,8 @@
       "patterns": [{ "include": "#composition-list" }]
     },
     "block-header-leaf": {
-      "comment": "Entity/Link/Layout/Style/Table — leaf blocks (kw). Table (§12.1a) has its own geometry like Container but a fixed Columns/Rows schema, so the app's own highlighter colors it like Entity, not like a container keyword.",
-      "begin": "^\\s*\\b(Entity|Link|Layout|Style|Table)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "comment": "Entity/Link/Layout/Style/Table/Axis/Series/Rule — leaf blocks (kw). Table (§12.1a) and Axis/Series/Rule (SFL 1.4 §5.4, the Chart child kinds) hold a fixed schema rather than free children, so they're colored like Entity, not like a container keyword.",
+      "begin": "^\\s*\\b(Entity|Link|Layout|Style|Table|Axis|Series|Rule)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
       "beginCaptures": {
         "1": { "name": "keyword.control.sfl" },
         "2": { "name": "entity.name.function.sfl" }

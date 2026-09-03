@@ -1,0 +1,17 @@
+sfl 1.4
+
+Model board {
+  Path region_a {
+    points: [[0, 0], [100, 0], [100, 100], [0, 100]]
+    closed: true
+    value: 42.5
+    style { fill: "#fee2e2" }
+  }
+
+  Path region_b {
+    points: [[100, 0], [200, 0], [200, 100], [100, 100]]
+    closed: true
+    value: 17.0
+    style { fill: "#fecaca" }
+  }
+}

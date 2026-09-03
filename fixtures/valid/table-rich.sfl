@@ -1,0 +1,71 @@
+sfl 1.2
+
+Model schema {
+  text: "Data model"
+
+  Table orders {
+    text: "orders"
+
+    Columns cols {
+      Column name {
+        text: "Column"
+        width: 160
+      }
+      Column type {
+        text: "Type"
+        width: 120
+      }
+      Column nullable {
+        text: "Null"
+        cellType: boolean
+        width: 64
+      }
+      Column note {
+        text: "Note"
+        width: 220
+      }
+    }
+
+    Rows rows {
+      Row r_id {
+        name: "id"
+        type: "uuid"
+        nullable: false
+        note: "primary key"
+      }
+      Row r_customer {
+        name: "customer_id"
+        type: "uuid"
+        nullable: false
+        note: "fk to customers.id"
+      }
+      Row r_total {
+        name: "total_cents"
+        type: "int4"
+        nullable: false
+        note: "minor units"
+      }
+      Row r_placed {
+        name: "placed_at"
+        type: "timestamptz"
+        nullable: true
+        note: "set on checkout"
+      }
+    }
+
+    layout {
+      position: 0, 0
+      size: 564, 200
+      rowHeight: 28
+    }
+
+    style {
+      showHeader: true
+      headerFill: "#f1f5f9"
+      gridColor: "#cbd5e1"
+      gridWidth: 1
+      borderStyle: double
+      headerRuleStyle: double
+    }
+  }
+}

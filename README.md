@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.png">
-    <img src="assets/banner-light.png" alt="SFL in VS Code" width="900">
+    <img src="assets/banner-light.png" alt="SFL language support" width="900">
   </picture>
 </p>
 

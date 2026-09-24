@@ -8,3 +8,4 @@ vitest.config.ts
 **/__tests__/**
 **/*.map
 .git/**
+assets/**

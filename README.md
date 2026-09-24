@@ -1,183 +1,166 @@
-# SFL Language Support (VS Code)
+<p align="center">
+  <img src="assets/Distel.png" alt="StickyFlow" width="900">
+</p>
 
-Language support for [SFL 1.2](../../docs/SFL/sfl-1.2-spezifikation.md) (`.sfl` files).
+<div align="center">
 
-## What's implemented
+# vscode-sfl
 
-- **Language registration** — `.sfl` files are recognized, with `//` comments,
-  bracket matching, and indent-on-`{` (`language-configuration.json`).
-- **Syntax highlighting** — a TextMate grammar (`syntaxes/sfl.tmLanguage.json`)
-  covering block headers, composition lists (`: Ref & Ref`), `layout {}` /
-  `style {}` sub-blocks, strings (incl. `"""…"""`), numbers, property keys,
-  and comments. Colors are pinned via `package.json`'s `configurationDefaults`
-  to match the in-app SFL editor's own palette (see
-  `frontend/src/features/sfl-language/sfl/editor/styles/right-sfl-sidebar.css`)
-  regardless of your active VS Code theme — currently the dark variant only;
-  see **Notes** below.
-- **Language server** (`src/server/`), built on a ported copy of
-  [`frontend/src/features/sfl-language/sfl/`](../../frontend/src/features/sfl-language/sfl/)'s
-  lexer/parser/resolver/emitter (see `src/server/sfl-core/`), extended to
-  track source ranges. Covers 22 block kinds — the SFL 1.2 set plus `Table`
-  (§12.1a — its own geometry, but a fixed `Columns`/`Rows` schema instead of
-  free children; the legacy `Container name { kind: table … }` spelling still
-  parses too) and the SFL 1.4 batch: the `Chart` / `Axis` / `Series` / `Rule`
-  chart kinds (§5.4), `Path` (§3.3), `Symbol` / `Port` (§5.5 / §3.5, with
-  `entity.portName` link endpoints), `Net` (§3.5) and `Footer` (§3.6). At
-  parity with `stickyflow.js`'s own SFL grammar.
-  - **Diagnostics** — parse errors, unresolved `from:`/`to:` endpoints,
-    unresolved composition refs, duplicate names, style/layout-inheritance
-    cycles, a Group referencing a Layout (use a Container instead).
-  - **Completion** — block keywords, property keys, closed-vocabulary values
-    (`kind`, `shape`, `route`, …), Style/Layout names after `:` or `&` in a
-    block header, and in-document Entity/Group/Container names inside
-    `from:`/`to:`.
-  - **Hover** — a Style's/Layout's effective (inherited) properties; an
-    Entity's kind + text; a known `kind:` value's meaning from the spec;
-    documentation for a bare block keyword (`Entity`, `Container`, …) or a
-    property key (`shape`, `route`, `position`, …), including its accepted
-    values where there's a closed vocabulary — sourced from
-    `src/server/features/sflDocs.ts`, which follows StickyFlow-Web's SFL
-    language reference page (§6/§8/§9/§12). The same descriptions show up as
-    completion-item documentation too.
-  - **Go to Definition** — Ctrl/Cmd+click a composition ref or a `from:`/`to:`
-    path segment to jump to its declaration.
-  - **Rename (F2)** — renaming a block updates its declaration and every
-    `from:`/`to:`/composition reference that resolves to it, in one edit.
-    Rejects invalid identifiers and name collisions before editing anything.
-  - **Find All References** (Shift+F12) — every occurrence of a block,
-    read-only counterpart to rename.
-  - **Outline** (Ctrl+Shift+O / breadcrumbs) — the block tree, with an
-    Entity's `kind:` (or its composition list) as the detail text.
-  - **Format Document** — canonical serialization (§15) via the ported
-    emitter. Only runs on a document with zero syntax errors, to avoid
-    silently deleting a broken line.
-  - **Semantic tokens** — capability is registered but intentionally emits no
-    tokens right now; see the comment in `src/server/features/semanticTokens.ts`
-    for why (it was fighting the color-parity goal above).
-- **File icon** — an optional file icon theme (`icons/sfl-icon-theme.json`)
-  that shows the StickyFlow logo for `.sfl` files. **Opt-in, and it replaces
-  your current file icon theme entirely** — VS Code has no API to add a
-  single icon into an existing theme (e.g. Seti, Material Icon Theme); a file
-  icon theme is one exclusive setting. This one ships minimal generic
-  file/folder icons alongside the SFL one so it's usable standalone, but
-  everything else will look plainer than a full icon pack. To try it:
-  `Ctrl+Shift+P` → **"File Icon Theme"** → **"SFL File Icons"**.
+**Language support for SFL diagrams in VS Code.**
 
-## Debugging (F5)
+</div>
 
-```
-npm install
-npm run compile   # or `npm run watch` — the "Run Extension" launch config also runs this for you
-```
+SFL is the text format behind [StickyFlow](https://github.com/Stickyflow)
+diagrams. This extension makes `.sfl` files feel like any other language in
+your editor: highlighting, errors as you type, completion, hover docs,
+go-to-definition, rename and formatting. It covers SFL 1.4, the same grammar
+[`stickyflow.js`](https://github.com/Stickyflow/stickyflow.js) renders.
 
-Then open this folder (`packages/vscode-sfl/`) as its own VS Code window and
-press **F5** (or run the **"Run Extension"** / **"Extension + Server"**
-compound launch config). This opens an Extension Development Host with the
-language server already attached — breakpoints in `src/server/**` work
-through the "Attach to Server" config.
+Want to see the diagram too? Installing this extension also installs its
+companion, [`vscode-sfl-preview`](https://github.com/Stickyflow/vscode-sfl-preview),
+which renders a live preview next to the editor.
 
-In the Extension Development Host, open one of the repo's shared fixtures to
-smoke-test:
+## Why vscode-sfl?
 
-- `fixtures/valid/checkout-flow.sfl` — the full example: nested groups, style
-  inheritance, conditional links. Try F2 on `load_cart`, hover over
-  `FilledPill`, Ctrl/Cmd+click a `from:`/`to:` target, Shift+F12 on
-  `BasePill`, Shift+Alt+F to format.
-- `fixtures/valid/minimal-entity.sfl` — smallest valid document.
-- `fixtures/valid/value-kinds.sfl` — property value variety, incl. a local
-  `style {}` sub-block and endpoint side/fraction syntax.
+An SFL diagram is just text, so it lives next to your code: it diffs,
+reviews and version-controls like everything else in the repo. But a text
+format is only pleasant to write if the editor understands it. Without
+language support, a typo in a `from:` target or a misspelled style name
+only shows up when the diagram renders wrong.
 
-Also try hovering over a bare `Entity`/`Container`/`Style` keyword, or a
-property key like `route`/`position`/`shape`, to see the new documentation
-tooltips — and `Ctrl+Shift+P` → "File Icon Theme" → "SFL File Icons" to see
-the `.sfl` file icon in the Explorer.
-
-To see diagnostics in action, duplicate a block name or point a `from:` at a
-name that doesn't exist:
+With it, you get the feedback loop you already expect from a real language.
+Rename a block and every link pointing at it follows. Hover a style and see
+the properties it inherits. Ctrl+click a link endpoint and land on the
+shape it connects to.
 
 ```sfl
-sfl 1.2
+sfl 1.4
 
-Entity a {
-  text: "A"
+Style Pill {
+  shape: pill
+  fill: "#d9ff00"
 }
 
-Link broken {
-  from: a
-  to: does_not_exist
+Model checkout {
+  Entity add_products : Pill {
+    kind: process
+    text: "Add products"
+  }
+
+  Entity pay : Pill {
+    kind: process
+    text: "Pay"
+  }
+
+  Link add_to_pay {
+    from: add_products
+    to: pay
+  }
 }
 ```
 
-## Tests
+## Features
 
+- **Syntax highlighting** for block headers, composition lists
+  (`: Style & Style`), `layout {}` / `style {}` sub-blocks, strings
+  (including `"""…"""`), numbers, property keys and comments.
+- **Diagnostics**: parse errors, `from:`/`to:` targets that don't exist,
+  unknown style or layout references, duplicate names, inheritance cycles.
+- **Completion** for block keywords, property keys, fixed values (`kind`,
+  `shape`, `route`, …), style and layout names after `:` or `&`, and the
+  names of your own entities inside `from:`/`to:`.
+- **Hover docs** for keywords, properties and their accepted values, plus a
+  style's effective (inherited) properties.
+- **Go to Definition** (Ctrl/Cmd+click), **Find All References**
+  (Shift+F12) and **Rename** (F2), which updates the declaration and every
+  reference in one edit and refuses name collisions.
+- **Outline** and breadcrumbs showing the block tree.
+- **Format Document** (Shift+Alt+F), skipped when the file has syntax
+  errors so a broken line is never silently dropped.
+- An optional **file icon theme** that gives `.sfl` files the StickyFlow
+  logo (see [Notes](#notes)).
+
+All SFL 1.4 block kinds are supported, including `Table`, the chart kinds
+(`Chart`, `Axis`, `Series`, `Rule`), `Path`, `Symbol` / `Port`, `Net` and
+`Footer`.
+
+## Installation
+
+Install **SFL Language Support** from the
+[VS Code Marketplace](MARKETPLACE_URL), or from inside VS Code:
+
+1. Open the Extensions view (Ctrl/Cmd+Shift+X).
+2. Search for **SFL Language Support**.
+3. Click **Install**.
+
+This also installs [SFL Preview](https://github.com/Stickyflow/vscode-sfl-preview)
+for live diagram rendering. Open any `.sfl` file and the language server
+starts automatically.
+
+To build and install from source instead:
+
+```bash
+npm install
+npm run package          # produces vscode-sfl-0.1.0.vsix
+code --install-extension vscode-sfl-0.1.0.vsix
 ```
-npm test               # unit tests (vitest) — fast, no VS Code instance
-npm run test:integration   # integration tests (@vscode/test-electron) — launches a real VS Code
+
+## Development
+
+```bash
+npm install
+npm run compile          # or `npm run watch`
 ```
 
-`npm test` runs the ported core against `fixtures/valid/*.sfl` (round-trip
-parse + resolve with zero errors) plus dedicated SFL 1.2 syntax coverage
-(composition lists, Layout blocks, `style {}` sub-blocks, endpoint
-side/fraction), and unit tests for diagnostics, rename, references, document
-symbols, formatting, and hover documentation. These call the feature
-functions directly and never touch the actual extension host or LSP
-transport.
+Open this folder in VS Code and press **F5**. That launches an Extension
+Development Host with the language server attached; the **Attach to
+Server** config lets breakpoints in `src/server/**` hit.
 
-`npm run test:integration` (`src/test/`) launches a real VS Code with the
-extension loaded and drives it through `vscode.commands.executeCommand`, to
-catch the class of bug the unit tests structurally can't: activation not
-firing, or the client↔server IPC never actually connecting. It opens
-`fixtures/valid/` as the test workspace and checks: the extension activates
-on a `.sfl` file, a duplicate-name diagnostic round-trips through the real
-language server, and hover returns a result through
-`vscode.executeHoverProvider`. In CI this runs headless via `xvfb-run` (see
-`.github/workflows/ci.yml`). **Running it locally inside a sandboxed/nested
-VS Code (e.g. an AI coding assistant's own extension host) can fail** with
-either a `Cannot find module '<workspace path>'` error (the parent process's
-`ELECTRON_RUN_AS_NODE=1` leaking into the spawned test instance — `unset` it
-first) or a `vscode-updating` mutex timeout on Windows (the host VS Code
-installation and the freshly-downloaded test instance contending over the
-same system-wide Inno Setup mutex — run it from a plain terminal outside any
-VS Code-hosted shell instead).
+The `fixtures/valid/` folder is a good playground. `checkout-flow.sfl`
+exercises most features: try F2 on `load_cart`, hover `FilledPill`,
+Ctrl+click a `from:` target or Shift+F12 on `BasePill`.
 
-## Publishing
+### Tests
 
-Not yet published — `private: true` and a placeholder `publisher`
-(`stickyflow-PLACEHOLDER-REPLACE-BEFORE-PUBLISHING`) are both deliberate.
-Before running `vsce publish`:
+```bash
+npm test                   # unit tests (vitest), no VS Code needed
+npm run test:integration   # launches a real VS Code with the extension
+```
 
-1. Register a real publisher on the
-   [VS Code Marketplace](https://marketplace.visualstudio.com/manage) and
-   replace the `publisher` field.
-2. Decide on and add a `license` field + `LICENSE` file (currently absent by
-   choice — this repo/extension's license hasn't been decided yet).
-3. Remove `"private": true`.
-4. Run `npm run package` (`vsce package`) locally first to sanity-check the
-   `.vsix` contents (`vsce ls --tree`) — it already works today (426 files,
-   ~600 KB, all legitimate LSP-client runtime deps), it just isn't meant to
-   be published yet. `vsce` will also flag that the extension isn't bundled
-   (no esbuild/webpack step) — worth doing before a real release to cut the
-   file count/size, not required for internal use.
+Unit tests round-trip every fixture through the parser and cover each
+language feature directly. Integration tests check what unit tests can't:
+that the extension activates and the client actually talks to the server.
+
+If integration tests fail when run from a terminal inside VS Code (or an
+AI assistant's sandbox), run them from a plain terminal instead. A leaked
+`ELECTRON_RUN_AS_NODE=1` or a Windows installer mutex are the usual
+culprits.
 
 ## Notes
 
-- The language server core (`src/server/sfl-core/`) is a ported, range-
-  extended copy of the frontend's SFL module — the same "1:1 port" pattern
-  already used for `backend/app/services/ai/sfl/`. It doesn't re-export from
-  `frontend/` to keep this extension fully self-contained; **if the frontend
-  parser's grammar changes again (as it did from 1.1 to 1.2), port the change
-  here too** — nothing enforces the two staying in sync automatically. This
-  already happened once for real: the `Table` block kind (§12.1a) shipped in
-  `frontend/`/`backend/`/`packages/stickyflow.js` on 2026-07-20/25 and only
-  reached this extension afterward, once noticed — a real `.sfl` file with a
-  table would have hit "unknown block kind 'Table'" in the meantime. There
-  are now **four** independent SFL parser copies in this repo (frontend,
-  backend, stickyflow.js, this extension); nothing currently catches this
-  class of drift automatically across all of them.
-- Color parity (`configurationDefaults` in `package.json`) ships the app's
-  **dark** palette only. `editor.tokenColorCustomizations` has no generic
-  "if the active theme is dark" switch — only exact theme-name keys — so a
-  static default can't adapt to light themes. If light-theme parity matters,
-  the extension would need to detect `vscode.window.activeColorTheme.kind` at
-  runtime and write the customization itself; that wasn't done here to avoid
-  an extension writing to user settings without being asked.
+- **The parser is a copy.** `src/server/sfl-core/` is a ported copy of the
+  SFL parser, extended to track source ranges, so the extension stays
+  self-contained. When the SFL grammar changes, port the change here too:
+  nothing keeps the copies in sync automatically.
+- **Colors are fixed to a dark palette.** Highlighting colors are pinned to
+  match the StickyFlow editor, regardless of your VS Code theme. They look
+  best on dark themes.
+- **The file icon theme replaces your current one.** VS Code can't add a
+  single icon to an existing theme, so enabling **SFL File Icons**
+  (Ctrl+Shift+P → *File Icon Theme*) swaps out your whole icon set.
+
+## 🙌 Contributing
+
+The extension is small and self-contained, which makes it a good place to
+start. Two goals behind that:
+
+- 🌱 **Grow it.** Semantic tokens, light-theme colors, quick fixes for
+  common diagnostics, whatever's missing from your workflow: PRs are
+  welcome.
+- 🛠️ **Make it yours.** Each language feature lives in its own file under
+  `src/server/features/`, so a focused change doesn't require understanding
+  the whole server first.
+
+See [Development](#development) to get set up. Found a bug or have an idea?
+Open an issue or send a PR: small and focused beats big and perfect. We'll
+review, comment if needed, and merge when we're happy with it. 🚀

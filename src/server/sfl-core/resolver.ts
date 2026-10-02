@@ -17,7 +17,7 @@
 //   3. dot-path (a.b.c): first segment via 1–2, further segments must be
 //      direct children of the previously resolved container.
 
-import type { SflDocument, SflBlock, SflProperty, BlockKind, SflRange } from './ast';
+import { isShapeKind, type SflDocument, type SflBlock, type SflProperty, type BlockKind, type SflRange } from './ast';
 
 export interface SflResolveError {
   message: string;
@@ -174,7 +174,7 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
     if (segments.length < 2) return false;
     const portName = segments[segments.length - 1];
     const entity = globalByName.get(segments[segments.length - 2]);
-    if (entity?.kind !== 'Entity') return false;
+    if (!entity || !isShapeKind(entity.kind)) return false;
     for (const entry of entity.entries) {
       if (entry.type !== 'property' || entry.property.key !== 'shape') continue;
       const value = entry.property.value;
@@ -261,10 +261,10 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
 
       // Required content (§14, Table 8): an Entity needs a name plus at
       // least one of text/kind/asset so it isn't an anonymous canvas object.
-      if (block.kind === 'Entity') {
+      if (isShapeKind(block.kind)) {
         const props = block.entries.filter(e => e.type === 'property').map(e => (e as any).property as SflProperty);
         if (!ENTITY_CONTENT_KEYS.some(key => props.some(p => p.key === key))) {
-          errors.push({ message: `Entity '${block.name}' needs at least one of text, kind, or asset`, ref: block.name, block, range: block.nameRange });
+          errors.push({ message: `${block.kind} '${block.name}' needs at least one of text, kind, or asset`, ref: block.name, block, range: block.nameRange });
         }
       }
 

@@ -62,6 +62,11 @@ First working version. Not yet published to the Marketplace (`publisher` in
   points at — plus the `points` / `closed` / `value` / `tension` / `members`
   property vocabulary and hover docs. The `fixtures/sfl-1.4/` staging area is
   gone; its samples moved into `fixtures/valid/` under the zero-error sweep.
+- `Shape` block kind, matching stickyflow.js (which now emits `Shape` for new
+  canvas objects). `Entity` stays an equivalent alias: both get the same
+  highlighting, completion, hover docs, outline entry, required-content check
+  and named-port endpoint resolution. Previously a `Shape` block was a parse
+  error.
 
 ### Known limitations
 

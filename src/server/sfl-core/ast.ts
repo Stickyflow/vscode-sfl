@@ -48,14 +48,18 @@ export interface SflRange {
 //     of N-1 Links; `members` is a bare-name list. Parse-only, leaf.
 //   • `Footer` (§3.6) — a Table summary row, sibling to `Rows`, cell values
 //     keyed by Column name like a `Row`. Leaf.
+//   • `Shape` is the current keyword for the leaf canvas object; `Entity` is
+//     still accepted as an equivalent alias (stickyflow.js treats both the
+//     same and now emits `Shape` for new blocks). Everywhere `Entity` is
+//     special-cased below, `Shape` is too.
 export type BlockKind =
-  | 'Project' | 'Model' | 'Group' | 'Container' | 'Table' | 'Entity' | 'Link' | 'Layout' | 'Style'
+  | 'Project' | 'Model' | 'Group' | 'Container' | 'Table' | 'Shape' | 'Entity' | 'Link' | 'Layout' | 'Style'
   | 'Columns' | 'Column' | 'Rows' | 'Row'
   | 'Chart' | 'Axis' | 'Series' | 'Rule'
   | 'Path' | 'Symbol' | 'Port' | 'Net' | 'Footer';
 
 export const BLOCK_KINDS: readonly BlockKind[] = [
-  'Project', 'Model', 'Group', 'Container', 'Table', 'Entity', 'Link', 'Layout', 'Style',
+  'Project', 'Model', 'Group', 'Container', 'Table', 'Shape', 'Entity', 'Link', 'Layout', 'Style',
   'Columns', 'Column', 'Rows', 'Row',
   'Chart', 'Axis', 'Series', 'Rule',
   'Path', 'Symbol', 'Port', 'Net', 'Footer',
@@ -187,4 +191,7 @@ export const endpoint = (segments: string[], side?: Side, fraction?: number): Sf
   ({ type: 'endpoint', segments, side, fraction });
 
 export const isSide = (s: string): s is Side => (SIDES as readonly string[]).includes(s);
+/** `Shape` and its legacy alias `Entity`: the leaf canvas object. */
+export const isShapeKind = (kind: BlockKind): boolean => kind === 'Shape' || kind === 'Entity';
+
 export const isBlockKind = (s: string): s is BlockKind => (BLOCK_KINDS as readonly string[]).includes(s);

@@ -1,0 +1,40 @@
+sfl 1
+
+Model infra {
+  Isometric web {
+    text: "Green"
+    icon: "server"
+    layout {
+      position: 120.5, -116.4
+      size: 120, 100, 40
+    }
+    style {
+      fill: "#7c3aed"
+      shadow: true
+      labelBackground: "#ffffff"
+    }
+  }
+
+  Isometric db {
+    text: "Database"
+    layout {
+      position: 420, 220
+      size: 140, 80, 60
+    }
+    style {
+      fill: "#0ea5e9"
+      labelBackground: "#ffffff"
+    }
+  }
+
+  Connection web_db {
+    from: web
+    to: db
+    fromFace: "right"
+    toFace: "left"
+    style {
+      route: orthogonal
+      stroke: "#64748b"
+    }
+  }
+}

@@ -1,0 +1,1353 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Architecture of the vscode-sfl language support extension">
+    <title>vscode-sfl · Architecture</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --page: #090b10;
+        --surface: #10141d;
+        --surface-raised: #161c28;
+        --line: #283143;
+        --line-strong: #3a4760;
+        --text: #f2f5f9;
+        --muted: #9ca8ba;
+        --cyan: #4dd7d0;
+        --blue: #6da8ff;
+        --violet: #a989ff;
+        --amber: #ffc66d;
+        --green: #72dda0;
+        --red: #ff7f8e;
+        --accent: var(--blue);
+        --accent-soft: rgb(109 168 255 / 9%);
+        --accent-line: rgb(109 168 255 / 30%);
+        --content: 1180px;
+        --radius: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 85% 5%, var(--accent-soft), transparent 32rem),
+          radial-gradient(circle at 10% 25%, rgb(77 215 208 / 7%), transparent 28rem),
+          var(--page);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.65;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      code,
+      pre {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      }
+
+      code {
+        color: #b8f4ef;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        padding: 30px 24px;
+        border-right: 1px solid var(--line);
+        background: rgb(9 11 16 / 88%);
+        backdrop-filter: blur(18px);
+        overflow-y: auto;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 28px;
+        font-weight: 750;
+        letter-spacing: -0.03em;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 35px;
+        height: 35px;
+        flex: none;
+        place-items: center;
+        border: 1px solid var(--accent-line);
+        border-radius: 11px;
+        color: var(--accent);
+        background: var(--accent-soft);
+        font-size: 13px;
+      }
+
+      .version {
+        display: inline-flex;
+        margin-left: auto;
+        padding: 2px 8px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+
+      .nav-label {
+        margin: 22px 0 8px;
+        color: #647086;
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      nav a {
+        display: block;
+        margin: 2px 0;
+        padding: 7px 10px;
+        border-radius: 8px;
+        color: var(--muted);
+        font-size: 13px;
+        text-decoration: none;
+        transition: 140ms ease;
+      }
+
+      nav a:hover,
+      nav a:focus-visible {
+        color: var(--text);
+        background: var(--surface-raised);
+        outline: none;
+      }
+
+      main {
+        min-width: 0;
+        padding: 0 46px 80px;
+      }
+
+      .content {
+        width: min(100%, var(--content));
+        margin: 0 auto;
+      }
+
+      .hero {
+        padding: 92px 0 68px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .eyebrow {
+        margin: 0 0 18px;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.15;
+        letter-spacing: -0.035em;
+      }
+
+      h1 {
+        max-width: 900px;
+        margin: 0;
+        font-size: clamp(46px, 7vw, 86px);
+        font-weight: 780;
+      }
+
+      h1 span {
+        color: var(--accent);
+      }
+
+      .lead {
+        max-width: 760px;
+        margin: 25px 0 0;
+        color: var(--muted);
+        font-size: clamp(17px, 2vw, 21px);
+      }
+
+      .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 34px;
+      }
+
+      .pill {
+        padding: 7px 12px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: #c7d0dd;
+        background: rgb(16 20 29 / 75%);
+        font-size: 12px;
+      }
+
+      section {
+        padding: 72px 0 0;
+        scroll-margin-top: 24px;
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(240px, 0.85fr) minmax(300px, 1.15fr);
+        gap: 56px;
+        align-items: end;
+        margin-bottom: 30px;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: clamp(30px, 4vw, 48px);
+      }
+
+      .section-head p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: linear-gradient(155deg, rgb(22 28 40 / 94%), rgb(16 20 29 / 90%));
+      }
+
+      .card-number {
+        display: inline-flex;
+        min-width: 30px;
+        height: 25px;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 22px;
+        border: 1px solid var(--accent-line);
+        border-radius: 7px;
+        color: var(--accent);
+        background: var(--accent-soft);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .card h3 {
+        margin: 0 0 10px;
+        font-size: 20px;
+      }
+
+      .card p,
+      .card li {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .card p {
+        margin: 0;
+      }
+
+      .card ul {
+        margin: 15px 0 0;
+        padding-left: 18px;
+      }
+
+      .path {
+        display: inline-block;
+        margin-top: 18px;
+        padding: 5px 8px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        color: #c6edf0;
+        background: #0a0e15;
+        font-size: 11px;
+      }
+
+      /* Diagrams: the SFL styles bake in colors tuned for this dark page. */
+      .diagram {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #090b10;
+        overflow: hidden;
+      }
+
+      .diagram-canvas {
+        padding: 18px;
+        overflow-x: auto;
+      }
+
+      /* Scales to the column; below 760px the canvas scrolls sideways instead. */
+      stickyflow-diagram {
+        display: block;
+        width: 100%;
+        min-width: 760px;
+      }
+
+      .diagram-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 20px;
+        padding: 14px 20px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .swatch {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin-right: 7px;
+        border-radius: 3px;
+        vertical-align: -1px;
+      }
+
+      .swatch.dashed {
+        height: 0;
+        border-top: 2px dashed;
+        border-radius: 0;
+        vertical-align: 3px;
+      }
+
+      .diagram details {
+        border-top: 1px solid var(--line);
+      }
+
+      .diagram summary {
+        padding: 12px 20px;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 650;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .diagram summary:hover,
+      .diagram summary:focus-visible {
+        color: var(--text);
+        outline: none;
+      }
+
+      .diagram details pre {
+        max-height: 420px;
+        margin: 0;
+        padding: 18px 20px;
+        border-top: 1px solid var(--line);
+        color: #d9e2ee;
+        background: #080b11;
+        overflow: auto;
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .diagram-offline {
+        display: none;
+        padding: 22px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .renderer-missing .diagram-offline {
+        display: block;
+      }
+
+      .renderer-missing .diagram-canvas {
+        display: none;
+      }
+
+      .rule-box {
+        margin-top: 20px;
+        padding: 19px 22px;
+        border-left: 3px solid var(--accent);
+        border-radius: 0 12px 12px 0;
+        color: #c9d2df;
+        background: var(--accent-soft);
+      }
+
+      .tree {
+        margin: 0;
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        color: #d5dce7;
+        background: #0a0e15;
+        overflow-x: auto;
+        font-size: 13px;
+        line-height: 1.75;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-spacing: 0;
+        border-collapse: separate;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow: hidden;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: #d7dfeb;
+        background: var(--surface-raised);
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      td {
+        color: var(--muted);
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .dir {
+        white-space: nowrap;
+      }
+
+      .to-webview {
+        color: var(--cyan);
+      }
+
+      .to-host {
+        color: var(--violet);
+      }
+
+      .checks {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .check {
+        display: flex;
+        gap: 12px;
+        padding: 15px 17px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        color: var(--muted);
+        background: var(--surface);
+        font-size: 13px;
+      }
+
+      .check::before {
+        color: var(--green);
+        content: "✓";
+        font-weight: 800;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 12px;
+      }
+
+      .timeline-step {
+        display: grid;
+        grid-template-columns: 54px minmax(0, 1fr);
+        gap: 18px;
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--surface);
+      }
+
+      .timeline-index {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        place-items: center;
+        border: 1px solid var(--accent-line);
+        border-radius: 12px;
+        color: var(--accent);
+        background: var(--accent-soft);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .timeline-step h3 {
+        margin: 1px 0 7px;
+        font-size: 18px;
+      }
+
+      .timeline-step p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .function-path {
+        display: block;
+        margin-top: 9px;
+        color: #b8f4ef;
+        font-size: 12px;
+      }
+
+      footer {
+        margin-top: 80px;
+        padding-top: 30px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      @media (max-width: 1050px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: static;
+          height: auto;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .sidebar nav {
+          display: none;
+        }
+
+        .brand {
+          margin: 0;
+        }
+
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 720px) {
+        main {
+          padding: 0 16px 60px;
+        }
+
+        .hero {
+          padding: 58px 0 48px;
+        }
+
+        .section-head {
+          grid-template-columns: 1fr;
+          gap: 14px;
+        }
+
+        .grid,
+        .checks {
+          grid-template-columns: 1fr;
+        }
+
+        .timeline-step {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">sfl</span>
+          vscode-sfl
+          <span class="version">0.1</span>
+        </div>
+        <nav aria-label="Page navigation">
+          <p class="nav-label">Overview</p>
+          <a href="#purpose">Goals and principles</a>
+          <a href="#extensions">Two extensions, one document</a>
+          <a href="#internals">Inside vscode-sfl</a>
+          <a href="#lifecycle">A keystroke, step by step</a>
+          <a href="#structure">Folder structure</a>
+          <p class="nav-label">Modules</p>
+          <a href="#server">Server and document model</a>
+          <a href="#features">Feature providers</a>
+          <a href="#core">sfl-core</a>
+          <p class="nav-label">Contracts</p>
+          <a href="#contributions">package.json contributions</a>
+          <a href="#decisions">Design decisions</a>
+          <a href="#quality">Quality checks</a>
+        </nav>
+      </aside>
+
+      <main>
+        <div class="content">
+          <header class="hero">
+            <p class="eyebrow">Technical documentation</p>
+            <h1>Language support that <span>stays out of the way</span>.</h1>
+            <p class="lead">
+              vscode-sfl turns <code>.sfl</code> files into a first-class language in VS Code. A thin client in the
+              extension host starts a stateless language server, which parses the live document on every request
+              and answers with diagnostics, completion, hover, navigation, rename and formatting.
+            </p>
+            <div class="hero-meta" aria-label="Architecture traits">
+              <span class="pill">LSP client/server split</span>
+              <span class="pill">Stateless server</span>
+              <span class="pill">Self-contained parser</span>
+              <span class="pill">One file per feature</span>
+              <span class="pill">SFL 1.4</span>
+            </div>
+          </header>
+
+          <section id="purpose">
+            <div class="section-head">
+              <h2>Goals and principles</h2>
+              <p>
+                The extension is small on purpose. Each part has one reason to exist, and the language logic never
+                depends on VS Code APIs, so the same server could be pointed at any LSP-capable editor.
+              </p>
+            </div>
+            <div class="grid">
+              <article class="card">
+                <span class="card-number">01</span>
+                <h3>Client spawns, server thinks</h3>
+                <p><code>extension.ts</code> only starts the server over IPC and registers it for the <code>sfl</code> language. All language logic lives server-side.</p>
+              </article>
+              <article class="card">
+                <span class="card-number">02</span>
+                <h3>No cache to invalidate</h3>
+                <p>Every request rebuilds the document model from the live text. SFL files are small, so recomputing is cheaper than tracking invalidation.</p>
+              </article>
+              <article class="card">
+                <span class="card-number">03</span>
+                <h3>Self-contained parser</h3>
+                <p><code>sfl-core/</code> is a ported copy of the SFL parser, extended with source ranges. The extension has no runtime dependency on stickyflow.js.</p>
+              </article>
+              <article class="card">
+                <span class="card-number">04</span>
+                <h3>More than one error</h3>
+                <p>The parser stops at the first syntax error. The document model blanks the offending line and reparses, so several errors surface at once.</p>
+              </article>
+              <article class="card">
+                <span class="card-number">05</span>
+                <h3>Formatter is the emitter</h3>
+                <p>Re-emitting a parsed AST yields the one canonical SFL text. Formatting reuses the emitter and refuses to run on broken documents.</p>
+              </article>
+              <article class="card">
+                <span class="card-number">06</span>
+                <h3>One feature, one file</h3>
+                <p>Each LSP capability lives in its own module under <code>features/</code>, so a focused change never needs the whole server in your head.</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="extensions">
+            <div class="section-head">
+              <h2>Two extensions, one document</h2>
+              <p>
+                vscode-sfl understands the text, <a href="https://github.com/Stickyflow/vscode-sfl-preview">vscode-sfl-preview</a>
+                draws it. They never call each other: both react to the same <code>.sfl</code> document, and installing
+                either one installs both through the extension pack.
+              </p>
+            </div>
+            <figure class="diagram" style="margin: 0">
+              <div class="diagram-canvas">
+                <stickyflow-diagram data-sfl="sfl-overview" aria-label="Diagram of both SFL extensions around one .sfl document"></stickyflow-diagram>
+              </div>
+              <div class="diagram-offline">
+                The stickyflow.js renderer was not found next to this repo, so the diagram is shown as SFL source below.
+                Build it with <code>npm run build</code> in the sibling <code>stickyflow.js</code> checkout and reload.
+              </div>
+              <figcaption class="diagram-legend">
+                <span><i class="swatch" style="background: var(--blue)"></i>vscode-sfl</span>
+                <span><i class="swatch" style="background: var(--violet)"></i>vscode-sfl-preview</span>
+                <span><i class="swatch" style="background: var(--cyan)"></i>shared document</span>
+                <span><i class="swatch dashed" style="color: var(--amber)"></i>build-time copy</span>
+              </figcaption>
+              <details>
+                <summary>SFL source</summary>
+                <pre data-sfl="sfl-overview"></pre>
+              </details>
+            </figure>
+            <div class="rule-box">
+              The preview does not use the language server. Selection sync and canvas edits work on the raw text
+              (<code>sflOwnerBlocks.ts</code> and stickyflow.js patchers), so the preview keeps working even when the
+              language server is busy or the document has syntax errors.
+            </div>
+          </section>
+
+          <section id="internals">
+            <div class="section-head">
+              <h2>Inside vscode-sfl</h2>
+              <p>
+                Two processes. The extension host holds only the <code>LanguageClient</code> and the declarative
+                contributions. The language server owns the document model, the feature providers and the parser.
+              </p>
+            </div>
+            <figure class="diagram" style="margin: 0">
+              <div class="diagram-canvas">
+                <stickyflow-diagram data-sfl="sfl-internals" aria-label="Diagram of the vscode-sfl extension host and language server"></stickyflow-diagram>
+              </div>
+              <div class="diagram-offline">
+                The stickyflow.js renderer was not found next to this repo, so the diagram is shown as SFL source below.
+              </div>
+              <figcaption class="diagram-legend">
+                <span><i class="swatch" style="background: var(--cyan)"></i>extension host</span>
+                <span><i class="swatch" style="background: var(--blue)"></i>server entry</span>
+                <span><i class="swatch" style="background: var(--violet)"></i>feature providers</span>
+                <span><i class="swatch" style="background: var(--amber)"></i>sfl-core</span>
+                <span><i class="swatch dashed" style="color: #647086"></i>uses</span>
+              </figcaption>
+              <details>
+                <summary>SFL source</summary>
+                <pre data-sfl="sfl-internals"></pre>
+              </details>
+            </figure>
+          </section>
+
+          <section id="lifecycle">
+            <div class="section-head">
+              <h2>A keystroke, step by step</h2>
+              <p>
+                What happens between typing a misspelled link target and seeing the red squiggle, and how a hover
+                request reuses the same path.
+              </p>
+            </div>
+            <div class="timeline">
+              <article class="timeline-step">
+                <span class="timeline-index">01</span>
+                <div>
+                  <h3>Activation</h3>
+                  <p>Opening a <code>.sfl</code> file fires <code>onLanguage:sfl</code>. <code>activate()</code> creates a <code>LanguageClient</code> pointing at <code>out/server/server.js</code> over IPC (with <code>--inspect=6009</code> in debug) and starts it.</p>
+                  <span class="function-path">src/extension.ts → activate()</span>
+                </div>
+              </article>
+              <article class="timeline-step">
+                <span class="timeline-index">02</span>
+                <div>
+                  <h3>Incremental sync</h3>
+                  <p>The server advertises <code>TextDocumentSyncKind.Incremental</code>. <code>TextDocuments</code> applies each change, so the server always holds the current text without re-sending the file.</p>
+                  <span class="function-path">src/server/server.ts → onInitialize()</span>
+                </div>
+              </article>
+              <article class="timeline-step">
+                <span class="timeline-index">03</span>
+                <div>
+                  <h3>Build the document model</h3>
+                  <p><code>buildDocumentModel(text)</code> calls <code>parse()</code>. On an <code>SflParseError</code> it records the error, blanks that line (keeping line numbers stable) and retries, up to 50 times. The final AST goes through <code>resolveDocument()</code>.</p>
+                  <span class="function-path">src/server/documentModel.ts → sfl-core/parser.ts → sfl-core/resolver.ts</span>
+                </div>
+              </article>
+              <article class="timeline-step">
+                <span class="timeline-index">04</span>
+                <div>
+                  <h3>Publish diagnostics</h3>
+                  <p><code>computeDiagnostics()</code> maps parse errors by line and column, and resolver errors (unknown style, unresolved <code>from:</code>/<code>to:</code>, duplicates, inheritance cycles) by their precise range. Closing the file clears them.</p>
+                  <span class="function-path">server.ts → onDidChangeContent / onDidClose → features/diagnostics.ts</span>
+                </div>
+              </article>
+              <article class="timeline-step">
+                <span class="timeline-index">05</span>
+                <div>
+                  <h3>Answer a request</h3>
+                  <p>A hover, completion or rename request rebuilds the model through <code>modelForUri()</code>, hit-tests the cursor with <code>queries.ts</code>, and answers. Hover pulls keyword docs from <code>sflDocs.ts</code> and a style's effective, inherited properties from the resolver.</p>
+                  <span class="function-path">server.ts → features/hover.ts → sfl-core/queries.ts + features/sflDocs.ts</span>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section id="structure">
+            <div class="section-head">
+              <h2>Folder structure</h2>
+              <p>Top level separates the client, the server and the declarative assets VS Code reads directly.</p>
+            </div>
+            <pre class="tree" aria-label="Source folder structure"><code>vscode-sfl/
+├─ package.json             Activation, language, grammar, icon theme, token colors
+├─ language-configuration.json  Brackets, comments, auto-closing pairs
+├─ syntaxes/
+│  └─ sfl.tmLanguage.json   TextMate grammar for highlighting
+├─ icons/                   SFL file icon theme
+├─ fixtures/valid/          Sample .sfl files, round-tripped by the tests
+└─ src/
+   ├─ extension.ts          LanguageClient bootstrap (extension host)
+   ├─ server/
+   │  ├─ server.ts          LSP connection and request routing
+   │  ├─ documentModel.ts   Parse with error recovery, then resolve
+   │  ├─ features/          One module per LSP capability
+   │  ├─ sfl-core/          Ported SFL lexer, parser, resolver, queries, emitter
+   │  └─ __tests__/         Vitest unit tests, no VS Code needed
+   └─ test/                 Integration tests in a real VS Code instance</code></pre>
+          </section>
+
+          <section id="server">
+            <div class="section-head">
+              <h2>Server and document model</h2>
+              <p>The two modules every request passes through.</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Module</th><th>Core function or type</th><th>Responsibility</th></tr></thead>
+                <tbody>
+                  <tr><td><code>extension.ts</code></td><td><code>activate()</code>, <code>deactivate()</code></td><td>Spawns the server module over IPC and scopes it to <code>{ scheme: 'file', language: 'sfl' }</code>.</td></tr>
+                  <tr><td><code>server/server.ts</code></td><td><code>createConnection()</code>, <code>modelForUri()</code></td><td>Declares capabilities, routes each LSP request to its feature provider, pushes diagnostics on change and clears them on close.</td></tr>
+                  <tr><td><code>server/documentModel.ts</code></td><td><code>buildDocumentModel()</code>, <code>DocumentModel</code></td><td>Parse with line-blanking recovery, collect sorted parse errors, then resolve the AST.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="features">
+            <div class="section-head">
+              <h2>Feature providers</h2>
+              <p>Pure functions from a <code>DocumentModel</code> (plus position or params) to an LSP result. None of them touch the connection.</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Module</th><th>LSP capability</th><th>Behavior</th></tr></thead>
+                <tbody>
+                  <tr><td><code>diagnostics.ts</code></td><td>publishDiagnostics</td><td>Parse errors plus resolver errors, each underlined at its exact range.</td></tr>
+                  <tr><td><code>completion.ts</code></td><td>completion (<code>:</code> and space trigger)</td><td>Block keywords, property keys, fixed values, style and layout names after <code>:</code>/<code>&amp;</code>, block names inside <code>from:</code>/<code>to:</code>.</td></tr>
+                  <tr><td><code>hover.ts</code></td><td>hover</td><td>Effective style properties, referenced block kind and text, <code>kind:</code> semantics, keyword and property docs.</td></tr>
+                  <tr><td><code>sflDocs.ts</code></td><td>(content)</td><td>Documentation strings for block kinds and property keys, shared by hover and completion.</td></tr>
+                  <tr><td><code>definition.ts</code></td><td>definition</td><td>Composition refs and endpoint segments, including dot paths like <code>cart.load_cart</code>.</td></tr>
+                  <tr><td><code>references.ts</code></td><td>references</td><td>Every composition ref and endpoint resolving to a block. Shares target resolution with rename.</td></tr>
+                  <tr><td><code>rename.ts</code></td><td>prepareRename, rename</td><td>Renames declaration and references in one edit. Rejects invalid identifiers and name collisions.</td></tr>
+                  <tr><td><code>documentSymbols.ts</code></td><td>documentSymbol</td><td>Outline and breadcrumbs from the block tree, with <code>kind:</code> as detail.</td></tr>
+                  <tr><td><code>formatting.ts</code></td><td>documentFormatting</td><td>Canonical emitter output, only for documents with zero parse errors.</td></tr>
+                  <tr><td><code>semanticTokens.ts</code></td><td>semanticTokens (registered)</td><td>Emits nothing on purpose, so colors match the in-app editor's purely lexical highlighting.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="core">
+            <div class="section-head">
+              <h2>sfl-core</h2>
+              <p>A port of the SFL parser with source ranges added. When the grammar changes in stickyflow.js, the change has to be ported here by hand.</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Module</th><th>Core function or type</th><th>Responsibility</th></tr></thead>
+                <tbody>
+                  <tr><td><code>ast.ts</code></td><td><code>SflDocument</code>, <code>SflBlock</code></td><td>Syntax tree with name, header and property ranges.</td></tr>
+                  <tr><td><code>lexer.ts</code></td><td><code>tokenize()</code></td><td>Text to tokens with line and column.</td></tr>
+                  <tr><td><code>parser.ts</code></td><td><code>parse()</code>, <code>SflParseError</code></td><td>Tokens to AST. Throws on the first syntax error.</td></tr>
+                  <tr><td><code>resolver.ts</code></td><td><code>resolveDocument()</code>, <code>resolveCompositionRef()</code></td><td>Scope-chain name resolution, dot paths, style inheritance, errors with block and range.</td></tr>
+                  <tr><td><code>queries.ts</code></td><td>Tree walk, hit-testing</td><td>Shared read-only helpers: which block or value is under the cursor, effective style properties.</td></tr>
+                  <tr><td><code>emitter.ts</code></td><td><code>emit()</code></td><td>AST to canonical SFL text, used by the formatter.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="contributions">
+            <div class="section-head">
+              <h2>package.json contributions</h2>
+              <p>The parts VS Code handles without running any extension code.</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Contribution</th><th>Source</th><th>Effect</th></tr></thead>
+                <tbody>
+                  <tr><td><code>languages</code></td><td><code>language-configuration.json</code></td><td>Registers <code>sfl</code> for <code>.sfl</code> files with brackets and comment rules.</td></tr>
+                  <tr><td><code>grammars</code></td><td><code>syntaxes/sfl.tmLanguage.json</code></td><td>Highlighting for headers, composition lists, sub-blocks, strings, numbers and comments.</td></tr>
+                  <tr><td><code>configurationDefaults</code></td><td><code>package.json</code></td><td>Pins token colors to the StickyFlow editor's dark palette.</td></tr>
+                  <tr><td><code>iconThemes</code></td><td><code>icons/sfl-icon-theme.json</code></td><td>Optional theme with the StickyFlow logo for <code>.sfl</code> files.</td></tr>
+                  <tr><td><code>extensionPack</code></td><td><code>package.json</code></td><td>Installs vscode-sfl-preview alongside.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="decisions">
+            <div class="section-head">
+              <h2>Design decisions</h2>
+              <p>Trade-offs made deliberately, and what they cost.</p>
+            </div>
+            <div class="grid">
+              <article class="card">
+                <span class="card-number">D1</span>
+                <h3>Copy, not import</h3>
+                <p>Keeping a parser copy makes the extension self-contained and lets it track ranges the renderer never needs.</p>
+                <ul><li>Cost: grammar changes need a manual port.</li></ul>
+                <span class="path">src/server/sfl-core</span>
+              </article>
+              <article class="card">
+                <span class="card-number">D2</span>
+                <h3>Recompute per request</h3>
+                <p>No model cache, so there is no stale state between edits and requests.</p>
+                <ul><li>Cost: linear re-parse per request, fine for diagram-sized files.</li></ul>
+                <span class="path">src/server/server.ts</span>
+              </article>
+              <article class="card">
+                <span class="card-number">D3</span>
+                <h3>Lexical colors only</h3>
+                <p>Semantic tokens stay empty so highlighting matches the in-app editor exactly.</p>
+                <ul><li>Cost: references and declarations look alike.</li></ul>
+                <span class="path">src/server/features/semanticTokens.ts</span>
+              </article>
+            </div>
+          </section>
+
+          <section id="quality">
+            <div class="section-head">
+              <h2>Quality checks</h2>
+              <p>Unit tests exercise the language logic without VS Code. Integration tests prove the wiring.</p>
+            </div>
+            <div class="checks">
+              <div class="check">Every fixture in <code>fixtures/valid/</code> round-trips through parse and emit.</div>
+              <div class="check">Diagnostics, hover docs, rename, references, symbols and formatting have focused Vitest suites.</div>
+              <div class="check"><code>npm run test:integration</code> launches a real VS Code with the extension loaded.</div>
+              <div class="check">Integration tests confirm activation and that the client actually talks to the server.</div>
+            </div>
+            <div class="rule-box">
+              Run <code>npm test</code> for unit tests and <code>npm run test:integration</code> from a plain terminal
+              (a leaked <code>ELECTRON_RUN_AS_NODE=1</code> inside VS Code is the usual cause of failures).
+            </div>
+          </section>
+
+          <footer>
+            vscode-sfl architecture · Diagrams are SFL, rendered live by stickyflow.js. Companion page:
+            <code>vscode-sfl-preview/docs/architecture.html</code>.
+          </footer>
+        </div>
+      </main>
+    </div>
+
+    <script type="text/sfl" id="sfl-overview">
+      sfl 1.4
+      
+      // How the two VS Code extensions split the work around one .sfl document.
+      // vscode-sfl understands the text, vscode-sfl-preview draws it.
+      
+      Style Frame     { shape: rounded_rectangle; fill: "#0f141d"; stroke: "#3a4760"; strokeWidth: 1.5; textColor: "#f2f5f9" }
+      Style SflFrame  : Frame { stroke: "#6da8ff"; strokeWidth: 2 }
+      Style PrevFrame : Frame { stroke: "#a989ff"; strokeWidth: 2 }
+      
+      Style Node      { shape: rounded_rectangle; fill: "#161c28"; stroke: "#3a4760"; textColor: "#f2f5f9" }
+      Style SflNode   : Node { stroke: "#6da8ff" }
+      Style PrevNode  : Node { stroke: "#a989ff" }
+      Style DocNode   : Node { shape: document; fill: "#10221f"; stroke: "#4dd7d0"; strokeWidth: 2 }
+      Style LibNode   : Node { shape: cylinder; fill: "#231d10"; stroke: "#ffc66d"; strokeWidth: 2 }
+      
+      Style Flow      { route: orthogonal; stroke: "#9ca8ba"; markerEnd: arrow; textColor: "#c7d0dd" }
+      Style SflFlow   : Flow { stroke: "#6da8ff"; strokeWidth: 2 }
+      Style PrevFlow  : Flow { stroke: "#a989ff"; strokeWidth: 2 }
+      Style BuildFlow : Flow { stroke: "#ffc66d"; strokeStyle: dashed }
+      Style PackFlow  : Flow { stroke: "#647086"; strokeStyle: dashed; markerStart: arrow }
+      
+      Model vscode_extensions {
+        text: "vscode-sfl + vscode-sfl-preview"
+      
+        Shape doc : DocNode {
+          kind: input
+          text: ".sfl TextDocument\nopen in the editor"
+          layout { position: 440, 0; size: 240, 76 }
+        }
+      
+        // ========================================================= vscode-sfl
+        Container sfl : SflFrame {
+          kind: frame
+          text: "vscode-sfl  ·  language support"
+          layout { position: 0, 150; size: 500, 330 }
+      
+          Shape sfl_client : SflNode {
+            kind: component
+            text: "extension.ts\nLanguageClient"
+            layout { position: 20, 56; size: 210, 60 }
+          }
+          Shape sfl_grammar : SflNode {
+            kind: component
+            text: "TextMate grammar\nicon theme, colors"
+            layout { position: 270, 56; size: 210, 60 }
+          }
+          Shape sfl_server : SflNode {
+            kind: process
+            text: "server.ts\nLSP server (IPC)"
+            layout { position: 20, 156; size: 210, 60 }
+          }
+          Shape sfl_features : SflNode {
+            kind: process
+            text: "features/*\n9 LSP providers"
+            layout { position: 270, 156; size: 210, 60 }
+          }
+          Shape sfl_model : SflNode {
+            kind: process
+            text: "documentModel.ts\nparse + resolve"
+            layout { position: 20, 252; size: 210, 60 }
+          }
+          Shape sfl_core : SflNode {
+            kind: component
+            text: "sfl-core/*\nported SFL parser"
+            layout { position: 270, 252; size: 210, 60 }
+          }
+        }
+      
+        // ================================================= vscode-sfl-preview
+        Container prev : PrevFrame {
+          kind: frame
+          text: "vscode-sfl-preview  ·  live preview"
+          layout { position: 620, 150; size: 500, 330 }
+      
+          Shape prev_ext : PrevNode {
+            kind: component
+            text: "extension.ts\ncommands, doc events"
+            layout { position: 20, 56; size: 210, 60 }
+          }
+          Shape prev_panel : PrevNode {
+            kind: process
+            text: "panel.ts\nSflPreviewPanel"
+            layout { position: 270, 56; size: 210, 60 }
+          }
+          Shape prev_owner : PrevNode {
+            kind: component
+            text: "sflOwnerBlocks.ts\nselection sync"
+            layout { position: 20, 156; size: 210, 60 }
+          }
+          Shape prev_html : PrevNode {
+            kind: component
+            text: "getWebviewHtml.ts\nCSP shell + toolbar"
+            layout { position: 270, 156; size: 210, 60 }
+          }
+          Shape prev_webview : PrevNode {
+            kind: process
+            text: "Webview\n<stickyflow-diagram>"
+            layout { position: 270, 252; size: 210, 60 }
+          }
+          Shape prev_client : PrevNode {
+            kind: component
+            text: "webview/*\npan, link route"
+            layout { position: 20, 252; size: 210, 60 }
+          }
+        }
+      
+        Shape sfjs : LibNode {
+          kind: component
+          text: "stickyflow.js\ndist/ build"
+          layout { position: 895, 560; size: 200, 90 }
+        }
+      
+        // ============================================================== links
+        Link l_doc_client : SflFlow {
+          from: doc, left (0.5)
+          to: sfl.sfl_client, top (0.5)
+          text: "LSP sync"
+        }
+        Link l_client_server : SflFlow {
+          from: sfl.sfl_client, bottom (0.5)
+          to: sfl.sfl_server, top (0.5)
+          text: "IPC"
+        }
+        Link l_server_features : SflFlow {
+          from: sfl.sfl_server, right (0.5)
+          to: sfl.sfl_features, left (0.5)
+        }
+        Link l_server_model : SflFlow {
+          from: sfl.sfl_server, bottom (0.5)
+          to: sfl.sfl_model, top (0.5)
+        }
+        Link l_model_core : SflFlow {
+          from: sfl.sfl_model, right (0.5)
+          to: sfl.sfl_core, left (0.5)
+        }
+      
+        Link l_doc_ext : PrevFlow {
+          from: doc, right (0.5)
+          to: prev.prev_ext, top (0.5)
+          text: "onDidChange"
+        }
+        Link l_ext_panel : PrevFlow {
+          from: prev.prev_ext, right (0.5)
+          to: prev.prev_panel, left (0.5)
+        }
+        Link l_panel_html : PrevFlow {
+          from: prev.prev_panel, bottom (0.5)
+          to: prev.prev_html, top (0.5)
+        }
+        Link l_html_webview : PrevFlow {
+          from: prev.prev_html, bottom (0.5)
+          to: prev.prev_webview, top (0.5)
+          text: "sfl/* messages"
+        }
+        Link l_webview_client : PrevFlow {
+          from: prev.prev_webview, left (0.5)
+          to: prev.prev_client, right (0.5)
+        }
+        Link l_panel_doc : PrevFlow {
+          from: prev.prev_panel, top (0.5)
+          to: doc, right (0.75)
+          text: "WorkspaceEdit"
+        }
+      
+        Link l_sfjs_webview : BuildFlow {
+          from: sfjs, top (0.5)
+          to: prev.prev_webview, bottom (0.5)
+          text: "copy-media.mjs"
+        }
+        Link l_pack : PackFlow {
+          from: sfl, right (0.85)
+          to: prev, left (0.85)
+          text: "extension pack"
+        }
+      }
+    </script>
+    <script type="text/sfl" id="sfl-internals">
+      sfl 1.4
+      
+      // vscode-sfl internals: a thin LanguageClient in the extension host and a
+      // stateless language server that re-parses the document on every request.
+      
+      Style Frame     { shape: rounded_rectangle; fill: "#0f141d"; stroke: "#3a4760"; strokeWidth: 1.5; textColor: "#f2f5f9" }
+      Style HostFrame : Frame { stroke: "#4dd7d0"; strokeWidth: 2 }
+      Style SrvFrame  : Frame { stroke: "#6da8ff"; strokeWidth: 2 }
+      Style SubFrame  : Frame { fill: "#121925"; stroke: "#3a4760" }
+      
+      Style Node     { shape: rounded_rectangle; fill: "#161c28"; stroke: "#3a4760"; textColor: "#f2f5f9" }
+      Style HostNode : Node { stroke: "#4dd7d0" }
+      Style SrvNode  : Node { stroke: "#6da8ff" }
+      Style FeatNode : Node { stroke: "#a989ff" }
+      Style CoreNode : Node { stroke: "#ffc66d" }
+      Style DocNode  : Node { shape: document; fill: "#10221f"; stroke: "#4dd7d0"; strokeWidth: 2 }
+      
+      Style Flow     { route: orthogonal; stroke: "#9ca8ba"; markerEnd: arrow; textColor: "#c7d0dd" }
+      Style MainFlow : Flow { stroke: "#6da8ff"; strokeWidth: 2 }
+      Style UseFlow  : Flow { stroke: "#647086"; strokeStyle: dashed }
+      
+      Model vscode_sfl {
+        text: "vscode-sfl internals"
+      
+        Shape doc : DocNode {
+          kind: input
+          text: ".sfl file\nlanguage id: sfl"
+          layout { position: 20, 0; size: 220, 76 }
+        }
+      
+        Container host : HostFrame {
+          kind: frame
+          text: "Extension host"
+          layout { position: 0, 140; size: 260, 300 }
+      
+          Shape client : HostNode {
+            kind: component
+            text: "extension.ts\nLanguageClient"
+            layout { position: 20, 56; size: 220, 60 }
+          }
+          Shape contrib : HostNode {
+            kind: component
+            text: "package.json contributes\ngrammar, language config,\nicon theme, token colors"
+            layout { position: 20, 170; size: 220, 96 }
+          }
+        }
+      
+        Container server : SrvFrame {
+          kind: frame
+          text: "Language server process  ·  out/server/server.js"
+          layout { position: 340, 0; size: 800, 600 }
+      
+          Shape srv : SrvNode {
+            kind: process
+            text: "server.ts\nconnection + TextDocuments"
+            layout { position: 20, 56; size: 240, 60 }
+          }
+          Shape model : SrvNode {
+            kind: process
+            text: "documentModel.ts\nbuildDocumentModel()"
+            layout { position: 300, 56; size: 240, 60 }
+          }
+      
+          Container features : SubFrame {
+            kind: frame
+            text: "features/"
+            layout { position: 20, 160; size: 520, 420 }
+      
+            Shape f_diag : FeatNode {
+              kind: process
+              text: "diagnostics.ts"
+              layout { position: 20, 52; size: 230, 52 }
+            }
+            Shape f_comp : FeatNode {
+              kind: process
+              text: "completion.ts"
+              layout { position: 270, 52; size: 230, 52 }
+            }
+            Shape f_hover : FeatNode {
+              kind: process
+              text: "hover.ts"
+              layout { position: 20, 124; size: 230, 52 }
+            }
+            Shape f_docs : FeatNode {
+              kind: component
+              text: "sflDocs.ts  ·  keyword docs"
+              layout { position: 270, 124; size: 230, 52 }
+            }
+            Shape f_def : FeatNode {
+              kind: process
+              text: "definition.ts"
+              layout { position: 20, 196; size: 230, 52 }
+            }
+            Shape f_refs : FeatNode {
+              kind: process
+              text: "references.ts"
+              layout { position: 270, 196; size: 230, 52 }
+            }
+            Shape f_rename : FeatNode {
+              kind: process
+              text: "rename.ts"
+              layout { position: 20, 268; size: 230, 52 }
+            }
+            Shape f_symbols : FeatNode {
+              kind: process
+              text: "documentSymbols.ts"
+              layout { position: 270, 268; size: 230, 52 }
+            }
+            Shape f_format : FeatNode {
+              kind: process
+              text: "formatting.ts"
+              layout { position: 20, 340; size: 230, 52 }
+            }
+            Shape f_tokens : FeatNode {
+              kind: process
+              text: "semanticTokens.ts  ·  no-op"
+              layout { position: 270, 340; size: 230, 52 }
+            }
+          }
+      
+          Container core : SubFrame {
+            kind: frame
+            text: "sfl-core/"
+            layout { position: 580, 160; size: 200, 420 }
+      
+            Shape c_lexer : CoreNode {
+              kind: component
+              text: "lexer.ts"
+              layout { position: 20, 52; size: 160, 52 }
+            }
+            Shape c_parser : CoreNode {
+              kind: component
+              text: "parser.ts + ast.ts"
+              layout { position: 20, 124; size: 160, 52 }
+            }
+            Shape c_resolver : CoreNode {
+              kind: component
+              text: "resolver.ts"
+              layout { position: 20, 196; size: 160, 52 }
+            }
+            Shape c_queries : CoreNode {
+              kind: component
+              text: "queries.ts"
+              layout { position: 20, 268; size: 160, 52 }
+            }
+            Shape c_emitter : CoreNode {
+              kind: component
+              text: "emitter.ts"
+              layout { position: 20, 340; size: 160, 52 }
+            }
+          }
+        }
+      
+        Link l_doc_client : MainFlow {
+          from: doc, bottom (0.5)
+          to: host.client, top (0.5)
+        }
+        Link l_client_srv : MainFlow {
+          from: host.client, right (0.5)
+          to: server.srv, left (0.5)
+          text: "LSP over IPC"
+        }
+        Link l_srv_model : MainFlow {
+          from: server.srv, right (0.5)
+          to: server.model, left (0.5)
+        }
+        Link l_model_core : MainFlow {
+          from: server.model, right (0.5)
+          to: server.core, top (0.5)
+          text: "parse + resolve"
+        }
+        Link l_srv_features : MainFlow {
+          from: server.srv, bottom (0.5)
+          to: server.features, top (0.23)
+          text: "dispatch"
+        }
+        Link l_features_core : UseFlow {
+          from: server.features, right (0.5)
+          to: server.core, left (0.5)
+        }
+        Link l_hover_docs : UseFlow {
+          from: server.features.f_hover, right (0.5)
+          to: server.features.f_docs, left (0.5)
+        }
+      }
+    </script>
+    <script>
+      // The diagrams are SFL, rendered by stickyflow.js's <stickyflow-diagram>
+      // custom element. The page carries no copy of the renderer: it loads the
+      // IIFE build from the first local path that exists, so it always draws
+      // with the stickyflow.js you have checked out. Without one, the SFL
+      // source stays readable in the "SFL source" panels.
+      const RENDERER_CANDIDATES = [
+        "../../../stickyflow.js/dist/stickyflow-diagram.global.js",
+        "../../vscode-sfl-preview/media/stickyflow/stickyflow-diagram.global.js"
+      ];
+
+      function mountDiagrams() {
+        for (const el of document.querySelectorAll("stickyflow-diagram[data-sfl]")) {
+          el.source = document.getElementById(el.dataset.sfl).textContent.trim();
+          // The element sizes its SVG at natural pixel size; scale it to the column.
+          const fit = document.createElement("style");
+          fit.textContent = "svg { width: 100%; height: auto; }";
+          el.shadowRoot?.append(fit);
+        }
+      }
+
+      function showRendererMissing() {
+        document.documentElement.classList.add("renderer-missing");
+        for (const details of document.querySelectorAll(".diagram details")) details.open = true;
+      }
+
+      function loadRenderer(index) {
+        if (index >= RENDERER_CANDIDATES.length) {
+          showRendererMissing();
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = RENDERER_CANDIDATES[index];
+        script.onload = mountDiagrams;
+        script.onerror = () => {
+          script.remove();
+          loadRenderer(index + 1);
+        };
+        document.head.append(script);
+      }
+
+      for (const pre of document.querySelectorAll("pre[data-sfl]")) {
+        pre.textContent = document.getElementById(pre.dataset.sfl).textContent.trim();
+      }
+      loadRenderer(0);
+    </script>
+  </body>
+</html>

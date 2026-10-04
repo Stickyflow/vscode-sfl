@@ -34,6 +34,8 @@ const SYMBOL_KIND: Record<BlockKind, SymbolKind> = {
   Port: SymbolKind.Field,
   Net: SymbolKind.Interface,
   Footer: SymbolKind.Field,
+  Isometric: SymbolKind.Object,
+  Connection: SymbolKind.Interface,
 };
 
 function detailFor(block: SflBlock): string | undefined {

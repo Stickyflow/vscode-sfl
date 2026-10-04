@@ -67,6 +67,13 @@ First working version. Not yet published to the Marketplace (`publisher` in
   highlighting, completion, hover docs, outline entry, required-content check
   and named-port endpoint resolution. Previously a `Shape` block was a parse
   error.
+- `Isometric` and `Connection` block kinds, matching stickyflow.js. `Isometric`
+  is a leaf canvas object (a 3D box; `size` takes a third depth value) and a
+  valid `from:`/`to:` endpoint. `Connection` links two Isometric objects by
+  cube face and gets the same required `from`/`to` validation as a `Link`.
+  Adds the `fromFace` / `toFace` (with value completion), `labelOffsetX` /
+  `labelOffsetY` and `labelBackground` vocabulary, plus highlighting, hover
+  docs and outline entries. Previously both were `unknown block kind` errors.
 
 ### Known limitations
 

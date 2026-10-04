@@ -28,6 +28,7 @@ export const PROPERTY_KEYS = [
   'rowHeight', 'width', 'showHeader', 'headerFill', 'headerRuleStyle', 'gridColor', 'gridWidth', 'borderStyle', 'cellType',
   'type', 'stacked', 'categories', 'min', 'max', 'step', 'unit', 'label', 'values', 'error', 'at',
   'points', 'closed', 'value', 'tension', 'members',
+  'fromFace', 'toFace', 'labelOffsetX', 'labelOffsetY', 'labelBackground',
 ];
 export const VALUE_SUGGESTIONS: Record<string, string[]> = {
   kind: ['process', 'decision', 'start', 'end', 'note', 'frame', 'swimlane', 'input', 'output'],
@@ -41,11 +42,15 @@ export const VALUE_SUGGESTIONS: Record<string, string[]> = {
   // Chart `type:` vocabulary (SFL 1.4 §5.4) — mirrors stickyflow.js's CHART_TYPES.
   type: ['bar', 'line', 'scatter', 'radar', 'radial', 'field', 'heatmap', 'boxplot', 'sankey', 'treemap', 'mekko', 'hexbin', 'pie', 'matrix', 'grid', 'custom'],
   closed: ['true', 'false'],
+  // Isometric cube faces a `Connection` attaches to; stickyflow.js falls back to `front`.
+  fromFace: ['"top"', '"bottom"', '"front"', '"back"', '"left"', '"right"'],
+  toFace: ['"top"', '"bottom"', '"front"', '"back"', '"left"', '"right"'],
 };
 
 // Kinds whose names a `from:`/`to:` endpoint (or dot-path) can target. `Path`
-// (SFL 1.4 §3.3) is a freeform shape and, like an Entity, linkable.
-const REFERENCEABLE_KINDS: readonly BlockKind[] = ['Project', 'Model', 'Group', 'Container', 'Table', 'Shape', 'Entity', 'Path'];
+// (SFL 1.4 §3.3) is a freeform shape and, like an Entity, linkable; so is an
+// `Isometric` object, the endpoint of a `Connection`.
+const REFERENCEABLE_KINDS: readonly BlockKind[] = ['Project', 'Model', 'Group', 'Container', 'Table', 'Shape', 'Entity', 'Path', 'Isometric'];
 
 // Matches a block header up through ':' plus zero or more already-typed
 // `Ref & ` groups, i.e. the cursor sits right where the next composition

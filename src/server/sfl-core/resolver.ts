@@ -238,12 +238,12 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
         }
       }
 
-      if (block.kind === 'Link') {
+      if (block.kind === 'Link' || block.kind === 'Connection') {
         const props = block.entries.filter(e => e.type === 'property').map(e => (e as any).property as SflProperty);
         for (const key of ['from', 'to'] as const) {
           const entry = props.find(p => p.key === key);
           if (!entry) {
-            errors.push({ message: `Link '${block.name}' is missing required '${key}'`, ref: block.name, block, range: block.nameRange });
+            errors.push({ message: `${block.kind} '${block.name}' is missing required '${key}'`, ref: block.name, block, range: block.nameRange });
             continue;
           }
           if (entry.value.type === 'endpoint') {
@@ -253,7 +253,7 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
               const range = ranges && ranges.length > 0
                 ? { start: ranges[0].start, end: ranges[ranges.length - 1].end }
                 : block.nameRange;
-              errors.push({ message: `Link '${block.name}': ${key} endpoint '${entry.value.segments.join('.')}' does not resolve`, ref: entry.value.segments.join('.'), block, range });
+              errors.push({ message: `${block.kind} '${block.name}': ${key} endpoint '${entry.value.segments.join('.')}' does not resolve`, ref: entry.value.segments.join('.'), block, range });
             }
           }
         }

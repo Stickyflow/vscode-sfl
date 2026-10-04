@@ -84,8 +84,8 @@ Model checkout {
   logo (see [Notes](#notes)).
 
 All SFL 1.4 block kinds are supported, including `Table`, the chart kinds
-(`Chart`, `Axis`, `Series`, `Rule`), `Path`, `Symbol` / `Port`, `Net` and
-`Footer`.
+(`Chart`, `Axis`, `Series`, `Rule`), `Path`, `Symbol` / `Port`, `Net`,
+`Footer`, and the isometric kinds `Isometric` and `Connection`.
 
 ## Installation
 

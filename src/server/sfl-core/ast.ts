@@ -52,17 +52,25 @@ export interface SflRange {
 //     still accepted as an equivalent alias (stickyflow.js treats both the
 //     same and now emits `Shape` for new blocks). Everywhere `Entity` is
 //     special-cased below, `Shape` is too.
+//   • `Isometric`: a 3D box drawn in isometric projection; `size` takes a
+//     third value for its depth. A leaf canvas object like `Shape`, and a
+//     valid `from:`/`to:` endpoint.
+//   • `Connection`: a Link between two Isometric objects, attached to a
+//     cube face (`fromFace` / `toFace`) instead of a 2D side. Same
+//     required `from`/`to` as a Link. Leaf.
 export type BlockKind =
   | 'Project' | 'Model' | 'Group' | 'Container' | 'Table' | 'Shape' | 'Entity' | 'Link' | 'Layout' | 'Style'
   | 'Columns' | 'Column' | 'Rows' | 'Row'
   | 'Chart' | 'Axis' | 'Series' | 'Rule'
-  | 'Path' | 'Symbol' | 'Port' | 'Net' | 'Footer';
+  | 'Path' | 'Symbol' | 'Port' | 'Net' | 'Footer'
+  | 'Isometric' | 'Connection';
 
 export const BLOCK_KINDS: readonly BlockKind[] = [
   'Project', 'Model', 'Group', 'Container', 'Table', 'Shape', 'Entity', 'Link', 'Layout', 'Style',
   'Columns', 'Column', 'Rows', 'Row',
   'Chart', 'Axis', 'Series', 'Rule',
   'Path', 'Symbol', 'Port', 'Net', 'Footer',
+  'Isometric', 'Connection',
 ];
 
 export type Side = 'top' | 'bottom' | 'left' | 'right';

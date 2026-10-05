@@ -84,11 +84,11 @@ Model checkout {
   in one undoable edit. Pick Night Lime, Midnight Violet, Graphite Mono,
   Paper Navy or Charcoal Pastel; the template's Style blocks (`tpl_*`) are
   written into the file, so the look travels with it to every renderer.
-  Start nodes (`kind: start`, or where a flow begins) get the accent style,
-  Charcoal Pastel also colors `kind: decision` and `kind: input`, and turns
-  a decision's links labelled yes or no ("Sí", "No", ...) into small green
-  and coral branch circles (`kind: yes` / `kind: no`), and
-  shapes like a decision diamond are kept.
+  Start nodes (`kind: start`, or where a flow begins) get the accent style.
+  Every template turns a decision's links labelled yes or no ("Sí", "No",
+  ...) into small branch circles (`kind: yes` / `kind: no`); Charcoal
+  Pastel also colors `kind: decision` and `kind: input`. Shapes like a
+  decision diamond are kept.
 - An optional **file icon theme** that gives `.sfl` files the StickyFlow
   logo (see [Notes](#notes)).
 

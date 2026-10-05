@@ -83,9 +83,9 @@ First working version. Not yet published to the Marketplace (`publisher` in
   A block's shape (its own or from the Style it loses) is kept. Start
   nodes (`kind: start`, or without one, shapes a flow starts from) get the
   accent style; a template can also style `kind: decision`, `kind: input`
-  and the decision outcome nodes `kind: yes` / `kind: no` (Charcoal Pastel
-  does). `yes` and `no` are new `kind:` completions with hover docs; they're
-  not in the SFL spec yet. Such a template also splits each link from a
+  and the decision outcome nodes `kind: yes` / `kind: no` (all templates
+  style yes/no; Charcoal Pastel also decision and input). `yes` and `no` are new `kind:` completions with hover docs; they're
+  not in the SFL spec yet. Every template also splits each link from a
   decision labelled with a yes or no word into decision -> branch node ->
   target, placing the circle in the gap on the target's center line. `tpl_canvas` carries the canvas color for
   hosts that paint a background. Re-applying replaces the previous template;

@@ -11,7 +11,8 @@
 type CoreRole = 'canvas' | 'node' | 'accent' | 'frame' | 'table' | 'flow' | 'iso';
 /** Roles picked by a shape's `kind:`. A template without one styles those
  *  shapes as `node`. `yes` / `no` are the small branch nodes right after a
- *  decision. */
+ *  decision; every built-in template has them (yes filled in the accent
+ *  color, no outlined), so applying any template creates them. */
 type KindRole = 'decision' | 'input' | 'yes' | 'no';
 export type TemplateRole = CoreRole | KindRole;
 
@@ -41,6 +42,8 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       frame: { fill: '"#0a0a0a"', stroke: '"#2a2a2a"', strokeWidth: '1', textColor: '"#e8e8e8"', cornerRadius: '16', shadow: 'false', fontFamily: INTER },
       table: { fill: '"#0e0e0e"', stroke: '"#343434"', textColor: '"#d0d0d0"', headerFill: '"#1a1a1a"', gridColor: '"#2a2a2a"', fontFamily: INTER },
       flow: { route: 'curved', stroke: '"#c9dc4e"', strokeWidth: '1.5', markerStart: 'none', markerEnd: 'filled_circle' },
+      yes: { shape: 'oval', fill: '"#dcf05a"', stroke: '"#dcf05a"', strokeWidth: '1', textColor: '"#0a0a0a"', fontFamily: INTER, fontSize: '11' },
+      no: { shape: 'oval', fill: '"#0e0e0e"', stroke: '"#8a8a8a"', strokeWidth: '1', textColor: '"#d0d0d0"', fontFamily: INTER, fontSize: '11' },
       iso: { fill: '"#c9dc4e"' },
     },
   },
@@ -55,6 +58,8 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       frame: { fill: '"#0e0d16"', stroke: '"#2c2a3d"', strokeWidth: '1', textColor: '"#dcdaea"', cornerRadius: '16', shadow: 'false', fontFamily: INTER },
       table: { fill: '"#16151f"', stroke: '"#2c2a3d"', textColor: '"#dcdaea"', headerFill: '"#211f30"', gridColor: '"#2c2a3d"', fontFamily: INTER },
       flow: { route: 'orthogonal', stroke: '"#77748c"', strokeWidth: '1', markerStart: 'none', markerEnd: 'arrow' },
+      yes: { shape: 'oval', fill: '"#9a8cff"', stroke: '"#9a8cff"', strokeWidth: '1', textColor: '"#0d0b18"', fontFamily: INTER, fontSize: '11' },
+      no: { shape: 'oval', fill: '"#16151f"', stroke: '"#77748c"', strokeWidth: '1', textColor: '"#dcdaea"', fontFamily: INTER, fontSize: '11' },
       iso: { fill: '"#9a8cff"' },
     },
   },
@@ -69,6 +74,8 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       frame: { fill: '"#202020"', stroke: '"#4a4a4a"', strokeWidth: '1', textColor: '"#e4e4e4"', cornerRadius: '16', shadow: 'false', fontFamily: INTER },
       table: { fill: '"#1d1d1d"', stroke: '"#cfcfcf"', textColor: '"#e4e4e4"', headerFill: '"#2a2a2a"', gridColor: '"#4a4a4a"', fontFamily: INTER },
       flow: { route: 'orthogonal', stroke: '"#cfcfcf"', strokeWidth: '1', markerStart: 'filled_circle', markerEnd: 'filled_circle' },
+      yes: { shape: 'oval', fill: '"#ffffff"', stroke: '"#ffffff"', strokeWidth: '1', textColor: '"#1d1d1d"', fontFamily: INTER, fontSize: '11' },
+      no: { shape: 'oval', fill: '"#1d1d1d"', stroke: '"#cfcfcf"', strokeWidth: '1', textColor: '"#e4e4e4"', fontFamily: INTER, fontSize: '11' },
       iso: { fill: '"#9a9a9a"' },
     },
   },
@@ -83,6 +90,8 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       frame: { fill: '"#f7f2e3"', stroke: '"#2a3990"', strokeWidth: '1.5', textColor: '"#fbf8ee"', cornerRadius: '10', shadow: 'false', fontFamily: INTER },
       table: { fill: '"#fbf8ee"', stroke: '"#2a3990"', textColor: '"#2a3990"', headerFill: '"#e9e3cf"', gridColor: '"#2a3990"', fontFamily: INTER },
       flow: { route: 'orthogonal', stroke: '"#2a3990"', strokeWidth: '1.5', markerStart: 'none', markerEnd: 'none' },
+      yes: { shape: 'oval', fill: '"#2a3990"', stroke: '"#2a3990"', strokeWidth: '1', textColor: '"#fbf8ee"', fontFamily: INTER, fontSize: '11' },
+      no: { shape: 'oval', fill: '"#fbf8ee"', stroke: '"#2a3990"', strokeWidth: '1', textColor: '"#2a3990"', fontFamily: INTER, fontSize: '11' },
       iso: { fill: '"#2a3990"' },
     },
   },

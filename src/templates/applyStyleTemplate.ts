@@ -5,7 +5,9 @@
 //    Style blocks are inserted in place of the first one (or, the first time,
 //    before the first top-level block that isn't a Style or Layout).
 //  - Each styleable block points at its role's Style: its existing Style
-//    reference is replaced, or one is added. Layout references stay.
+//    reference is replaced, or one is added. Layout references stay. A shape
+//    with `kind: decision` or `kind: input` gets that role when the template
+//    has one; `kind: start`, or a shape a flow starts from, gets the accent.
 //  - Local properties the role's Style sets (`fill`, `stroke`, `route`, ...)
 //    are removed from the block and its `style { }`, so the template actually
 //    shows. `shape` is the exception: a decision diamond or a database
@@ -46,24 +48,27 @@ export function applyStyleTemplate(source: string, template: StyleTemplate): App
   const blocks = walk(doc.blocks);
   const styles = new Map(blocks.filter((b) => b.kind === 'Style').map((b) => [b.name, b]));
   const styleNames = new Set(styles.keys());
-  const accentNames = startNodes(blocks);
+  // An explicit `kind: start` says where flows start; only guess without one.
+  const explicitStart = blocks.some((b) => (b.kind === 'Shape' || b.kind === 'Entity') && kindOf(b) === 'start');
+  const accentNames = explicitStart ? new Set<string>() : startNodes(blocks);
 
   const edits: Edit[] = [];
   let restyled = 0;
 
   for (const block of blocks) {
-    const role = roleOf(block, accentNames);
+    const role = roleOf(block, accentNames, template);
     if (!role) continue;
     const reference = setStyleReference(block, roleStyleName(role), styleNames, at);
     if (!reference) continue;
     edits.push(reference);
     const local = localProperties(block);
-    const keys = Object.keys(template.styles[role]).filter((k) => !KEPT_LOCAL_PROPERTIES.has(k));
+    const roleStyle = template.styles[role] ?? {};
+    const keys = Object.keys(roleStyle).filter((k) => !KEPT_LOCAL_PROPERTIES.has(k));
     for (const property of local) {
       if (keys.includes(property.key) && property.keyRange) edits.push(propertyRemoval(source, at(property.keyRange.start)));
     }
     const carried = role === 'node' || role === 'accent' ? inheritedShape(block, styles) : undefined;
-    if (carried && carried !== template.styles[role].shape && !local.some((p) => p.key === 'shape')) {
+    if (carried && carried !== roleStyle.shape && !local.some((p) => p.key === 'shape')) {
       const insert = shapeInsertion(source, block, carried, at);
       if (insert) edits.push(insert);
     }
@@ -90,11 +95,15 @@ export function detectTemplateId(source: string, templates: readonly StyleTempla
   return templates.find((t) => t.styles.canvas.fill === `"${match[1]}"`)?.id;
 }
 
-function roleOf(block: SflBlock, accentNames: Set<string>): TemplateRole | undefined {
+function roleOf(block: SflBlock, accentNames: Set<string>, template: StyleTemplate): TemplateRole | undefined {
   switch (block.kind) {
     case 'Shape':
-    case 'Entity':
+    case 'Entity': {
+      const kind = kindOf(block);
+      if (kind === 'start') return 'accent';
+      if ((kind === 'decision' || kind === 'input') && template.styles[kind]) return kind;
       return accentNames.has(block.name) ? 'accent' : 'node';
+    }
     case 'Container':
       return 'frame';
     case 'Table':
@@ -107,6 +116,15 @@ function roleOf(block: SflBlock, accentNames: Set<string>): TemplateRole | undef
     default:
       return undefined;
   }
+}
+
+function kindOf(block: SflBlock): string | undefined {
+  for (const entry of block.entries) {
+    if (entry.type === 'property' && entry.property.key === 'kind' && entry.property.value.type === 'ident') {
+      return entry.property.value.segments.join('.');
+    }
+  }
+  return undefined;
 }
 
 /** Shapes where a flow starts: at least one outgoing link and no incoming one.
@@ -193,7 +211,7 @@ function templateStyleEdits(
 ): Edit[] {
   const styleText = (Object.keys(template.styles) as TemplateRole[])
     .map((role) => {
-      const body = Object.entries(template.styles[role]).map(([key, value]) => `${key}: ${value}`).join('; ');
+      const body = Object.entries(template.styles[role] ?? {}).map(([key, value]) => `${key}: ${value}`).join('; ');
       return `Style ${roleStyleName(role)} { ${body} }`;
     })
     .join('\n');

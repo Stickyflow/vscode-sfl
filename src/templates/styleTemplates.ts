@@ -7,13 +7,18 @@
 // for hosts that can paint a background (the preview reads it); renderers
 // that don't know the convention just ignore an unused Style.
 
-export type TemplateRole = 'canvas' | 'node' | 'accent' | 'frame' | 'table' | 'flow' | 'iso';
+/** Roles every template defines. */
+type CoreRole = 'canvas' | 'node' | 'accent' | 'frame' | 'table' | 'flow' | 'iso';
+/** Roles picked by a shape's `kind:`. A template without one styles those
+ *  shapes as `node`. */
+type KindRole = 'decision' | 'input';
+export type TemplateRole = CoreRole | KindRole;
 
 export interface StyleTemplate {
   id: string;
   label: string;
   description: string;
-  styles: Record<TemplateRole, Record<string, string>>;
+  styles: Record<CoreRole, Record<string, string>> & Partial<Record<KindRole, Record<string, string>>>;
 }
 
 /** Style block name for each role. Re-applying a template replaces every
@@ -78,6 +83,22 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       table: { fill: '"#fbf8ee"', stroke: '"#2a3990"', textColor: '"#2a3990"', headerFill: '"#e9e3cf"', gridColor: '"#2a3990"', fontFamily: INTER },
       flow: { route: 'orthogonal', stroke: '"#2a3990"', strokeWidth: '1.5', markerStart: 'none', markerEnd: 'none' },
       iso: { fill: '"#2a3990"' },
+    },
+  },
+  {
+    id: 'charcoal-pastel',
+    label: 'Charcoal Pastel',
+    description: 'Charcoal canvas, outlined pills colored by kind: yellow start, sage decision, lavender screen, white input',
+    styles: {
+      canvas: { fill: '"#1e1e1e"' },
+      node: { shape: 'pill', fill: '"#1e1e1e"', stroke: '"#cdb6ee"', strokeWidth: '1.5', textColor: '"#f2f2f2"', fontFamily: INTER, fontSize: '12' },
+      accent: { shape: 'pill', fill: '"#1e1e1e"', stroke: '"#f1e47c"', strokeWidth: '1.5', textColor: '"#f2f2f2"', fontFamily: INTER, fontSize: '12' },
+      decision: { shape: 'pill', fill: '"#1e1e1e"', stroke: '"#c9cdb8"', strokeWidth: '1.5', textColor: '"#f2f2f2"', fontFamily: INTER, fontSize: '12' },
+      input: { shape: 'pill', fill: '"#1e1e1e"', stroke: '"#ffffff"', strokeWidth: '1.5', textColor: '"#f2f2f2"', fontFamily: INTER, fontSize: '12' },
+      frame: { fill: '"#232323"', stroke: '"#3a3a3a"', strokeWidth: '1', textColor: '"#f2f2f2"', cornerRadius: '16', shadow: 'false', fontFamily: INTER },
+      table: { fill: '"#1e1e1e"', stroke: '"#cdb6ee"', textColor: '"#f2f2f2"', headerFill: '"#2a2630"', gridColor: '"#3a3a3a"', fontFamily: INTER },
+      flow: { route: 'orthogonal', stroke: '"#cdb6ee"', strokeWidth: '1.5', markerStart: 'none', markerEnd: 'arrow' },
+      iso: { fill: '"#cdb6ee"' },
     },
   },
 ];

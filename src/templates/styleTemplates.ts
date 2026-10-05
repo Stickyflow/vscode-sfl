@@ -10,8 +10,9 @@
 /** Roles every template defines. */
 type CoreRole = 'canvas' | 'node' | 'accent' | 'frame' | 'table' | 'flow' | 'iso';
 /** Roles picked by a shape's `kind:`. A template without one styles those
- *  shapes as `node`. */
-type KindRole = 'decision' | 'input';
+ *  shapes as `node`. `yes` / `no` are the small branch nodes right after a
+ *  decision. */
+type KindRole = 'decision' | 'input' | 'yes' | 'no';
 export type TemplateRole = CoreRole | KindRole;
 
 export interface StyleTemplate {
@@ -95,6 +96,8 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       accent: { shape: 'pill', fill: '"#1e1e1e"', stroke: '"#f1e47c"', strokeWidth: '1.5', textColor: '"#f2f2f2"', fontFamily: INTER, fontSize: '12' },
       decision: { shape: 'pill', fill: '"#1e1e1e"', stroke: '"#c9cdb8"', strokeWidth: '1.5', textColor: '"#f2f2f2"', fontFamily: INTER, fontSize: '12' },
       input: { shape: 'pill', fill: '"#1e1e1e"', stroke: '"#ffffff"', strokeWidth: '1.5', textColor: '"#f2f2f2"', fontFamily: INTER, fontSize: '12' },
+      yes: { shape: 'oval', fill: '"#b5ec7c"', stroke: '"#b5ec7c"', strokeWidth: '1', textColor: '"#1e1e1e"', fontFamily: INTER, fontSize: '11' },
+      no: { shape: 'oval', fill: '"#f0897a"', stroke: '"#f0897a"', strokeWidth: '1', textColor: '"#1e1e1e"', fontFamily: INTER, fontSize: '11' },
       frame: { fill: '"#232323"', stroke: '"#3a3a3a"', strokeWidth: '1', textColor: '"#f2f2f2"', cornerRadius: '16', shadow: 'false', fontFamily: INTER },
       table: { fill: '"#1e1e1e"', stroke: '"#cdb6ee"', textColor: '"#f2f2f2"', headerFill: '"#2a2630"', gridColor: '"#3a3a3a"', fontFamily: INTER },
       flow: { route: 'orthogonal', stroke: '"#cdb6ee"', strokeWidth: '1.5', markerStart: 'none', markerEnd: 'arrow' },

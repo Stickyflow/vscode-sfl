@@ -6,8 +6,8 @@
 //    before the first top-level block that isn't a Style or Layout).
 //  - Each styleable block points at its role's Style: its existing Style
 //    reference is replaced, or one is added. Layout references stay. A shape
-//    with `kind: decision` or `kind: input` gets that role when the template
-//    has one; `kind: start`, or a shape a flow starts from, gets the accent.
+//    with `kind: decision`, `input`, `yes` or `no` gets that role when the
+//    template has one; `kind: start`, or a shape a flow starts from, gets the accent.
 //  - Local properties the role's Style sets (`fill`, `stroke`, `route`, ...)
 //    are removed from the block and its `style { }`, so the template actually
 //    shows. `shape` is the exception: a decision diamond or a database
@@ -101,7 +101,7 @@ function roleOf(block: SflBlock, accentNames: Set<string>, template: StyleTempla
     case 'Entity': {
       const kind = kindOf(block);
       if (kind === 'start') return 'accent';
-      if ((kind === 'decision' || kind === 'input') && template.styles[kind]) return kind;
+      if ((kind === 'decision' || kind === 'input' || kind === 'yes' || kind === 'no') && template.styles[kind]) return kind;
       return accentNames.has(block.name) ? 'accent' : 'node';
     }
     case 'Container':

@@ -82,8 +82,10 @@ First working version. Not yet published to the Marketplace (`publisher` in
   existing Style reference and removing local overrides the template sets.
   A block's shape (its own or from the Style it loses) is kept. Start
   nodes (`kind: start`, or without one, shapes a flow starts from) get the
-  accent style; a template can also style `kind: decision` and
-  `kind: input` shapes (Charcoal Pastel does). `tpl_canvas` carries the canvas color for
+  accent style; a template can also style `kind: decision`, `kind: input`
+  and the decision outcome nodes `kind: yes` / `kind: no` (Charcoal Pastel
+  does). `yes` and `no` are new `kind:` completions with hover docs; they're
+  not in the SFL spec yet. `tpl_canvas` carries the canvas color for
   hosts that paint a background. Re-applying replaces the previous template;
   the result is re-parsed before anything is written.
 

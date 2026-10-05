@@ -85,7 +85,8 @@ Model checkout {
   Paper Navy or Charcoal Pastel; the template's Style blocks (`tpl_*`) are
   written into the file, so the look travels with it to every renderer.
   Start nodes (`kind: start`, or where a flow begins) get the accent style,
-  Charcoal Pastel also colors `kind: decision` and `kind: input`, and
+  Charcoal Pastel also colors `kind: decision` and `kind: input`, and draws
+  `kind: yes` / `kind: no` branch nodes as small green and coral circles, and
   shapes like a decision diamond are kept.
 - An optional **file icon theme** that gives `.sfl` files the StickyFlow
   logo (see [Notes](#notes)).

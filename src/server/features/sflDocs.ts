@@ -148,4 +148,8 @@ export const KIND_VALUE_DOCS: Record<string, string> = {
   swimlane: 'Bounded, oriented lane container.',
   component: 'Reusable building block.',
   custom: 'User-defined meaning — no predefined constraint.',
+  // Not in the spec's Table 7: used by the style templates, which can color
+  // a decision's outcome nodes.
+  yes: 'Positive outcome of a decision, drawn as a small branch node (not yet in the SFL spec; style templates can color it).',
+  no: 'Negative outcome of a decision, drawn as a small branch node (not yet in the SFL spec; style templates can color it).',
 };

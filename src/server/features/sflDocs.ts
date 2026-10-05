@@ -37,6 +37,8 @@ export const BLOCK_KIND_DOCS: Record<BlockKind, string> = {
   Port: "A named connection point of a `Symbol` (SFL 1.4 §3.5): `at:` a normalized (0..1) position. Addressed as `entity.portName` on a Link endpoint, where the entity's `shape:` points at the owning Symbol.",
   Net: 'A multi-terminal net (SFL 1.4 §3.5, "pattern C") — authored once via a `members` list instead of N-1 hand-written Links. Parse-only: the renderer star-decomposes it (first member = hub) into ordinary links.',
   Footer: "A Table summary row (SFL 1.4 §3.6), a sibling to `Rows`. Its own properties are cell values keyed by Column name, like a `Row`, but it is a totals line rather than a data row. At most one per Table.",
+  Isometric: "A 3D box drawn in isometric projection. `layout { size: width, height, depth }` takes a third value for its depth (default 24). Only `fill` is set: the side faces are derived shades of it. Carries `text` and an optional `icon`, and is a valid `from:`/`to:` endpoint.",
+  Connection: "Connects two `Isometric` objects (`from`/`to`), attached to a cube face (`fromFace` / `toFace`: `top`, `bottom`, `front`, `back`, `left`, `right`; default `front`) instead of a 2D side. Takes the same line styling as a Link (`route`, `stroke`, `strokeWidth`, `strokeStyle`, `opacity`).",
 };
 
 interface PropertyDoc {
@@ -62,7 +64,7 @@ export const PROPERTY_DOCS: Record<string, PropertyDoc> = {
 
   // layout {} / Layout (§6, Table 5)
   position: { description: 'x, y relative to the parent scope. If missing, the renderer may auto-place the element.', appliesTo: 'layout {}, Layout' },
-  size: { description: 'width, height. If missing, the renderer may auto-size from content.', appliesTo: 'layout {}, Layout' },
+  size: { description: 'width, height. If missing, the renderer may auto-size from content. An `Isometric` object takes a third value, its depth.', appliesTo: 'layout {}, Layout' },
   rotation: { description: 'Rotation in degrees. Defaults to 0.', appliesTo: 'layout {}, Layout' },
   order: { description: 'Global stack rank — a higher value renders above a lower one. Falls back to document order when unset. Presentational only; never encodes semantic priority (§13).', appliesTo: 'layout {}, Layout' },
 
@@ -113,6 +115,12 @@ export const PROPERTY_DOCS: Record<string, PropertyDoc> = {
   closed: { description: 'Whether a `Path` polyline is closed into a filled region.', appliesTo: 'Path' },
   value: { description: 'An optional scalar carried by a `Path` — e.g. the magnitude behind a choropleth region\'s fill.', appliesTo: 'Path' },
   tension: { description: 'Optional curve smoothing for a `Symbol` outline (0 = straight segments).', appliesTo: 'Symbol' },
+  // Isometric / Connection
+  fromFace: { description: 'The cube face of the `from` Isometric object a `Connection` attaches to: `top`, `bottom`, `front`, `back`, `left` or `right`. Defaults to `front`.', appliesTo: 'Connection' },
+  toFace: { description: 'The cube face of the `to` Isometric object a `Connection` attaches to. Same values as `fromFace`.', appliesTo: 'Connection' },
+  labelOffsetX: { description: "Horizontal offset of an `Isometric` object's label from its default anchor. Written by dragging the label in the preview.", appliesTo: 'style {}, Style on an Isometric' },
+  labelOffsetY: { description: "Vertical offset of an `Isometric` object's label from its default anchor.", appliesTo: 'style {}, Style on an Isometric' },
+  labelBackground: { description: "Background color behind an `Isometric` object's label.", appliesTo: 'style {}, Style on an Isometric' },
   members: { description: 'The ordered member list of a `Net` — bare entity names. The first is the hub; every other member connects to it.', appliesTo: 'Net' },
 
   // Table (§12.1a)

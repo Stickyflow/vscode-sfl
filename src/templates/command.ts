@@ -44,6 +44,7 @@ async function applyCommand(target?: vscode.Uri): Promise<void> {
   const whole = new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length));
   edit.replace(document.uri, whole, result.text);
   if (await vscode.workspace.applyEdit(edit)) {
-    vscode.window.setStatusBarMessage(`SFL: ${picked.template.label} applied to ${result.restyled} blocks`, 4000);
+    const branches = result.branches > 0 ? `, ${result.branches} yes/no branch nodes added` : '';
+    vscode.window.setStatusBarMessage(`SFL: ${picked.template.label} applied to ${result.restyled} blocks${branches}`, 4000);
   }
 }

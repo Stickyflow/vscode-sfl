@@ -85,7 +85,9 @@ First working version. Not yet published to the Marketplace (`publisher` in
   accent style; a template can also style `kind: decision`, `kind: input`
   and the decision outcome nodes `kind: yes` / `kind: no` (Charcoal Pastel
   does). `yes` and `no` are new `kind:` completions with hover docs; they're
-  not in the SFL spec yet. `tpl_canvas` carries the canvas color for
+  not in the SFL spec yet. Such a template also splits each link from a
+  decision labelled with a yes or no word into decision -> branch node ->
+  target, placing the circle in the gap on the target's center line. `tpl_canvas` carries the canvas color for
   hosts that paint a background. Re-applying replaces the previous template;
   the result is re-parsed before anything is written.
 

@@ -13,43 +13,54 @@
 //    shows. `shape` is the exception: a decision diamond or a database
 //    cylinder carries meaning, so a block's own `shape:` is kept, and a shape
 //    that came from the Style being replaced is moved onto the block.
+//  - A template with `yes` / `no` styles first turns a decision's links
+//    labelled yes or no into small branch nodes (see branchNodes.ts).
 //
 // Everything else (comments, formatting, other properties, blocks the
 // template doesn't style) is left byte for byte. The result is parsed again
 // before it's returned, so a bad patch never reaches the document.
 
 import { parse, SflParseError, type SflBlock, type SflProperty, type SflRange } from '../server/sfl-core';
+import { addBranchNodes } from './branchNodes';
+import { applyEdits, eolOf, expandToLine, isShape, kindOf, mergeOverlaps, offsetMapper, propertyRemoval, walk, type Edit } from './sflText';
 import { roleStyleName, TEMPLATE_PREFIX, type StyleTemplate, type TemplateRole } from './styleTemplates';
 
 export type ApplyResult =
-  | { ok: true; text: string; restyled: number }
+  | { ok: true; text: string; restyled: number; branches: number }
   | { ok: false; reason: string };
-
-interface Edit {
-  start: number;
-  end: number;
-  text: string;
-}
 
 /** Properties a template never removes from a block, even when its Style sets them. */
 const KEPT_LOCAL_PROPERTIES = new Set(['shape']);
 
-export function applyStyleTemplate(source: string, template: StyleTemplate): ApplyResult {
-  let doc;
+export function applyStyleTemplate(original: string, template: StyleTemplate): ApplyResult {
   try {
-    doc = parse(source);
+    parse(original);
   } catch (e) {
     if (e instanceof SflParseError) return { ok: false, reason: `Fix the syntax error on line ${e.line} first.` };
     throw e;
   }
 
-  const offsets = lineOffsets(source);
-  const at = (pos: SflRange['start']) => offsets[pos.line] + pos.character;
-  const blocks = walk(doc.blocks);
+  let source = original;
+  let branches = 0;
+  if (template.styles.yes && template.styles.no) {
+    const result = addBranchNodes(original);
+    source = result.text;
+    branches = result.added;
+  }
+
+  let doc;
+  try {
+    doc = parse(source);
+  } catch {
+    return { ok: false, reason: 'Adding the yes/no branch nodes produced invalid SFL, so nothing was changed. Please report this file.' };
+  }
+
+  const at = offsetMapper(source);
+  const blocks = walk(doc.blocks).map((b) => b.block);
   const styles = new Map(blocks.filter((b) => b.kind === 'Style').map((b) => [b.name, b]));
   const styleNames = new Set(styles.keys());
   // An explicit `kind: start` says where flows start; only guess without one.
-  const explicitStart = blocks.some((b) => (b.kind === 'Shape' || b.kind === 'Entity') && kindOf(b) === 'start');
+  const explicitStart = blocks.some((b) => isShape(b) && kindOf(b) === 'start');
   const accentNames = explicitStart ? new Set<string>() : startNodes(blocks);
 
   const edits: Edit[] = [];
@@ -85,7 +96,7 @@ export function applyStyleTemplate(source: string, template: StyleTemplate): App
   } catch {
     return { ok: false, reason: 'Applying the template produced invalid SFL, so nothing was changed. Please report this file.' };
   }
-  return { ok: true, text, restyled };
+  return { ok: true, text, restyled, branches };
 }
 
 /** The template whose canvas color the document carries, if any. */
@@ -116,15 +127,6 @@ function roleOf(block: SflBlock, accentNames: Set<string>, template: StyleTempla
     default:
       return undefined;
   }
-}
-
-function kindOf(block: SflBlock): string | undefined {
-  for (const entry of block.entries) {
-    if (entry.type === 'property' && entry.property.key === 'kind' && entry.property.value.type === 'ident') {
-      return entry.property.value.segments.join('.');
-    }
-  }
-  return undefined;
 }
 
 /** Shapes where a flow starts: at least one outgoing link and no incoming one.
@@ -185,11 +187,9 @@ function shapeInsertion(source: string, block: SflBlock, shape: string, at: (pos
   if (!block.range || !block.nameRange) return undefined;
   const brace = source.indexOf('{', at(block.nameRange.end));
   if (brace < 0 || brace >= at(block.range.end)) return undefined;
-  const afterBrace = source.slice(brace + 1);
-  const firstLine = /^[ \t]*\r?\n([ \t]*)\S/.exec(afterBrace);
+  const firstLine = /^[ \t]*\r?\n([ \t]*)\S/.exec(source.slice(brace + 1));
   if (!firstLine) return { start: brace + 1, end: brace + 1, text: ` shape: ${shape};` };
-  const eol = source.includes('\r\n') ? '\r\n' : '\n';
-  return { start: brace + 1, end: brace + 1, text: `${eol}${firstLine[1]}shape: ${shape}` };
+  return { start: brace + 1, end: brace + 1, text: `${eolOf(source)}${firstLine[1]}shape: ${shape}` };
 }
 
 function localProperties(block: SflBlock): SflProperty[] {
@@ -218,7 +218,7 @@ function templateStyleEdits(
 
   const previous = all.filter((b) => b.kind === 'Style' && b.name.startsWith(TEMPLATE_PREFIX) && b.range);
   if (previous.length > 0) {
-    const [first, ...rest] = previous.map((b) => blockRemoval(source, at(b.range!.start), at(b.range!.end)));
+    const [first, ...rest] = previous.map((b) => expandToLine(source, at(b.range!.start), at(b.range!.end)));
     return [{ start: first.start, end: first.end, text: styleText + '\n' }, ...rest.map((r) => ({ ...r, text: '' }))];
   }
 
@@ -231,109 +231,9 @@ function templateStyleEdits(
   return [{ start: end, end, text: `${source.endsWith('\n') ? '' : '\n'}\n${styleText}\n` }];
 }
 
-/** A whole block, plus its line if nothing else is on it. */
-function blockRemoval(source: string, start: number, end: number): { start: number; end: number } {
-  return expandToLine(source, start, end);
-}
-
-/** The text of one `key: value` property, plus the separator that goes with it. */
-function propertyRemoval(source: string, keyStart: number): Edit {
-  let i = keyStart;
-  let depth = 0;
-  for (; i < source.length; i++) {
-    const ch = source[i];
-    if (ch === '"') {
-      i = skipString(source, i);
-      continue;
-    }
-    if (ch === '[' || ch === '(') depth++;
-    else if (ch === ']' || ch === ')') depth--;
-    else if (depth === 0 && (ch === ';' || ch === '\n' || ch === '}')) break;
-  }
-
-  let start = keyStart;
-  let end = i;
-  if (source[i] === ';') {
-    end = i + 1;
-    while (source[end] === ' ' || source[end] === '\t') end++;
-  } else {
-    while (end > start && (source[end - 1] === ' ' || source[end - 1] === '\t' || source[end - 1] === '\r')) end--;
-    if (source[i] === '}') {
-      // Last property on a one-line block: take the `; ` before it instead.
-      let j = start;
-      while (j > 0 && (source[j - 1] === ' ' || source[j - 1] === '\t')) j--;
-      if (source[j - 1] === ';') start = j - 1;
-    }
-  }
-  const line = expandToLine(source, start, end);
-  return { ...line, text: '' };
-}
-
-/** Widens [start, end) to whole lines when only whitespace surrounds it. */
-function expandToLine(source: string, start: number, end: number): { start: number; end: number } {
-  let lineStart = start;
-  while (lineStart > 0 && (source[lineStart - 1] === ' ' || source[lineStart - 1] === '\t')) lineStart--;
-  if (lineStart > 0 && source[lineStart - 1] !== '\n') return { start, end };
-  let lineEnd = end;
-  while (lineEnd < source.length && (source[lineEnd] === ' ' || source[lineEnd] === '\t' || source[lineEnd] === '\r')) lineEnd++;
-  if (lineEnd < source.length && source[lineEnd] !== '\n') return { start, end };
-  return { start: lineStart, end: Math.min(lineEnd + 1, source.length) };
-}
-
-function skipString(source: string, quote: number): number {
-  if (source.startsWith('"""', quote)) {
-    const close = source.indexOf('"""', quote + 3);
-    return close < 0 ? source.length : close + 2;
-  }
-  for (let i = quote + 1; i < source.length; i++) {
-    if (source[i] === '\\') i++;
-    else if (source[i] === '"') return i;
-  }
-  return source.length;
-}
-
-function mergeOverlaps(edits: Edit[]): Edit[] {
-  const sorted = [...edits].sort((a, b) => a.start - b.start || a.end - b.end);
-  const merged: Edit[] = [];
-  for (const edit of sorted) {
-    const last = merged[merged.length - 1];
-    // Only pure deletions can overlap (two removals on one line); inserts
-    // and replacements sit on block headers and never touch a removal.
-    if (last && edit.start < last.end && last.text === '' && edit.text === '') {
-      last.end = Math.max(last.end, edit.end);
-    } else {
-      merged.push({ ...edit });
-    }
-  }
-  return merged;
-}
-
-function applyEdits(source: string, edits: Edit[]): string {
-  let text = source;
-  for (const edit of [...edits].sort((a, b) => b.start - a.start)) {
-    text = text.slice(0, edit.start) + edit.text + text.slice(edit.end);
-  }
-  return text;
-}
-
 /** `style { }` sub-blocks the removals emptied out. */
 function removeEmptyStyleBlocks(text: string): string {
   return text
     .replace(/^[ \t]*style[ \t]*\{\s*\}[ \t]*;?[ \t]*\r?\n/gm, '')
     .replace(/;?[ \t]*\bstyle[ \t]*\{[ \t]*\}/g, '');
-}
-
-function lineOffsets(source: string): number[] {
-  const offsets = [0];
-  for (let i = 0; i < source.length; i++) if (source[i] === '\n') offsets.push(i + 1);
-  return offsets;
-}
-
-function walk(blocks: SflBlock[]): SflBlock[] {
-  const out: SflBlock[] = [];
-  for (const block of blocks) {
-    out.push(block);
-    for (const entry of block.entries) if (entry.type === 'block') out.push(...walk([entry.block]));
-  }
-  return out;
 }

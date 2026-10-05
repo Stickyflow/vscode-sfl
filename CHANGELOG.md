@@ -75,6 +75,16 @@ First working version. Not yet published to the Marketplace (`publisher` in
   `labelOffsetY` and `labelBackground` vocabulary, plus highlighting, hover
   docs and outline entries. Previously both were `unknown block kind` errors.
 
+- Style templates: the *SFL: Apply Style Template* command (Night Lime,
+  Midnight Violet, Graphite Mono, Paper Navy). It writes the template's
+  `tpl_*` Style blocks into the file and points every shape, container,
+  table, link, isometric object and Connection at them, replacing their
+  existing Style reference and removing local overrides the template sets.
+  A block's shape (its own or from the Style it loses) is kept. Start
+  nodes get the accent style. `tpl_canvas` carries the canvas color for
+  hosts that paint a background. Re-applying replaces the previous template;
+  the result is re-parsed before anything is written.
+
 ### Changed
 
 - The language server caches the parsed document per version. Diagnostics,

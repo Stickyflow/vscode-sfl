@@ -156,7 +156,8 @@
     }
   },
   "scripts": {
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && npm run check:grammar",
+    "check:grammar": "node ./scripts/check-grammar.mjs",
     "watch": "tsc -p ./ --watch",
     "test": "vitest run",
     "test:watch": "vitest",

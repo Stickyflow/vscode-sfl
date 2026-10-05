@@ -1,11 +1,11 @@
 // packages/vscode-sfl/src/server/server.ts
 //
 // LSP entry point. Wires the document manager to the feature providers under
-// ./features/. Deliberately no server-side model cache: buildDocumentModel()
-// (parse + resolve) is cheap for the small, single-file documents SFL is
-// designed around (§1 — "human-readable" is a design goal), so every request
-// just recomputes from the live TextDocument rather than tracking cache
-// invalidation across edits.
+// ./features/. The parsed model is cached per document and keyed by its LSP
+// version: one keystroke triggers diagnostics, semantic tokens, completion
+// and often hover, and they all share a single parse + resolve instead of
+// each redoing it. TextDocument versions only ever increase, so a version
+// match is the whole invalidation story.
 
 import {
   createConnection,
@@ -31,10 +31,20 @@ import { computeFormatting } from './features/formatting';
 const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments(TextDocument);
 
+const modelCache = new Map<string, { version: number; model: DocumentModel }>();
+
+function modelFor(doc: TextDocument): DocumentModel {
+  const cached = modelCache.get(doc.uri);
+  if (cached && cached.version === doc.version) return cached.model;
+  const model = buildDocumentModel(doc.getText());
+  modelCache.set(doc.uri, { version: doc.version, model });
+  return model;
+}
+
 function modelForUri(uri: string): DocumentModel {
   const doc = documents.get(uri);
   if (!doc) return { doc: null, parseErrors: [], resolveResult: null };
-  return buildDocumentModel(doc.getText());
+  return modelFor(doc);
 }
 
 connection.onInitialize((_params: InitializeParams): InitializeResult => ({
@@ -55,14 +65,14 @@ connection.onInitialize((_params: InitializeParams): InitializeResult => ({
 }));
 
 documents.onDidChangeContent((change) => {
-  const model = buildDocumentModel(change.document.getText());
-  connection.sendDiagnostics({ uri: change.document.uri, diagnostics: computeDiagnostics(model) });
+  connection.sendDiagnostics({ uri: change.document.uri, diagnostics: computeDiagnostics(modelFor(change.document)) });
 });
 
 // Without this, closing a .sfl file that had errors leaves those diagnostics
 // in the Problems panel forever — nothing else ever tells VS Code to clear
 // them for a uri it stops tracking.
 documents.onDidClose((event) => {
+  modelCache.delete(event.document.uri);
   connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
 });
 

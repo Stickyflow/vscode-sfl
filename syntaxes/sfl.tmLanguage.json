@@ -39,8 +39,8 @@
       "patterns": [{ "include": "#composition-list" }]
     },
     "block-header-leaf": {
-      "comment": "Shape/Entity/Link/Layout/Style/Table/Axis/Series/Rule/Path/Net/Port/Footer — leaf blocks (kw). Table, the Chart child kinds, and the rest of the SFL 1.4 batch (Path §3.3, Net §3.5, Port §3.5, Footer §3.6) hold a fixed schema or no children rather than free content, so they're colored like Entity, not like a container keyword. Isometric and Connection are leaves too.",
-      "begin": "^\\s*\\b(Shape|Entity|Link|Layout|Style|Table|Axis|Series|Rule|Path|Net|Port|Footer|Isometric|Connection)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "comment": "Shape/Entity/Link/Layout/Style/Table/Columns/Column/Rows/Row/Axis/Series/Rule/Path/Net/Port/Footer — leaf blocks (kw). Table and its schema blocks, the Chart child kinds, and the rest of the SFL 1.4 batch (Path §3.3, Net §3.5, Port §3.5, Footer §3.6) hold a fixed schema or no children rather than free content, so they're colored like Entity, not like a container keyword. Isometric and Connection are leaves too.",
+      "begin": "^\\s*\\b(Shape|Entity|Link|Layout|Style|Table|Columns|Column|Rows|Row|Axis|Series|Rule|Path|Net|Port|Footer|Isometric|Connection)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
       "beginCaptures": {
         "1": { "name": "keyword.control.sfl" },
         "2": { "name": "entity.name.function.sfl" }

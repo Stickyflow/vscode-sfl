@@ -639,8 +639,8 @@
               </article>
               <article class="card">
                 <span class="card-number">02</span>
-                <h3>No cache to invalidate</h3>
-                <p>Every request rebuilds the document model from the live text. SFL files are small, so recomputing is cheaper than tracking invalidation.</p>
+                <h3>One parse per version</h3>
+                <p>The document model is cached per file and keyed by the LSP document version. Diagnostics, completion, hover and the outline for one keystroke share a single parse. Versions only grow, so a version match is the whole invalidation story.</p>
               </article>
               <article class="card">
                 <span class="card-number">03</span>
@@ -774,7 +774,7 @@
                 <span class="timeline-index">05</span>
                 <div>
                   <h3>Answer a request</h3>
-                  <p>A hover, completion or rename request rebuilds the model through <code>modelForUri()</code>, hit-tests the cursor with <code>queries.ts</code>, and answers. Hover pulls keyword docs from <code>sflDocs.ts</code> and a style's effective, inherited properties from the resolver.</p>
+                  <p>A hover, completion or rename request gets the model through <code>modelForUri()</code>, which reuses the one built for diagnostics as long as the document version hasn't moved. It hit-tests the cursor with <code>queries.ts</code> and answers. Hover pulls keyword docs from <code>sflDocs.ts</code> and a style's effective, inherited properties from the resolver.</p>
                   <span class="function-path">server.ts → features/hover.ts → sfl-core/queries.ts + features/sflDocs.ts</span>
                 </div>
               </article>
@@ -791,6 +791,8 @@
 ├─ language-configuration.json  Brackets, comments, auto-closing pairs
 ├─ syntaxes/
 │  └─ sfl.tmLanguage.json   TextMate grammar for highlighting
+├─ scripts/
+│  └─ check-grammar.mjs     Build check: grammar covers every BLOCK_KINDS keyword
 ├─ icons/                   SFL file icon theme
 ├─ fixtures/valid/          Sample .sfl files, round-tripped by the tests
 └─ src/
@@ -814,7 +816,7 @@
                 <thead><tr><th>Module</th><th>Core function or type</th><th>Responsibility</th></tr></thead>
                 <tbody>
                   <tr><td><code>extension.ts</code></td><td><code>activate()</code>, <code>deactivate()</code></td><td>Spawns the server module over IPC and scopes it to <code>{ scheme: 'file', language: 'sfl' }</code>.</td></tr>
-                  <tr><td><code>server/server.ts</code></td><td><code>createConnection()</code>, <code>modelForUri()</code></td><td>Declares capabilities, routes each LSP request to its feature provider, pushes diagnostics on change and clears them on close.</td></tr>
+                  <tr><td><code>server/server.ts</code></td><td><code>createConnection()</code>, <code>modelForUri()</code></td><td>Declares capabilities, routes each LSP request to its feature provider, pushes diagnostics on change and clears them on close. Caches one document model per file, keyed by document version, and drops it on close.</td></tr>
                   <tr><td><code>server/documentModel.ts</code></td><td><code>buildDocumentModel()</code>, <code>DocumentModel</code></td><td>Parse with line-blanking recovery, collect sorted parse errors, then resolve the AST.</td></tr>
                 </tbody>
               </table>
@@ -854,7 +856,7 @@
               <table>
                 <thead><tr><th>Module</th><th>Core function or type</th><th>Responsibility</th></tr></thead>
                 <tbody>
-                  <tr><td><code>ast.ts</code></td><td><code>SflDocument</code>, <code>SflBlock</code></td><td>Syntax tree with name, header and property ranges.</td></tr>
+                  <tr><td><code>ast.ts</code></td><td><code>SflDocument</code>, <code>SflBlock</code>, <code>BLOCK_KINDS</code></td><td>Syntax tree with name, header and property ranges. <code>BLOCK_KINDS</code> is the one list of block keywords; <code>BlockKind</code>, the outline and hover tables and the grammar check all derive from it.</td></tr>
                   <tr><td><code>lexer.ts</code></td><td><code>tokenize()</code></td><td>Text to tokens with line and column.</td></tr>
                   <tr><td><code>parser.ts</code></td><td><code>parse()</code>, <code>SflParseError</code></td><td>Tokens to AST. Throws on the first syntax error.</td></tr>
                   <tr><td><code>resolver.ts</code></td><td><code>resolveDocument()</code>, <code>resolveCompositionRef()</code></td><td>Scope-chain name resolution, dot paths, style inheritance, errors with block and range.</td></tr>
@@ -875,7 +877,7 @@
                 <thead><tr><th>Contribution</th><th>Source</th><th>Effect</th></tr></thead>
                 <tbody>
                   <tr><td><code>languages</code></td><td><code>language-configuration.json</code></td><td>Registers <code>sfl</code> for <code>.sfl</code> files with brackets and comment rules.</td></tr>
-                  <tr><td><code>grammars</code></td><td><code>syntaxes/sfl.tmLanguage.json</code></td><td>Highlighting for headers, composition lists, sub-blocks, strings, numbers and comments.</td></tr>
+                  <tr><td><code>grammars</code></td><td><code>syntaxes/sfl.tmLanguage.json</code></td><td>Highlighting for headers, composition lists, sub-blocks, strings, numbers and comments. <code>npm run compile</code> fails if a block kind in <code>BLOCK_KINDS</code> has no header rule.</td></tr>
                   <tr><td><code>configurationDefaults</code></td><td><code>package.json</code></td><td>Pins token colors to the StickyFlow editor's dark palette.</td></tr>
                   <tr><td><code>iconThemes</code></td><td><code>icons/sfl-icon-theme.json</code></td><td>Optional theme with the StickyFlow logo for <code>.sfl</code> files.</td></tr>
                   <tr><td><code>extensionPack</code></td><td><code>package.json</code></td><td>Installs vscode-sfl-preview alongside.</td></tr>
@@ -899,9 +901,9 @@
               </article>
               <article class="card">
                 <span class="card-number">D2</span>
-                <h3>Recompute per request</h3>
-                <p>No model cache, so there is no stale state between edits and requests.</p>
-                <ul><li>Cost: linear re-parse per request, fine for diagram-sized files.</li></ul>
+                <h3>Cache by document version</h3>
+                <p>One model per file, rebuilt only when the LSP version changes. A keystroke used to trigger several full parses (diagnostics, completion, hover, outline); now it triggers one.</p>
+                <ul><li>Cost: one model per open file stays in memory until the file closes.</li></ul>
                 <span class="path">src/server/server.ts</span>
               </article>
               <article class="card">
@@ -922,6 +924,7 @@
             <div class="checks">
               <div class="check">Every fixture in <code>fixtures/valid/</code> round-trips through parse and emit.</div>
               <div class="check">Diagnostics, hover docs, rename, references, symbols and formatting have focused Vitest suites.</div>
+              <div class="check"><code>npm run compile</code> runs <code>check:grammar</code>: every block kind gets keyword highlighting.</div>
               <div class="check"><code>npm run test:integration</code> launches a real VS Code with the extension loaded.</div>
               <div class="check">Integration tests confirm activation and that the client actually talks to the server.</div>
             </div>
@@ -1041,7 +1044,7 @@
           }
           Shape prev_client : PrevNode {
             kind: component
-            text: "webview/*\npan, link route"
+            text: "webview/*\ntyped modules"
             layout { position: 20, 252; size: 210, 60 }
           }
         }
@@ -1171,7 +1174,7 @@
       
           Shape srv : SrvNode {
             kind: process
-            text: "server.ts\nconnection + TextDocuments"
+            text: "server.ts\nconnection + model cache"
             layout { position: 20, 56; size: 240, 60 }
           }
           Shape model : SrvNode {
@@ -1282,6 +1285,7 @@
         Link l_srv_model : MainFlow {
           from: server.srv, right (0.5)
           to: server.model, left (0.5)
+          text: "once per version"
         }
         Link l_model_core : MainFlow {
           from: server.model, right (0.5)

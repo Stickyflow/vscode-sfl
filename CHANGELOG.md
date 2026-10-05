@@ -75,6 +75,20 @@ First working version. Not yet published to the Marketplace (`publisher` in
   `labelOffsetY` and `labelBackground` vocabulary, plus highlighting, hover
   docs and outline entries. Previously both were `unknown block kind` errors.
 
+### Changed
+
+- The language server caches the parsed document per version. Diagnostics,
+  completion, hover and the outline for the same keystroke now share one
+  parse + resolve instead of reparsing for every request.
+- `BLOCK_KINDS` is the single list of block keywords; `BlockKind` is derived
+  from it. `npm run compile` also runs `check:grammar`, which fails when the
+  TextMate grammar doesn't highlight a kind from that list.
+
+### Fixed
+
+- Table schema keywords (`Columns`, `Column`, `Rows`, `Row`) were missing from
+  the TextMate grammar, so they showed as plain text instead of keywords.
+
 ### Known limitations
 
 - Color parity covers dark themes only; no light-theme equivalent yet.

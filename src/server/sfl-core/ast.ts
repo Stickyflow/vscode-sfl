@@ -58,20 +58,20 @@ export interface SflRange {
 //   • `Connection`: a Link between two Isometric objects, attached to a
 //     cube face (`fromFace` / `toFace`) instead of a 2D side. Same
 //     required `from`/`to` as a Link. Leaf.
-export type BlockKind =
-  | 'Project' | 'Model' | 'Group' | 'Container' | 'Table' | 'Shape' | 'Entity' | 'Link' | 'Layout' | 'Style'
-  | 'Columns' | 'Column' | 'Rows' | 'Row'
-  | 'Chart' | 'Axis' | 'Series' | 'Rule'
-  | 'Path' | 'Symbol' | 'Port' | 'Net' | 'Footer'
-  | 'Isometric' | 'Connection';
-
-export const BLOCK_KINDS: readonly BlockKind[] = [
+//
+// BLOCK_KINDS is the single list of block keywords: BlockKind is derived from
+// it, the Record<BlockKind, …> tables (outline symbols, hover docs) fail to
+// compile when a kind is missing, and scripts/check-grammar.mjs fails the
+// build when the TextMate grammar doesn't highlight one.
+export const BLOCK_KINDS = [
   'Project', 'Model', 'Group', 'Container', 'Table', 'Shape', 'Entity', 'Link', 'Layout', 'Style',
   'Columns', 'Column', 'Rows', 'Row',
   'Chart', 'Axis', 'Series', 'Rule',
   'Path', 'Symbol', 'Port', 'Net', 'Footer',
   'Isometric', 'Connection',
-];
+] as const;
+
+export type BlockKind = (typeof BLOCK_KINDS)[number];
 
 export type Side = 'top' | 'bottom' | 'left' | 'right';
 

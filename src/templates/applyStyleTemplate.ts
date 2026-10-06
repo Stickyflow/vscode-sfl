@@ -209,26 +209,27 @@ function templateStyleEdits(
   template: StyleTemplate,
   at: (pos: SflRange['start']) => number,
 ): Edit[] {
+  const eol = eolOf(source);
   const styleText = (Object.keys(template.styles) as TemplateRole[])
     .map((role) => {
       const body = Object.entries(template.styles[role] ?? {}).map(([key, value]) => `${key}: ${value}`).join('; ');
       return `Style ${roleStyleName(role)} { ${body} }`;
     })
-    .join('\n');
+    .join(eol);
 
   const previous = all.filter((b) => b.kind === 'Style' && b.name.startsWith(TEMPLATE_PREFIX) && b.range);
   if (previous.length > 0) {
     const [first, ...rest] = previous.map((b) => expandToLine(source, at(b.range!.start), at(b.range!.end)));
-    return [{ start: first.start, end: first.end, text: styleText + '\n' }, ...rest.map((r) => ({ ...r, text: '' }))];
+    return [{ start: first.start, end: first.end, text: styleText + eol }, ...rest.map((r) => ({ ...r, text: '' }))];
   }
 
   const anchor = topLevel.find((b) => b.kind !== 'Style' && b.kind !== 'Layout' && b.range);
   if (anchor) {
     const start = at(anchor.range!.start);
-    return [{ start, end: start, text: `${styleText}\n\n` }];
+    return [{ start, end: start, text: `${styleText}${eol}${eol}` }];
   }
   const end = source.length;
-  return [{ start: end, end, text: `${source.endsWith('\n') ? '' : '\n'}\n${styleText}\n` }];
+  return [{ start: end, end, text: `${source.endsWith('\n') ? '' : eol}${eol}${styleText}${eol}` }];
 }
 
 /** `style { }` sub-blocks the removals emptied out. */

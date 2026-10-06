@@ -31,7 +31,7 @@ export const PROPERTY_KEYS = [
   'fromFace', 'toFace', 'labelOffsetX', 'labelOffsetY', 'labelBackground',
 ];
 export const VALUE_SUGGESTIONS: Record<string, string[]> = {
-  kind: ['process', 'decision', 'start', 'end', 'note', 'frame', 'swimlane', 'input', 'output', 'yes', 'no'],
+  kind: ['process', 'decision', 'start', 'end', 'note', 'frame', 'swimlane', 'input', 'output', 'yes', 'no', 'highlight'],
   shape: ['rectangle', 'rounded_rectangle', 'pill', 'diamond', 'circle', 'ellipse'],
   route: ['orthogonal', 'straight', 'curved'],
   fontWeight: ['normal', 'bold'],

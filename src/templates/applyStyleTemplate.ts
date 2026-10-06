@@ -10,8 +10,8 @@
 //    derivedStyleName), so removing the template restores it. Layout
 //    references stay. A shape
 //    whose `kind:` is one of KIND_ROLES (decision, input, output, end, note,
-//    yes, no) gets that role when the template has one; `kind: start`, or a
-//    shape a flow starts from, gets the accent.
+//    yes, no) gets that role when the template has one; `kind: start`,
+//    `kind: highlight`, or a shape a flow starts from, gets the accent.
 //  - Local properties the role's Style sets (`fill`, `stroke`, `route`, ...)
 //    are removed from the block and its `style { }`, so the template actually
 //    shows. `shape` is the exception: a decision diamond or a database
@@ -119,7 +119,7 @@ function roleOf(block: SflBlock, accentNames: Set<string>, template: StyleTempla
     case 'Shape':
     case 'Entity': {
       const kind = kindOf(block);
-      if (kind === 'start') return 'accent';
+      if (kind === 'start' || kind === 'highlight') return 'accent';
       if (isKindRole(kind) && template.styles[kind]) return kind;
       return accentNames.has(block.name) ? 'accent' : 'node';
     }

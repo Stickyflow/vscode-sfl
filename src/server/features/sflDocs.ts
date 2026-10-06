@@ -152,4 +152,5 @@ export const KIND_VALUE_DOCS: Record<string, string> = {
   // a decision's outcome nodes.
   yes: 'Positive outcome of a decision, drawn as a small branch node (not yet in the SFL spec; style templates can color it).',
   no: 'Negative outcome of a decision, drawn as a small branch node (not yet in the SFL spec; style templates can color it).',
+  highlight: 'A step to draw attention to, e.g. the main path through a flow (not yet in the SFL spec; style templates give it their accent style).',
 };

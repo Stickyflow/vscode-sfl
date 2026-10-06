@@ -6,8 +6,9 @@
 //    before the first top-level block that isn't a Style or Layout).
 //  - Each styleable block points at its role's Style: its existing Style
 //    reference is replaced, or one is added. Layout references stay. A shape
-//    with `kind: decision`, `input`, `yes` or `no` gets that role when the
-//    template has one; `kind: start`, or a shape a flow starts from, gets the accent.
+//    whose `kind:` is one of KIND_ROLES (decision, input, output, end, note,
+//    yes, no) gets that role when the template has one; `kind: start`, or a
+//    shape a flow starts from, gets the accent.
 //  - Local properties the role's Style sets (`fill`, `stroke`, `route`, ...)
 //    are removed from the block and its `style { }`, so the template actually
 //    shows. `shape` is the exception: a decision diamond or a database
@@ -23,7 +24,7 @@
 import { parse, SflParseError, type SflBlock, type SflProperty, type SflRange } from '../server/sfl-core';
 import { addBranchNodes } from './branchNodes';
 import { applyEdits, eolOf, expandToLine, isShape, kindOf, mergeOverlaps, offsetMapper, propertyRemoval, walk, type Edit } from './sflText';
-import { roleStyleName, TEMPLATE_PREFIX, type StyleTemplate, type TemplateRole } from './styleTemplates';
+import { KIND_ROLES, roleStyleName, TEMPLATE_PREFIX, type StyleTemplate, type TemplateRole } from './styleTemplates';
 
 export type ApplyResult =
   | { ok: true; text: string; restyled: number; branches: number }
@@ -112,7 +113,7 @@ function roleOf(block: SflBlock, accentNames: Set<string>, template: StyleTempla
     case 'Entity': {
       const kind = kindOf(block);
       if (kind === 'start') return 'accent';
-      if ((kind === 'decision' || kind === 'input' || kind === 'yes' || kind === 'no') && template.styles[kind]) return kind;
+      if (isKindRole(kind) && template.styles[kind]) return kind;
       return accentNames.has(block.name) ? 'accent' : 'node';
     }
     case 'Container':
@@ -127,6 +128,10 @@ function roleOf(block: SflBlock, accentNames: Set<string>, template: StyleTempla
     default:
       return undefined;
   }
+}
+
+function isKindRole(kind: string | undefined): kind is (typeof KIND_ROLES)[number] {
+  return (KIND_ROLES as readonly string[]).includes(kind ?? '');
 }
 
 /** Shapes where a flow starts: at least one outgoing link and no incoming one.

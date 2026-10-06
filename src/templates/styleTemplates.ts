@@ -12,8 +12,12 @@ type CoreRole = 'canvas' | 'node' | 'accent' | 'frame' | 'table' | 'flow' | 'iso
 /** Roles picked by a shape's `kind:`. A template without one styles those
  *  shapes as `node`. `yes` / `no` are the small branch nodes right after a
  *  decision; every built-in template has them (yes filled in the accent
- *  color, no outlined), so applying any template creates them. */
-type KindRole = 'decision' | 'input' | 'yes' | 'no';
+ *  color, no outlined), so applying any template creates them. Every
+ *  built-in template also has `end` (the accent inverted, so start and end
+ *  read as a pair) and `note` (muted and dashed, so an annotation doesn't
+ *  look like a step of the flow). */
+export const KIND_ROLES = ['decision', 'input', 'output', 'end', 'note', 'yes', 'no'] as const;
+type KindRole = (typeof KIND_ROLES)[number];
 export type TemplateRole = CoreRole | KindRole;
 
 export interface StyleTemplate {
@@ -44,6 +48,8 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       flow: { route: 'curved', stroke: '"#c9dc4e"', strokeWidth: '1.5', markerStart: 'none', markerEnd: 'filled_circle' },
       yes: { shape: 'oval', fill: '"#dcf05a"', stroke: '"#dcf05a"', strokeWidth: '1', textColor: '"#0a0a0a"', fontFamily: INTER, fontSize: '11' },
       no: { shape: 'oval', fill: '"#0e0e0e"', stroke: '"#8a8a8a"', strokeWidth: '1', textColor: '"#d0d0d0"', fontFamily: INTER, fontSize: '11' },
+      end: { shape: 'pill', fill: '"#0e0e0e"', stroke: '"#dcf05a"', strokeWidth: '1.5', textColor: '"#dcf05a"', fontFamily: INTER, fontSize: '12', fontWeight: 'bold' },
+      note: { shape: 'rectangle', cornerRadius: '4', fill: '"#0a0a0a"', stroke: '"#4a4a4a"', strokeWidth: '1', strokeStyle: 'dashed', textColor: '"#8a8a8a"', fontFamily: INTER, fontSize: '11' },
       iso: { fill: '"#c9dc4e"' },
     },
   },
@@ -60,6 +66,8 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       flow: { route: 'orthogonal', stroke: '"#77748c"', strokeWidth: '1', markerStart: 'none', markerEnd: 'arrow' },
       yes: { shape: 'oval', fill: '"#9a8cff"', stroke: '"#9a8cff"', strokeWidth: '1', textColor: '"#0d0b18"', fontFamily: INTER, fontSize: '11' },
       no: { shape: 'oval', fill: '"#16151f"', stroke: '"#77748c"', strokeWidth: '1', textColor: '"#dcdaea"', fontFamily: INTER, fontSize: '11' },
+      end: { shape: 'oval', fill: '"#16151f"', stroke: '"#9a8cff"', strokeWidth: '1.5', textColor: '"#9a8cff"', fontFamily: INTER, fontSize: '12', fontWeight: 'bold' },
+      note: { shape: 'rectangle', cornerRadius: '4', fill: '"#0e0d16"', stroke: '"#4a4760"', strokeWidth: '1', strokeStyle: 'dashed', textColor: '"#8f8ca3"', fontFamily: INTER, fontSize: '11' },
       iso: { fill: '"#9a8cff"' },
     },
   },
@@ -76,6 +84,8 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       flow: { route: 'orthogonal', stroke: '"#cfcfcf"', strokeWidth: '1', markerStart: 'filled_circle', markerEnd: 'filled_circle' },
       yes: { shape: 'oval', fill: '"#ffffff"', stroke: '"#ffffff"', strokeWidth: '1', textColor: '"#1d1d1d"', fontFamily: INTER, fontSize: '11' },
       no: { shape: 'oval', fill: '"#1d1d1d"', stroke: '"#cfcfcf"', strokeWidth: '1', textColor: '"#e4e4e4"', fontFamily: INTER, fontSize: '11' },
+      end: { shape: 'pill', fill: '"#ffffff"', stroke: '"#ffffff"', strokeWidth: '2', textColor: '"#1d1d1d"', fontFamily: INTER, fontSize: '12', fontWeight: 'bold' },
+      note: { shape: 'rectangle', cornerRadius: '4', fill: '"#1d1d1d"', stroke: '"#6a6a6a"', strokeWidth: '1', strokeStyle: 'dashed', textColor: '"#9a9a9a"', fontFamily: INTER, fontSize: '11' },
       iso: { fill: '"#9a9a9a"' },
     },
   },
@@ -92,19 +102,24 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       flow: { route: 'orthogonal', stroke: '"#2a3990"', strokeWidth: '1.5', markerStart: 'none', markerEnd: 'none' },
       yes: { shape: 'oval', fill: '"#2a3990"', stroke: '"#2a3990"', strokeWidth: '1', textColor: '"#fbf8ee"', fontFamily: INTER, fontSize: '11' },
       no: { shape: 'oval', fill: '"#fbf8ee"', stroke: '"#2a3990"', strokeWidth: '1', textColor: '"#2a3990"', fontFamily: INTER, fontSize: '11' },
+      end: { shape: 'rounded_rectangle', cornerRadius: '6', fill: '"#fbf8ee"', stroke: '"#2a3990"', strokeWidth: '3', textColor: '"#2a3990"', fontFamily: INTER, fontSize: '13', fontWeight: 'bold' },
+      note: { shape: 'rectangle', cornerRadius: '2', fill: '"#f1ead2"', stroke: '"#8a90b8"', strokeWidth: '1', strokeStyle: 'dashed', textColor: '"#4a5390"', fontFamily: INTER, fontSize: '11' },
       iso: { fill: '"#2a3990"' },
     },
   },
   {
     id: 'charcoal-pastel',
     label: 'Charcoal Pastel',
-    description: 'Charcoal canvas, outlined pills colored by kind: yellow start, sage decision, lavender screen, white input',
+    description: 'Charcoal canvas, outlined pills colored by kind: yellow start, sage decision, lavender screen, white input, blue output',
     styles: {
       canvas: { fill: '"#1e1e1e"' },
       node: { shape: 'pill', fill: '"#1e1e1e"', stroke: '"#cdb6ee"', strokeWidth: '1.5', textColor: '"#f2f2f2"', fontFamily: INTER, fontSize: '12' },
       accent: { shape: 'pill', fill: '"#1e1e1e"', stroke: '"#f1e47c"', strokeWidth: '1.5', textColor: '"#f2f2f2"', fontFamily: INTER, fontSize: '12' },
       decision: { shape: 'pill', fill: '"#1e1e1e"', stroke: '"#c9cdb8"', strokeWidth: '1.5', textColor: '"#f2f2f2"', fontFamily: INTER, fontSize: '12' },
       input: { shape: 'pill', fill: '"#1e1e1e"', stroke: '"#ffffff"', strokeWidth: '1.5', textColor: '"#f2f2f2"', fontFamily: INTER, fontSize: '12' },
+      output: { shape: 'pill', fill: '"#1e1e1e"', stroke: '"#9fd3e6"', strokeWidth: '1.5', textColor: '"#f2f2f2"', fontFamily: INTER, fontSize: '12' },
+      end: { shape: 'pill', fill: '"#f1e47c"', stroke: '"#f1e47c"', strokeWidth: '1.5', textColor: '"#1e1e1e"', fontFamily: INTER, fontSize: '12' },
+      note: { shape: 'rectangle', cornerRadius: '4', fill: '"#262626"', stroke: '"#5a5a5a"', strokeWidth: '1', strokeStyle: 'dashed', textColor: '"#b0b0b0"', fontFamily: INTER, fontSize: '11' },
       yes: { shape: 'oval', fill: '"#b5ec7c"', stroke: '"#b5ec7c"', strokeWidth: '1', textColor: '"#1e1e1e"', fontFamily: INTER, fontSize: '11' },
       no: { shape: 'oval', fill: '"#f0897a"', stroke: '"#f0897a"', strokeWidth: '1', textColor: '"#1e1e1e"', fontFamily: INTER, fontSize: '11' },
       frame: { fill: '"#232323"', stroke: '"#3a3a3a"', strokeWidth: '1', textColor: '"#f2f2f2"', cornerRadius: '16', shadow: 'false', fontFamily: INTER },

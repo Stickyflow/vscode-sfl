@@ -202,4 +202,23 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       iso: { fill: '"#6b7f6e"' },
     },
   },
+  {
+    id: 'ember-noir',
+    label: 'Ember Noir',
+    description: 'Black canvas, white pills, orange highlighted path (start and kind: highlight), thin white connectors',
+    styles: {
+      canvas: { fill: '"#000000"' },
+      node: { shape: 'pill', fill: '"#ffffff"', stroke: '"#ffffff"', strokeWidth: '1', textColor: '"#111111"', fontFamily: INTER, fontSize: '12' },
+      accent: { shape: 'pill', fill: '"#ff6224"', stroke: '"#ff6224"', strokeWidth: '1', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '12' },
+      decision: { shape: 'pill', fill: '"#000000"', stroke: '"#ff6224"', strokeWidth: '1.5', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '12' },
+      end: { shape: 'pill', fill: '"#000000"', stroke: '"#ffffff"', strokeWidth: '1.5', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '12' },
+      note: { shape: 'rectangle', fill: 'none', stroke: 'none', textColor: '"#e6e6e6"', fontFamily: INTER, fontSize: '16', textAlign: 'left' },
+      yes: { shape: 'oval', fill: '"#ff6224"', stroke: '"#ff6224"', strokeWidth: '1', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '11' },
+      no: { shape: 'oval', fill: '"#000000"', stroke: '"#ffffff"', strokeWidth: '1', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '11' },
+      frame: { fill: '"#0b0b0b"', stroke: '"#262626"', strokeWidth: '1', textColor: '"#ffffff"', cornerRadius: '20', shadow: 'false', fontFamily: INTER },
+      table: { fill: '"#ffffff"', stroke: '"#ffffff"', textColor: '"#111111"', headerFill: '"#ffe2d6"', gridColor: '"#e5e5e5"', fontFamily: INTER },
+      flow: { route: 'orthogonal', stroke: '"#ffffff"', strokeWidth: '1', markerStart: 'none', markerEnd: 'arrow' },
+      iso: { fill: '"#ff6224"' },
+    },
+  },
 ];

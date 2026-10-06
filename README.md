@@ -82,10 +82,12 @@ Model checkout {
   errors so a broken line is never silently dropped.
 - **Style templates**: *SFL: Apply Style Template* restyles the whole file
   in one undoable edit. Pick Night Lime, Midnight Violet, Graphite Mono,
-  Paper Navy, Charcoal Pastel, Evergreen Ledger, Neon Dispatch or Calm Sage (with the SFL Preview open, the highlighted
+  Paper Navy, Charcoal Pastel, Evergreen Ledger, Neon Dispatch, Calm Sage or
+  Ember Noir (with the SFL Preview open, the highlighted
   one shows there live before you pick); the template's Style blocks (`tpl_*`) are
   written into the file, so the look travels with it to every renderer.
-  Start nodes (`kind: start`, or where a flow begins) get the accent style.
+  Start nodes (`kind: start`, or where a flow begins) and `kind: highlight`
+  shapes (e.g. the main path through a flow) get the accent style.
   Every template turns a decision's links labelled yes or no ("Sí", "No",
   ...) into small branch circles (`kind: yes` / `kind: no`). End nodes
   (`kind: end`) get the accent inverted, and notes (`kind: note`) are

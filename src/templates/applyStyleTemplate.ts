@@ -244,9 +244,11 @@ function templateStyleEdits(
   return [{ start: end, end, text: `${source.endsWith('\n') ? '' : eol}${eol}${styleText}${eol}` }];
 }
 
-/** `style { }` sub-blocks the removals emptied out. */
+/** `style { }` sub-blocks the removals emptied out. One on its own between
+ *  two blank lines takes one of them along, so no double gap is left. */
 function removeEmptyStyleBlocks(text: string): string {
   return text
+    .replace(/(\n[ \t]*\r?\n)[ \t]*style[ \t]*\{\s*\}[ \t]*;?[ \t]*\r?\n[ \t]*\r?\n/g, '$1')
     .replace(/^[ \t]*style[ \t]*\{\s*\}[ \t]*;?[ \t]*\r?\n/gm, '')
     .replace(/;?[ \t]*\bstyle[ \t]*\{[ \t]*\}/g, '');
 }

@@ -32,6 +32,18 @@ export interface StyleTemplate {
 export const TEMPLATE_PREFIX = 'tpl_';
 export const roleStyleName = (role: TemplateRole): string => `${TEMPLATE_PREFIX}${role}`;
 
+/** A block may reference only one Style, so a block with its own Style
+ *  (`: ClientN`) gets a derived one instead of the bare role Style:
+ *  `Style tpl_node__ClientN : tpl_node { }`. It looks exactly like
+ *  `tpl_node`, and its name remembers `ClientN` so removing the template
+ *  can restore it. */
+export const derivedStyleName = (role: TemplateRole, own: string): string => `${roleStyleName(role)}__${own}`;
+
+/** The block's own Style a derived template Style name remembers, if any. */
+export function ownStyleOf(styleName: string): string | undefined {
+  return /^tpl_[a-z]+__(.+)$/.exec(styleName)?.[1];
+}
+
 const INTER = `"'Inter', sans-serif"`;
 
 export const STYLE_TEMPLATES: readonly StyleTemplate[] = [

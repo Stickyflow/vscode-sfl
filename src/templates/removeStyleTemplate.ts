@@ -1,15 +1,18 @@
 // Removes a style template from SFL text. Pure: text in, text out, no VS Code.
 //
 // Every Style whose name starts with `tpl_` is deleted, and so is every
-// reference to one, so blocks fall back to the renderer's defaults (and the
-// preview to the VS Code theme). What applying a template changed for good
+// reference to one. A block pointing at a derived template Style
+// (`tpl_node__ClientN`) gets its own Style back; the others fall back to the
+// renderer's defaults (and the preview to the VS Code theme). Files from
+// before derived Styles (`: ClientN & tpl_node`) just lose the template
+// reference. What applying a template changed for good
 // stays: the local properties it removed, a shape it moved onto a block, and
 // the yes/no branch nodes it added. The result is parsed again before it's
 // returned, so a bad patch never reaches the document.
 
 import { parse, SflParseError, type SflRange } from '../server/sfl-core';
 import { applyEdits, expandToLine, mergeOverlaps, offsetMapper, walk, type Edit } from './sflText';
-import { TEMPLATE_PREFIX } from './styleTemplates';
+import { ownStyleOf, TEMPLATE_PREFIX } from './styleTemplates';
 
 export type RemoveResult =
   | { ok: true; text: string; unstyled: number }
@@ -29,12 +32,20 @@ export function removeStyleTemplate(original: string): RemoveResult {
   const templateStyles = blocks.filter((b) => b.kind === 'Style' && b.name.startsWith(TEMPLATE_PREFIX) && b.range);
   const names = new Set(templateStyles.map((b) => b.name));
 
+  const ownStyles = new Set(blocks.filter((b) => b.kind === 'Style' && !names.has(b.name)).map((b) => b.name));
+  // A derived template Style (`tpl_node__ClientN`) gives the block its own back.
+  const restored = (ref: string): string[] => {
+    if (!names.has(ref)) return [ref];
+    const own = ownStyleOf(ref);
+    return own && ownStyles.has(own) ? [own] : [];
+  };
+
   const edits: Edit[] = [];
   let unstyled = 0;
   for (const block of blocks) {
     const ranges = block.compositionRanges ?? [];
     if (!block.composition.some((ref, i) => names.has(ref) && ranges[i])) continue;
-    const kept = block.composition.filter((ref) => !names.has(ref));
+    const kept = [...new Set(block.composition.flatMap(restored))];
     const first = ranges[0];
     const last = ranges[block.composition.length - 1];
     if (!first || !last) continue;

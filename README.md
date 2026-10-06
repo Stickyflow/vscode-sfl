@@ -93,9 +93,10 @@ Model checkout {
   Pastel also colors `kind: decision`, `kind: input` and `kind: output`.
   Shapes like a decision diamond are kept. Once a file has a template, the
   picker's last entry, **None**, removes it again (its `tpl_*` Styles and
-  every reference to them). Blocks keep their own Style reference while a
-  template is applied (`: Box & tpl_node`; the renderer uses the last one),
-  so **None** brings their old look back. Local overrides the template
+  every reference to them). A block with its own Style gets a derived
+  template Style that remembers it (`: ClientN` becomes `: tpl_node__ClientN`,
+  with `Style tpl_node__ClientN : tpl_node { }`), so **None** brings its old
+  look back. Local overrides the template
   removed (`style { fill: ... }` on a block) and the yes/no branch nodes it
   added stay as they are; Ctrl+Z undoes those too.
 - An optional **file icon theme** that gives `.sfl` files the StickyFlow

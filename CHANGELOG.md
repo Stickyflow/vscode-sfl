@@ -92,10 +92,13 @@ First working version. Not yet published to the Marketplace (`publisher` in
   hosts that paint a background. Re-applying replaces the previous template;
   the result is re-parsed before anything is written. The picker's **None**
   entry removes a template: its `tpl_*` Styles and every reference to them
-  (branch nodes and removed local properties stay). Applying keeps a
-  block's own Style reference in front of the template's (`: Box &
-  tpl_node`) instead of replacing it, so removing the template restores it;
-  before, **None** left those blocks with no style at all. With the SFL Preview
+  (branch nodes and removed local properties stay). A block with its own
+  Style points at a derived template Style that remembers it (`: ClientN`
+  becomes `: tpl_node__ClientN`, `Style tpl_node__ClientN : tpl_node { }`),
+  so removing the template restores it, and every block still references
+  exactly one Style. Re-applying also converts the `: ClientN & tpl_node`
+  references an earlier build wrote (which the resolver flags as "more than
+  one Style"). With the SFL Preview
   open, the highlighted entry shows there live; Esc goes back. The inserted
   Styles use the file's own line endings (CRLF files stayed mixed before).
 

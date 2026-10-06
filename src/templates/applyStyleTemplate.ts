@@ -4,8 +4,10 @@
 //  - Every Style whose name starts with `tpl_` is removed, and the template's
 //    Style blocks are inserted in place of the first one (or, the first time,
 //    before the first top-level block that isn't a Style or Layout).
-//  - Each styleable block points at its role's Style: its existing Style
-//    reference is replaced, or one is added. Layout references stay. A shape
+//  - Each styleable block points at its role's Style: a previous template
+//    reference is replaced, otherwise the role's Style is added last. The
+//    block's own Style reference stays (unused, since the renderer takes the
+//    last one), so removing the template restores it. Layout references stay. A shape
 //    whose `kind:` is one of KIND_ROLES (decision, input, output, end, note,
 //    yes, no) gets that role when the template has one; `kind: start`, or a
 //    shape a flow starts from, gets the accent.
@@ -153,6 +155,10 @@ function startNodes(blocks: SflBlock[]): Set<string> {
   return new Set([...from].filter((name) => !to.has(name)));
 }
 
+/** Points the block at `styleName`: a previous template reference is
+ *  replaced, otherwise the template goes last in the composition list. The
+ *  renderer only uses the last Style reference, so a block's own Style stays
+ *  in the list unused, and removing the template brings it back. */
 function setStyleReference(
   block: SflBlock,
   styleName: string,
@@ -160,13 +166,14 @@ function setStyleReference(
   at: (pos: SflRange['start']) => number,
 ): Edit | undefined {
   const ranges = block.compositionRanges ?? [];
-  const index = block.composition.findIndex((ref) => styleNames.has(ref));
+  const index = block.composition.findIndex((ref) => ref.startsWith(TEMPLATE_PREFIX) && styleNames.has(ref));
   if (index >= 0 && ranges[index]) {
     return { start: at(ranges[index].start), end: at(ranges[index].end), text: styleName };
   }
-  if (block.composition.length > 0 && ranges[0]) {
-    const start = at(ranges[0].start);
-    return { start, end: start, text: `${styleName} & ` };
+  const last = ranges[block.composition.length - 1];
+  if (block.composition.length > 0 && last) {
+    const end = at(last.end);
+    return { start: end, end, text: ` & ${styleName}` };
   }
   if (!block.nameRange) return undefined;
   const end = at(block.nameRange.end);

@@ -78,8 +78,8 @@ First working version. Not yet published to the Marketplace (`publisher` in
 - Style templates: the *SFL: Apply Style Template* command (Night Lime,
   Midnight Violet, Graphite Mono, Paper Navy, Charcoal Pastel). It writes the template's
   `tpl_*` Style blocks into the file and points every shape, container,
-  table, link, isometric object and Connection at them, replacing their
-  existing Style reference and removing local overrides the template sets.
+  table, link, isometric object and Connection at them (as their last
+  Style reference) and removes local overrides the template sets.
   A block's shape (its own or from the Style it loses) is kept. Start
   nodes (`kind: start`, or without one, shapes a flow starts from) get the
   accent style; a template can also style `kind: decision`, `kind: input`,
@@ -92,7 +92,10 @@ First working version. Not yet published to the Marketplace (`publisher` in
   hosts that paint a background. Re-applying replaces the previous template;
   the result is re-parsed before anything is written. The picker's **None**
   entry removes a template: its `tpl_*` Styles and every reference to them
-  (branch nodes and removed local properties stay). With the SFL Preview
+  (branch nodes and removed local properties stay). Applying keeps a
+  block's own Style reference in front of the template's (`: Box &
+  tpl_node`) instead of replacing it, so removing the template restores it;
+  before, **None** left those blocks with no style at all. With the SFL Preview
   open, the highlighted entry shows there live; Esc goes back. The inserted
   Styles use the file's own line endings (CRLF files stayed mixed before).
 

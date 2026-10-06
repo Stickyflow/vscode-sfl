@@ -45,6 +45,7 @@ export function ownStyleOf(styleName: string): string | undefined {
 }
 
 const INTER = `"'Inter', sans-serif"`;
+const MONO = `"ui-monospace, 'Cascadia Mono', 'SF Mono', Menlo, Consolas, monospace"`;
 
 export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
   {
@@ -138,6 +139,25 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       table: { fill: '"#1e1e1e"', stroke: '"#cdb6ee"', textColor: '"#f2f2f2"', headerFill: '"#2a2630"', gridColor: '"#3a3a3a"', fontFamily: INTER },
       flow: { route: 'orthogonal', stroke: '"#cdb6ee"', strokeWidth: '1.5', markerStart: 'none', markerEnd: 'arrow' },
       iso: { fill: '"#cdb6ee"' },
+    },
+  },
+  {
+    id: 'evergreen-ledger',
+    label: 'Evergreen Ledger',
+    description: 'Warm paper canvas, white hairline cards, deep green start card, lime highlights, faint straight lines',
+    styles: {
+      canvas: { fill: '"#f6f5f2"' },
+      node: { shape: 'rounded_rectangle', cornerRadius: '10', fill: '"#ffffff"', stroke: '"#e6e6e1"', strokeWidth: '1', textColor: '"#0d2b24"', fontFamily: INTER, fontSize: '12', fontWeight: 'bold' },
+      accent: { shape: 'rounded_rectangle', cornerRadius: '10', fill: '"#0d2b24"', stroke: '"#0d2b24"', strokeWidth: '1', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '13', fontWeight: 'bold' },
+      decision: { shape: 'rounded_rectangle', cornerRadius: '10', fill: '"#ffffff"', stroke: '"#0d2b24"', strokeWidth: '1', textColor: '"#0d2b24"', fontFamily: INTER, fontSize: '12', fontWeight: 'bold' },
+      end: { shape: 'pill', fill: '"#0d2b24"', stroke: '"#0d2b24"', strokeWidth: '1', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '12', fontWeight: 'bold' },
+      note: { shape: 'rectangle', cornerRadius: '4', fill: '"#fbfbf9"', stroke: '"#e6e6e1"', strokeWidth: '1', strokeStyle: 'dashed', textColor: '"#7a857f"', fontFamily: MONO, fontSize: '10' },
+      yes: { shape: 'oval', fill: '"#d9f58f"', stroke: '"#d9f58f"', strokeWidth: '1', textColor: '"#0d2b24"', fontFamily: INTER, fontSize: '11', fontWeight: 'bold' },
+      no: { shape: 'oval', fill: '"#ffffff"', stroke: '"#0d2b24"', strokeWidth: '1', textColor: '"#0d2b24"', fontFamily: INTER, fontSize: '11' },
+      frame: { fill: '"#fdfdfb"', stroke: '"#e6e6e1"', strokeWidth: '1', textColor: '"#0d2b24"', cornerRadius: '16', shadow: 'false', fontFamily: MONO },
+      table: { fill: '"#ffffff"', stroke: '"#e6e6e1"', textColor: '"#0d2b24"', headerFill: '"#eef6d6"', gridColor: '"#ecece7"', fontFamily: INTER },
+      flow: { route: 'curved', stroke: '"#cfd3cf"', strokeWidth: '1', markerStart: 'none', markerEnd: 'none' },
+      iso: { fill: '"#0d2b24"' },
     },
   },
 ];

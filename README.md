@@ -82,7 +82,7 @@ Model checkout {
   errors so a broken line is never silently dropped.
 - **Style templates**: *SFL: Apply Style Template* restyles the whole file
   in one undoable edit. Pick Night Lime, Midnight Violet, Graphite Mono,
-  Paper Navy or Charcoal Pastel (with the SFL Preview open, the highlighted
+  Paper Navy, Charcoal Pastel or Evergreen Ledger (with the SFL Preview open, the highlighted
   one shows there live before you pick); the template's Style blocks (`tpl_*`) are
   written into the file, so the look travels with it to every renderer.
   Start nodes (`kind: start`, or where a flow begins) get the accent style.

@@ -83,7 +83,7 @@ Model checkout {
 - **Style templates**: *SFL: Apply Style Template* restyles the whole file
   in one undoable edit. Pick Night Lime, Midnight Violet, Graphite Mono,
   Paper Navy, Charcoal Pastel, Evergreen Ledger, Neon Dispatch, Calm Sage,
-  Ember Noir or Studio Light (with the SFL Preview open, the highlighted
+  Ember Noir, Studio Light or Violet Circuit (with the SFL Preview open, the highlighted
   one shows there live before you pick); the template's Style blocks (`tpl_*`) are
   written into the file, so the look travels with it to every renderer.
   Start nodes (`kind: start`, or where a flow begins) and `kind: highlight`

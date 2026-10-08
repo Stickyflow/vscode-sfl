@@ -240,4 +240,23 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       iso: { fill: '"#0a0a0a"' },
     },
   },
+  {
+    id: 'violet-circuit',
+    label: 'Violet Circuit',
+    description: 'Near-black canvas, dark rounded cards, violet start card, right-angled violet lines with dot ends',
+    styles: {
+      canvas: { fill: '"#14151b"' },
+      node: { shape: 'rounded_rectangle', cornerRadius: '8', fill: '"#1f2029"', stroke: '"#1f2029"', strokeWidth: '1', textColor: '"#e8e8f0"', fontFamily: INTER, fontSize: '12' },
+      accent: { shape: 'rounded_rectangle', cornerRadius: '8', fill: '"#7c2ae8"', stroke: '"#7c2ae8"', strokeWidth: '1', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '12' },
+      decision: { shape: 'rounded_rectangle', cornerRadius: '8', fill: '"#1f2029"', stroke: '"#7c2ae8"', strokeWidth: '1.5', textColor: '"#e8e8f0"', fontFamily: INTER, fontSize: '12' },
+      end: { shape: 'rounded_rectangle', cornerRadius: '8', fill: '"#14151b"', stroke: '"#7c2ae8"', strokeWidth: '1.5', textColor: '"#b794ff"', fontFamily: INTER, fontSize: '12' },
+      note: { shape: 'rectangle', fill: 'none', stroke: 'none', textColor: '"#8b8b98"', fontFamily: INTER, fontSize: '12', textAlign: 'left' },
+      yes: { shape: 'oval', fill: '"#7c2ae8"', stroke: '"#7c2ae8"', strokeWidth: '1', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '11' },
+      no: { shape: 'oval', fill: '"#1f2029"', stroke: '"#6b6b78"', strokeWidth: '1', textColor: '"#e8e8f0"', fontFamily: INTER, fontSize: '11' },
+      frame: { fill: '"#181920"', stroke: '"#26272f"', strokeWidth: '1', textColor: '"#e8e8f0"', cornerRadius: '16', shadow: 'false', fontFamily: INTER },
+      table: { fill: '"#1f2029"', stroke: '"#2a2b36"', textColor: '"#e8e8f0"', headerFill: '"#2b2240"', gridColor: '"#2a2b36"', fontFamily: INTER },
+      flow: { route: 'orthogonal', stroke: '"#5b21b6"', strokeWidth: '1.5', markerStart: 'filled_circle', markerEnd: 'filled_circle' },
+      iso: { fill: '"#7c2ae8"' },
+    },
+  },
 ];

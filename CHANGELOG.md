@@ -77,7 +77,8 @@ First working version. Not yet published to the Marketplace (`publisher` in
 
 - Style templates: the *SFL: Apply Style Template* command (Night Lime,
   Midnight Violet, Graphite Mono, Paper Navy, Charcoal Pastel, Evergreen
-  Ledger, Neon Dispatch, Calm Sage, Ember Noir, Studio Light). It writes the template's
+  Ledger, Neon Dispatch, Calm Sage, Ember Noir, Studio Light, Violet
+  Circuit). It writes the template's
   `tpl_*` Style blocks into the file and points every shape, container,
   table, link, isometric object and Connection at them (as their only
   Style reference) and removes local overrides the template sets.
@@ -88,7 +89,7 @@ First working version. Not yet published to the Marketplace (`publisher` in
   `kind: output`, `kind: end`, `kind: note` and the decision outcome nodes
   `kind: yes` / `kind: no` (all templates style end, note and yes/no;
   Charcoal Pastel also decision, input and output; Evergreen Ledger,
-  Ember Noir and Studio Light also decision; Neon Dispatch and Calm Sage also decision, input and output). `yes`, `no` and `highlight` are new `kind:` completions with hover docs; they're
+  Ember Noir, Studio Light and Violet Circuit also decision; Neon Dispatch and Calm Sage also decision, input and output). `yes`, `no` and `highlight` are new `kind:` completions with hover docs; they're
   not in the SFL spec yet. Every template also splits each link from a
   decision labelled with a yes or no word into decision -> branch node ->
   target, placing the circle in the gap on the target's center line. `tpl_canvas` carries the canvas color for

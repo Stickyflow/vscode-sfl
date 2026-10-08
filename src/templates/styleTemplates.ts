@@ -278,4 +278,23 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       iso: { fill: '"#4fd8e8"' },
     },
   },
+  {
+    id: 'prism',
+    label: 'Prism',
+    description: 'Charcoal canvas, small outlined pills, a lime-outlined hub card, thin curved grey lines',
+    styles: {
+      canvas: { fill: '"#121212"' },
+      node: { shape: 'pill', fill: '"#1a1a1a"', stroke: '"#4a4a4a"', strokeWidth: '1', textColor: '"#ececec"', fontFamily: INTER, fontSize: '12' },
+      accent: { shape: 'rounded_rectangle', cornerRadius: '14', fill: '"#1d1f1c"', stroke: '"#9be15d"', strokeWidth: '2', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '14', fontWeight: 'bold' },
+      decision: { shape: 'pill', fill: '"#1a1a1a"', stroke: '"#f5a524"', strokeWidth: '1', textColor: '"#ececec"', fontFamily: INTER, fontSize: '12' },
+      end: { shape: 'pill', fill: '"#ececec"', stroke: '"#ececec"', strokeWidth: '1', textColor: '"#121212"', fontFamily: INTER, fontSize: '12', fontWeight: 'bold' },
+      note: { shape: 'rectangle', fill: 'none', stroke: 'none', textColor: '"#8a8a8a"', fontFamily: INTER, fontSize: '12', textAlign: 'left' },
+      yes: { shape: 'oval', fill: '"#9be15d"', stroke: '"#9be15d"', strokeWidth: '1', textColor: '"#121212"', fontFamily: INTER, fontSize: '11' },
+      no: { shape: 'oval', fill: '"#1a1a1a"', stroke: '"#ff5a5f"', strokeWidth: '1', textColor: '"#ececec"', fontFamily: INTER, fontSize: '11' },
+      frame: { fill: '"#161616"', stroke: '"#2e2e2e"', strokeWidth: '1', textColor: '"#8a8a8a"', cornerRadius: '24', shadow: 'false', fontFamily: INTER },
+      table: { fill: '"#1a1a1a"', stroke: '"#3a3a3a"', textColor: '"#ececec"', headerFill: '"#232323"', gridColor: '"#2e2e2e"', fontFamily: INTER },
+      flow: { route: 'curved', stroke: '"#6b6b6b"', strokeWidth: '1.25', markerStart: 'none', markerEnd: 'none' },
+      iso: { fill: '"#9be15d"' },
+    },
+  },
 ];

@@ -259,4 +259,23 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       iso: { fill: '"#7c2ae8"' },
     },
   },
+  {
+    id: 'deep-sea',
+    label: 'Deep Sea',
+    description: 'Dark teal canvas, boxless white labels, outlined cyan start pill, cyan decisions, thin curved cyan lines',
+    styles: {
+      canvas: { fill: '"#0f1b21"' },
+      node: { shape: 'rectangle', fill: 'none', stroke: 'none', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '12', fontWeight: 'bold', textAlign: 'left' },
+      accent: { shape: 'pill', fill: '"#0f1b21"', stroke: '"#4fd8e8"', strokeWidth: '1.5', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '12', fontWeight: 'bold' },
+      decision: { shape: 'rectangle', fill: 'none', stroke: 'none', textColor: '"#4fd8e8"', fontFamily: INTER, fontSize: '12', fontWeight: 'bold', textAlign: 'left' },
+      end: { shape: 'pill', fill: '"#0f1b21"', stroke: '"#4fd8e8"', strokeWidth: '1', textColor: '"#4fd8e8"', fontFamily: INTER, fontSize: '12', fontWeight: 'bold' },
+      note: { shape: 'rectangle', fill: 'none', stroke: 'none', textColor: '"#8fa3ad"', fontFamily: INTER, fontSize: '12', textAlign: 'left' },
+      yes: { shape: 'oval', fill: '"#4fd8e8"', stroke: '"#4fd8e8"', strokeWidth: '1', textColor: '"#0f1b21"', fontFamily: INTER, fontSize: '11', fontWeight: 'bold' },
+      no: { shape: 'oval', fill: '"#0f1b21"', stroke: '"#4fd8e8"', strokeWidth: '1', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '11' },
+      frame: { fill: '"#13232a"', stroke: '"#1f3a44"', strokeWidth: '1', textColor: '"#ffffff"', cornerRadius: '12', shadow: 'false', fontFamily: INTER },
+      table: { fill: '"#13232a"', stroke: '"#2a4a55"', textColor: '"#ffffff"', headerFill: '"#18343d"', gridColor: '"#2a4a55"', fontFamily: INTER },
+      flow: { route: 'curved', stroke: '"#3fc9d9"', strokeWidth: '1.25', markerStart: 'none', markerEnd: 'none' },
+      iso: { fill: '"#4fd8e8"' },
+    },
+  },
 ];

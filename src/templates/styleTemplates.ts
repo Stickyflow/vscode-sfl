@@ -221,4 +221,23 @@ export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
       iso: { fill: '"#ff6224"' },
     },
   },
+  {
+    id: 'studio-light',
+    label: 'Studio Light',
+    description: 'Light grey canvas, white hairline pills, black start pill, grey decision pills, thin curved grey lines with dot ends',
+    styles: {
+      canvas: { fill: '"#f7f7f7"' },
+      node: { shape: 'pill', fill: '"#ffffff"', stroke: '"#ebebeb"', strokeWidth: '1', textColor: '"#1a1a1a"', fontFamily: INTER, fontSize: '12' },
+      accent: { shape: 'pill', fill: '"#0a0a0a"', stroke: '"#0a0a0a"', strokeWidth: '1', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '13', fontWeight: 'bold' },
+      decision: { shape: 'pill', fill: '"#e3e3e3"', stroke: '"#d6d6d6"', strokeWidth: '1', textColor: '"#1a1a1a"', fontFamily: INTER, fontSize: '13' },
+      end: { shape: 'pill', fill: '"#ffffff"', stroke: '"#0a0a0a"', strokeWidth: '1.5', textColor: '"#0a0a0a"', fontFamily: INTER, fontSize: '13', fontWeight: 'bold' },
+      note: { shape: 'rectangle', fill: 'none', stroke: 'none', textColor: '"#111111"', fontFamily: INTER, fontSize: '32', textAlign: 'left' },
+      yes: { shape: 'oval', fill: '"#0a0a0a"', stroke: '"#0a0a0a"', strokeWidth: '1', textColor: '"#ffffff"', fontFamily: INTER, fontSize: '11' },
+      no: { shape: 'oval', fill: '"#ffffff"', stroke: '"#bdbdbd"', strokeWidth: '1', textColor: '"#1a1a1a"', fontFamily: INTER, fontSize: '11' },
+      frame: { fill: '"#fbfbfb"', stroke: '"#e6e6e6"', strokeWidth: '1', textColor: '"#1a1a1a"', cornerRadius: '20', shadow: 'false', fontFamily: INTER },
+      table: { fill: '"#ffffff"', stroke: '"#e6e6e6"', textColor: '"#1a1a1a"', headerFill: '"#efefef"', gridColor: '"#ebebeb"', fontFamily: INTER },
+      flow: { route: 'curved', stroke: '"#c4c4c4"', strokeWidth: '1', markerStart: 'filled_circle', markerEnd: 'filled_circle' },
+      iso: { fill: '"#0a0a0a"' },
+    },
+  },
 ];

@@ -670,8 +670,10 @@
               <h2>Two extensions, one document</h2>
               <p>
                 vscode-sfl understands the text, <a href="https://github.com/Stickyflow/vscode-sfl-preview">vscode-sfl-preview</a>
-                draws it. They never call each other: both react to the same <code>.sfl</code> document, and installing
-                either one installs both through the extension pack.
+                draws it. They share no code and no process: both react to the same <code>.sfl</code> document, and
+                installing either one installs both through the extension pack. The one call between them is a VS Code command: the
+                preview's <strong>Style</strong> button runs vscode-sfl's <code>sfl.applyStyleTemplate</code>, so the
+                template logic lives in one place.
               </p>
             </div>
             <figure class="diagram" style="margin: 0">

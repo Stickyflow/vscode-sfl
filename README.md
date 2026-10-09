@@ -80,6 +80,27 @@ Model checkout {
 - **Outline** and breadcrumbs showing the block tree.
 - **Format Document** (Shift+Alt+F), skipped when the file has syntax
   errors so a broken line is never silently dropped.
+- **Style templates**: *SFL: Apply Style Template* restyles the whole file
+  in one undoable edit. Pick Night Lime, Midnight Violet, Graphite Mono,
+  Paper Navy, Charcoal Pastel, Evergreen Ledger, Neon Dispatch, Calm Sage,
+  Ember Noir, Studio Light, Violet Circuit, Deep Sea, Prism or Indigo Wire (with the SFL Preview open, the highlighted
+  one shows there live before you pick); the template's Style blocks (`tpl_*`) are
+  written into the file, so the look travels with it to every renderer.
+  Start nodes (`kind: start`, or where a flow begins) and `kind: highlight`
+  shapes (e.g. the main path through a flow) get the accent style.
+  Every template turns a decision's links labelled yes or no ("Sí", "No",
+  ...) into small branch circles (`kind: yes` / `kind: no`). End nodes
+  (`kind: end`) get the accent inverted, and notes (`kind: note`) are
+  muted and dashed so they don't read as a step of the flow. Charcoal
+  Pastel also colors `kind: decision`, `kind: input` and `kind: output`.
+  Shapes like a decision diamond are kept. Once a file has a template, the
+  picker's last entry, **None**, removes it again (its `tpl_*` Styles and
+  every reference to them). A block with its own Style gets a derived
+  template Style that remembers it (`: ClientN` becomes `: tpl_node__ClientN`,
+  with `Style tpl_node__ClientN : tpl_node { }`), so **None** brings its old
+  look back. Local overrides the template
+  removed (`style { fill: ... }` on a block) and the yes/no branch nodes it
+  added stay as they are; Ctrl+Z undoes those too.
 - An optional **file icon theme** that gives `.sfl` files the StickyFlow
   logo (see [Notes](#notes)).
 

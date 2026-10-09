@@ -75,6 +75,37 @@ First working version. Not yet published to the Marketplace (`publisher` in
   `labelOffsetY` and `labelBackground` vocabulary, plus highlighting, hover
   docs and outline entries. Previously both were `unknown block kind` errors.
 
+- Style templates: the *SFL: Apply Style Template* command (Night Lime,
+  Midnight Violet, Graphite Mono, Paper Navy, Charcoal Pastel, Evergreen
+  Ledger, Neon Dispatch, Calm Sage, Ember Noir, Studio Light, Violet
+  Circuit, Deep Sea, Prism, Indigo Wire). It writes the template's
+  `tpl_*` Style blocks into the file and points every shape, container,
+  table, link, isometric object and Connection at them (as their only
+  Style reference) and removes local overrides the template sets.
+  A block's shape (its own or from the Style it loses) is kept. Start
+  nodes (`kind: start`, or without one, shapes a flow starts from) and
+  `kind: highlight` shapes get the
+  accent style; a template can also style `kind: decision`, `kind: input`,
+  `kind: output`, `kind: end`, `kind: note` and the decision outcome nodes
+  `kind: yes` / `kind: no` (all templates style end, note and yes/no;
+  Charcoal Pastel also decision, input and output; Evergreen Ledger,
+  Ember Noir, Studio Light, Violet Circuit, Deep Sea, Prism and Indigo Wire also decision; Neon Dispatch and Calm Sage also decision, input and output). `yes`, `no` and `highlight` are new `kind:` completions with hover docs; they're
+  not in the SFL spec yet. Every template also splits each link from a
+  decision labelled with a yes or no word into decision -> branch node ->
+  target, placing the circle in the gap on the target's center line. `tpl_canvas` carries the canvas color for
+  hosts that paint a background. Re-applying replaces the previous template;
+  the result is re-parsed before anything is written. The picker's **None**
+  entry removes a template: its `tpl_*` Styles and every reference to them
+  (branch nodes and removed local properties stay). A block with its own
+  Style points at a derived template Style that remembers it (`: ClientN`
+  becomes `: tpl_node__ClientN`, `Style tpl_node__ClientN : tpl_node { }`),
+  so removing the template restores it, and every block still references
+  exactly one Style. Re-applying also converts the `: ClientN & tpl_node`
+  references an earlier build wrote (which the resolver flags as "more than
+  one Style"). With the SFL Preview
+  open, the highlighted entry shows there live; Esc goes back. The inserted
+  Styles use the file's own line endings (CRLF files stayed mixed before).
+
 ### Changed
 
 - The language server caches the parsed document per version. Diagnostics,

@@ -797,6 +797,7 @@
 ├─ fixtures/valid/          Sample .sfl files, round-tripped by the tests
 └─ src/
    ├─ extension.ts          LanguageClient bootstrap (extension host)
+   ├─ templates/            Style templates: definitions, pure apply, command
    ├─ server/
    │  ├─ server.ts          LSP connection and request routing
    │  ├─ documentModel.ts   Parse with error recovery, then resolve
@@ -817,6 +818,7 @@
                 <tbody>
                   <tr><td><code>extension.ts</code></td><td><code>activate()</code>, <code>deactivate()</code></td><td>Spawns the server module over IPC and scopes it to <code>{ scheme: 'file', language: 'sfl' }</code>.</td></tr>
                   <tr><td><code>server/server.ts</code></td><td><code>createConnection()</code>, <code>modelForUri()</code></td><td>Declares capabilities, routes each LSP request to its feature provider, pushes diagnostics on change and clears them on close. Caches one document model per file, keyed by document version, and drops it on close.</td></tr>
+                  <tr><td><code>templates/</code></td><td><code>applyStyleTemplate()</code>, <code>STYLE_TEMPLATES</code></td><td>The one client-side feature: <em>SFL: Apply Style Template</em>. A pure text transform built on <code>sfl-core</code>'s ranges writes the template's <code>tpl_*</code> Style blocks, repoints every styleable block, drops local overrides, keeps shapes, and re-parses before applying one whole-document edit. The preview's Style button runs the same command.</td></tr>
                   <tr><td><code>server/documentModel.ts</code></td><td><code>buildDocumentModel()</code>, <code>DocumentModel</code></td><td>Parse with line-blanking recovery, collect sorted parse errors, then resolve the AST.</td></tr>
                 </tbody>
               </table>

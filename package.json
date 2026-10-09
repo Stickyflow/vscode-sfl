@@ -35,6 +35,22 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "sfl.applyStyleTemplate",
+        "title": "Apply Style Template",
+        "category": "SFL",
+        "icon": "$(symbol-color)"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sfl.applyStyleTemplate",
+          "when": "editorLangId == sfl"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "sfl",

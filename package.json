@@ -1,18 +1,19 @@
 {
   "name": "vscode-sfl",
-  "displayName": "SFL Language Support",
+  "displayName": "StickyFlow SFL",
   "description": "Language support for SFL 1.4 (.sfl) — syntax highlighting, diagnostics, completion, hover, go-to-definition, rename, find references, outline, and format document.",
-  "version": "0.1.0",
-  "private": true,
-  "publisher": "stickyflow-PLACEHOLDER-REPLACE-BEFORE-PUBLISHING",
+  "version": "0.1.1",
+  "license": "Apache-2.0",
+  "icon": "icons/icon.png",
+  "publisher": "StickyFlowLab",
   "repository": {
     "type": "git",
-    "url": "https://github.com/D-Queck/StickyFlow.git",
-    "directory": "packages/vscode-sfl"
+    "url": "https://github.com/Stickyflow/vscode-sfl.git"
   },
   "bugs": {
-    "url": "https://github.com/D-Queck/StickyFlow/issues"
+    "url": "https://github.com/Stickyflow/vscode-sfl/issues"
   },
+  "homepage": "https://github.com/Stickyflow/vscode-sfl#readme",
   "keywords": [
     "sfl",
     "sticky flow",
@@ -31,7 +32,7 @@
     "onLanguage:sfl"
   ],
   "extensionPack": [
-    "stickyflow-PLACEHOLDER-REPLACE-BEFORE-PUBLISHING.vscode-sfl-preview"
+    "StickyFlowLab.vscode-sfl-preview"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -172,6 +173,7 @@
     }
   },
   "scripts": {
+    "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./ && npm run check:grammar",
     "check:grammar": "node ./scripts/check-grammar.mjs",
     "watch": "tsc -p ./ --watch",

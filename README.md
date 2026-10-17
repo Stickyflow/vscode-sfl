@@ -110,14 +110,14 @@ All SFL 1.4 block kinds are supported, including `Table`, the chart kinds
 
 ## Installation
 
-Install **SFL Language Support** from the
-[VS Code Marketplace](MARKETPLACE_URL), or from inside VS Code:
+Install **StickyFlow SFL** from the
+[VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=StickyFlowLab.vscode-sfl), or from inside VS Code:
 
 1. Open the Extensions view (Ctrl/Cmd+Shift+X).
-2. Search for **SFL Language Support**.
+2. Search for **StickyFlow SFL**.
 3. Click **Install**.
 
-This also installs [SFL Preview](https://github.com/Stickyflow/vscode-sfl-preview)
+This also installs [StickyFlow SFL Preview](https://marketplace.visualstudio.com/items?itemName=StickyFlowLab.vscode-sfl-preview)
 for live diagram rendering. Open any `.sfl` file and the language server
 starts automatically.
 
@@ -125,8 +125,8 @@ To build and install from source instead:
 
 ```bash
 npm install
-npm run package          # produces vscode-sfl-0.1.0.vsix
-code --install-extension vscode-sfl-0.1.0.vsix
+npm run package          # produces vscode-sfl-<version>.vsix
+code --install-extension vscode-sfl-<version>.vsix
 ```
 
 ## Development

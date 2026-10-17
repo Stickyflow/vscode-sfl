@@ -104,9 +104,16 @@ Model checkout {
 - An optional **file icon theme** that gives `.sfl` files the StickyFlow
   logo (see [Notes](#notes)).
 
-All SFL 1.4 block kinds are supported, including `Table`, the chart kinds
-(`Chart`, `Axis`, `Series`, `Rule`), `Path`, `Symbol` / `Port`, `Net`,
-`Footer`, and the isometric kinds `Isometric` and `Connection`.
+Syntax errors come from the parser in [stickyflow.js](https://www.npmjs.com/package/stickyflow),
+the same one the renderer and the StickyFlow-Web Playground use, so VS Code
+accepts exactly what renders. Format Document uses its `canonicalize()`.
+
+All block kinds of stickyflow.js 0.3 are supported: the chart kinds
+(`Chart`, `Axis`, `Series`, `Rule`, and series in `data { }`), `Path`,
+`Symbol` / `Port`, `Net`, the isometric kinds `Isometric` and `Connection`,
+`Text`, `Widget`, `Shader` and `DataSource`, plus bindings (`value: <- expr`)
+and handlers (`onTap: target <- expr`). `Table` and its `Columns` / `Rows` /
+`Footer` blocks were removed from stickyflow.js and are reported as errors.
 
 ## Installation
 

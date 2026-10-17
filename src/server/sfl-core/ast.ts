@@ -24,16 +24,17 @@ export interface SflRange {
 // `Container` = spatial container (Frame/Swimlane/…, distinguished via
 // `kind:`); holds grouped or individual Entities. `Entity` remains the leaf.
 // `Layout`/`Style` are reusable, referenceable leaves (§8/§9), like `Entity`.
-// `Table` (§12.1a) has its own geometry like `Container`, but deliberately
-// isn't one: it holds a fixed `Columns`/`Rows` schema instead of freely
-// placeable children, so it's a leaf here too (no scope of its own) — the
-// legacy `Container name { kind: table … }` spelling still parses fine as
-// an ordinary Container, no special-casing needed for it.
-// `Chart` (SFL 1.4 §5.4) is the same shape as `Table`: its own geometry, but
-// a fixed schema of `Axis` / `Series` / `Rule` child blocks rather than free
-// content — so `Chart` and its three child kinds are all leaves here too (no
-// scope of their own; nothing resolves a name through a Chart). `Rule` is a
-// reference line (§5.4.8), distinct from `Axis`/`Series`.
+// `Chart` (SFL 1.4 §5.4) has its own geometry, but a fixed schema of `Axis` /
+// `Series` / `Rule` child blocks rather than free content — so `Chart` and its
+// three child kinds are all leaves here (no scope of their own; nothing
+// resolves a name through a Chart). `Rule` is a reference line (§5.4.8),
+// distinct from `Axis`/`Series`. Its series can also sit in a `data { }`
+// entry, written without the `Series` keyword (`revenue { values: … }`).
+//
+// `Table` and its `Columns`/`Column`/`Rows`/`Row`/`Footer` blocks are gone:
+// stickyflow.js removed them and no longer parses a `Table` block, so they are
+// left out here too and report an error instead of rendering nothing. The
+// `Container name { kind: table … }` spelling is an ordinary Container.
 //
 // The rest of the SFL 1.4 batch, mirroring `stickyflow.js`'s own
 // `src/sfl/language/ast.ts`:
@@ -46,8 +47,6 @@ export interface SflRange {
 //     the Symbol). Leaf.
 //   • `Net` (§3.5, "pattern C") — a multi-terminal net authored once instead
 //     of N-1 Links; `members` is a bare-name list. Parse-only, leaf.
-//   • `Footer` (§3.6) — a Table summary row, sibling to `Rows`, cell values
-//     keyed by Column name like a `Row`. Leaf.
 //   • `Shape` is the current keyword for the leaf canvas object; `Entity` is
 //     still accepted as an equivalent alias (stickyflow.js treats both the
 //     same and now emits `Shape` for new blocks). Everywhere `Entity` is
@@ -59,17 +58,39 @@ export interface SflRange {
 //     cube face (`fromFace` / `toFace`) instead of a 2D side. Same
 //     required `from`/`to` as a Link. Leaf.
 //
+// The stickyflow.js 0.2 batch:
+//   • `Text`: a free text label on the canvas, no shape around it. Leaf.
+//   • `Widget`: a live control picked by `type:` (`rollingNumber`,
+//     `tickScale`, `ruler`). Leaf.
+//   • `Shader`: a reusable shader surface (`program:` plus its parameters),
+//     referenced by name from a style's `shader:`. Leaf, like `Style`.
+//   • `DataSource`: typed `fields { }` a document can bind to. Expressions
+//     read it as `source.field`. Leaf.
+// Any block may now also hold bindings (`key: <- expr`), event handlers
+// (`onTap: target <- expr`) and a `data { }` entry, see SflEntry.
+//
 // BLOCK_KINDS is the single list of block keywords: BlockKind is derived from
 // it, the Record<BlockKind, …> tables (outline symbols, hover docs) fail to
 // compile when a kind is missing, and scripts/check-grammar.mjs fails the
-// build when the TextMate grammar doesn't highlight one.
+// build when the TextMate grammar doesn't highlight one. It follows
+// NAMED_BLOCK_KINDS in stickyflow.js's src/sflLanguage/ast.ts.
 export const BLOCK_KINDS = [
-  'Project', 'Model', 'Group', 'Container', 'Table', 'Shape', 'Entity', 'Link', 'Layout', 'Style',
-  'Columns', 'Column', 'Rows', 'Row',
+  'Project', 'Model', 'Group', 'Container', 'Shape', 'Entity', 'Link', 'Layout', 'Style',
   'Chart', 'Axis', 'Series', 'Rule',
-  'Path', 'Symbol', 'Port', 'Net', 'Footer',
+  'Path', 'Symbol', 'Port', 'Net',
   'Isometric', 'Connection',
+  'Text', 'Widget', 'Shader', 'DataSource',
 ] as const;
+
+/** Block keywords stickyflow.js used to parse and has dropped, with what to use instead. */
+export const REMOVED_BLOCK_KINDS: Readonly<Record<string, string>> = {
+  Table: "'Table' blocks are no longer supported by stickyflow.js. Use a Container with kind: table, or a Chart",
+  Columns: "'Columns' belonged to the removed Table block and is no longer supported by stickyflow.js",
+  Column: "'Column' belonged to the removed Table block and is no longer supported by stickyflow.js",
+  Rows: "'Rows' belonged to the removed Table block and is no longer supported by stickyflow.js",
+  Row: "'Row' belonged to the removed Table block and is no longer supported by stickyflow.js",
+  Footer: "'Footer' belonged to the removed Table block and is no longer supported by stickyflow.js",
+};
 
 export type BlockKind = (typeof BLOCK_KINDS)[number];
 
@@ -110,7 +131,59 @@ export type SflEntry =
   | { type: 'property'; property: SflProperty }
   | { type: 'block'; block: SflBlock }
   | { type: 'layout'; layout: SflLayout }
-  | { type: 'style'; style: SflStyle };
+  | { type: 'style'; style: SflStyle }
+  | { type: 'fields'; fields: SflProperty[] }
+  | { type: 'data'; data: SflData }
+  | { type: 'binding'; binding: SflBinding }
+  | { type: 'handler'; handler: SflHandler };
+
+/**
+ * A `data { … }` entry: a Chart's series (blocks, written with or without the
+ * `Series` keyword) or a DataSource's rows. Not a named block, so it has no
+ * BlockKind and opens no scope.
+ */
+export interface SflData {
+  entries: SflEntry[];
+}
+
+export type BindingOperator = '<-' | '<->' | '->';
+
+export type ExpressionOperator = '+' | '-' | '*' | '/' | '>' | '<' | '>=' | '<=' | '==' | '!=' | '&&' | '||';
+
+/**
+ * A binding or handler expression. `ref` and `call` keep a range per path
+ * segment, so go-to-definition and rename reach `source` in `source.field`.
+ */
+export type SflExpr =
+  | { kind: 'number'; value: number }
+  | { kind: 'string'; value: string }
+  | { kind: 'boolean'; value: boolean }
+  | { kind: 'ref'; path: string[]; pathRanges?: SflRange[] }
+  | { kind: 'unary'; operator: '!' | '-'; operand: SflExpr }
+  | { kind: 'binary'; operator: ExpressionOperator; left: SflExpr; right: SflExpr }
+  | { kind: 'call'; callee: string[]; args: SflExpr[] };
+
+/** `key: <- expr` (also `<->` and `->`): a property whose value comes from an expression. */
+export interface SflBinding {
+  key: string;
+  keyRange?: SflRange;
+  operator: BindingOperator;
+  expr: SflExpr;
+}
+
+/** `target <- expr` inside a handler. */
+export interface SflAssignment {
+  target: string[];
+  targetRanges?: SflRange[];
+  expr: SflExpr;
+}
+
+/** `onTap: target <- expr`, or `onTap { … }` with one assignment per line. */
+export interface SflHandler {
+  event: string;
+  eventRange?: SflRange;
+  assignments: SflAssignment[];
+}
 
 /** `key: value` (newline- or `;`-terminated). */
 export interface SflProperty {
@@ -125,9 +198,10 @@ export interface SflLayout {
   properties: SflProperty[];
 }
 
-/** The `style { … }` sub-block — only properties, no nested blocks (§5). */
+/** The `style { … }` sub-block — properties and bindings, no nested blocks (§5). */
 export interface SflStyle {
   properties: SflProperty[];
+  bindings?: SflBinding[];
 }
 
 // ─── Values (§7 / §17) ────────────────────────────────────────────────────

@@ -1,0 +1,26 @@
+sfl 1.4
+
+Model board {
+  Entity amp1 {
+    kind: component
+    text: "Amp 1"
+    layout { position: 0, 0; size: 100, 60 }
+  }
+
+  Entity amp2 {
+    kind: component
+    text: "Amp 2"
+    layout { position: 300, 0; size: 100, 60 }
+  }
+
+  Entity psu {
+    kind: component
+    text: "PSU"
+    layout { position: 600, 0; size: 100, 60 }
+  }
+
+  Net vcc {
+    members: [amp1, amp2, psu]
+    text: "+5V"
+  }
+}

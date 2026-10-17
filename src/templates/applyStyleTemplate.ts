@@ -124,9 +124,7 @@ function roleOf(block: SflBlock, accentNames: Set<string>, template: StyleTempla
       return accentNames.has(block.name) ? 'accent' : 'node';
     }
     case 'Container':
-      return 'frame';
-    case 'Table':
-      return 'table';
+      return kindOf(block) === 'table' ? 'table' : 'frame';
     case 'Link':
     case 'Connection':
       return 'flow';

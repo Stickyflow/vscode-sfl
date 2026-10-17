@@ -23,11 +23,6 @@ export const BLOCK_KIND_DOCS: Record<BlockKind, string> = {
   Link: 'Connects two endpoints (`from`/`to`) through stable name references, making the relationship analyzable. May carry `text`, a `condition`, and route/marker styling.',
   Layout: 'A reusable, named bundle of spatial properties (size, rotation, order, …) that other blocks can inherit through their composition list (`: MyLayout`). At most one direct Layout per block.',
   Style: 'A reusable, named bundle of visual properties (shape, fill, stroke, typography, …) that other blocks can inherit through their composition list (`: MyStyle`). At most one direct Style per block; single-parent inheritance via its own composition list.',
-  Table: "A table: its own geometry (`layout`/`style`) like a Container, but a fixed schema instead of freely placeable children — addressable `Columns`/`Rows` structure blocks (§12.1a). Column names are stable column IDs; a Row's own properties are its cell values, keyed by column name. The legacy `Container name { kind: table … }` spelling still parses, but canonical output always uses `Table`.",
-  Columns: 'The column-schema block of a Table — holds named `Column` children.',
-  Column: "A single column of a Table. Its own name is the stable column ID that a Row's cell properties key against.",
-  Rows: 'The data block of a Table — holds `Row` children.',
-  Row: 'A single row of a Table. Its own properties are the cell values, one per Column name.',
   Chart: "A data chart (SFL 1.4 §5.4): its own geometry (`layout`/`style`) like a Container, but a fixed schema of `Axis`, `Series`, and `Rule` child blocks instead of freely placeable content. `type:` picks the chart form (`bar`, `line`, `pie`, `scatter`, …); `stacked: true` stacks a bar/area chart's series.",
   Axis: "An axis of a `Chart` (SFL 1.4), conventionally named `x` / `y`. Carries either `categories` (an ordered label list) or a numeric range (`min`, `max`, `step`), plus an optional `unit` and `label`.",
   Series: "One data series of a `Chart` (SFL 1.4): `values` (a number list, one per category), a `label`, an optional `color`, and optional per-point `error` magnitudes.",
@@ -36,9 +31,12 @@ export const BLOCK_KIND_DOCS: Record<BlockKind, string> = {
   Symbol: "A reusable named shape (SFL 1.4 §5.5): normalized `points` (0..1 of the referencing instance's box) plus optional `Port` children. Referenced as the *value* of `shape:` (e.g. `Entity amp { shape: OpAmp }`), not through a `:` composition list.",
   Port: "A named connection point of a `Symbol` (SFL 1.4 §3.5): `at:` a normalized (0..1) position. Addressed as `entity.portName` on a Link endpoint, where the entity's `shape:` points at the owning Symbol.",
   Net: 'A multi-terminal net (SFL 1.4 §3.5, "pattern C") — authored once via a `members` list instead of N-1 hand-written Links. Parse-only: the renderer star-decomposes it (first member = hub) into ordinary links.',
-  Footer: "A Table summary row (SFL 1.4 §3.6), a sibling to `Rows`. Its own properties are cell values keyed by Column name, like a `Row`, but it is a totals line rather than a data row. At most one per Table.",
   Isometric: "A 3D box drawn in isometric projection. `layout { size: width, height, depth }` takes a third value for its depth (default 24). Only `fill` is set: the side faces are derived shades of it. Carries `text` and an optional `icon`, and is a valid `from:`/`to:` endpoint.",
   Connection: "Connects two `Isometric` objects (`from`/`to`), attached to a cube face (`fromFace` / `toFace`: `top`, `bottom`, `front`, `back`, `left`, `right`; default `front`) instead of a 2D side. Takes the same line styling as a Link (`route`, `stroke`, `strokeWidth`, `strokeStyle`, `opacity`).",
+  Text: 'A free text label on the canvas with no shape around it. Carries `text`, a `layout` and typography in `style` (`fontSize`, `fontWeight`, `textColor`, `textAlign`). A valid `from:`/`to:` endpoint.',
+  Widget: 'A live control on the canvas, picked by `type:` (`rollingNumber`, `tickScale`, `ruler`). Its value can be bound to a DataSource field (`value: <- source.field`).',
+  Shader: 'A reusable shader surface: `program:` plus its parameters. Referenced by name from a style\'s `shader:` property.',
+  DataSource: 'Typed data a document can bind to: a `fields { }` block with one `name: type` per field, and optional `data { }` rows. Bindings and handlers read it as `source.field`.',
 };
 
 interface PropertyDoc {

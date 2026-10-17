@@ -46,11 +46,8 @@ export interface ResolveResult {
 
 // `Container` (Frame/Swimlane, §12.1) nests its Groups/Entities and forms its
 // own scope; `Entity` remains a leaf. `Layout`/`Style` are leaves like
-// `Entity` (§8, Table 4) and open no scope of their own. `Table` (§12.1a) is
-// deliberately excluded too — it holds a fixed Columns/Rows schema, not
-// freely placeable children, so its Column/Row names aren't resolved through
-// this scope mechanism (same treatment as the frontend's resolver.ts).
-// `Chart` (SFL 1.4 §5.4) is excluded for the same reason: its Axis/Series/Rule
+// `Entity` (§8, Table 4) and open no scope of their own.
+// `Chart` (SFL 1.4 §5.4) is excluded too: its Axis/Series/Rule
 // children are a fixed schema, never referenced by a dot-path or a from/to
 // endpoint, so a Chart opens no resolvable scope either. `Symbol` (§5.5) is
 // likewise a leaf: its `Port` children are reached through named-port endpoint
@@ -67,12 +64,13 @@ const ENTITY_CONTENT_KEYS = ['text', 'kind', 'asset', 'shape'] as const;
 // Kinds kept out of the global bare-name index: structural children that are
 // only ever addressed positionally within their parent, never as a standalone
 // `from:`/`to:` target or dot-path root. `Axis`/`Series`/`Rule` (SFL 1.4
-// Chart children) and `Symbol`/`Port`/`Net`/`Footer` (the rest of the 1.4
-// batch) join `Table`'s Columns/Rows structure blocks here. `Path` is *not*
-// listed — it is a freeform shape and a valid link endpoint, like `Entity`.
+// Chart children) and `Symbol`/`Port`/`Net` (the rest of the 1.4 batch) are
+// kept out, and so is a `Shader`, which is only named from a style's
+// `shader:`. `Path` is *not* listed — it is a freeform shape and a valid link
+// endpoint, like `Entity`; so are `Text` and `Widget`.
 const NON_GLOBAL_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>([
-  'Style', 'Layout', 'Columns', 'Column', 'Rows', 'Row',
-  'Axis', 'Series', 'Rule', 'Symbol', 'Port', 'Net', 'Footer',
+  'Style', 'Layout', 'Shader',
+  'Axis', 'Series', 'Rule', 'Symbol', 'Port', 'Net',
 ]);
 
 interface Scope {

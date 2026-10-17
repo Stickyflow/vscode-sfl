@@ -3,6 +3,32 @@
 All notable changes to the SFL Language Support extension are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+
+- Syntax errors come from the parser in stickyflow.js (`stickyflow` 0.3.0 from
+  npm), the same one the renderer and the StickyFlow-Web Playground use.
+  Documents that render no longer show false errors such as
+  `unknown block kind 'Text'`.
+- Format Document uses stickyflow.js's `canonicalize()`, so it can't drop
+  anything the extension's own parser copy doesn't know yet.
+
+### Added
+
+- The extension's parser copy (used for hover, rename, go-to-definition,
+  outline and reference checks) knows stickyflow.js 0.3: `Text`, `Widget`,
+  `Shader` and `DataSource` blocks, bindings (`key: <- expr`, `<->`, `->`),
+  handlers (`onTap: target <- expr` or `onTap { … }`), `fields { }` and
+  `data { }` (series with or without the `Series` keyword). Hover docs,
+  outline and highlighting cover the new kinds.
+
+### Removed
+
+- `Table`, `Columns`, `Column`, `Rows`, `Row` and `Footer`, which stickyflow.js
+  removed. They are reported with a message that says so.
+  `Container name { kind: table … }` is still an ordinary Container.
+
 ## [0.1.1] - 2026-10-17
 
 ### Changed

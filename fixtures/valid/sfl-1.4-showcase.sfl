@@ -75,19 +75,4 @@ Model schematic {
     Rule limit { at: 90; text: "max"; color: "#ef4444" }
     layout { position: 520, 200; size: 320, 200 }
   }
-
-  // §12.1a Table with a §3.6 Footer summary row.
-  Table budget {
-    text: "Budget"
-    Columns cols {
-      Column item { text: "Item"; width: 160 }
-      Column cost { text: "Cost"; width: 90 }
-    }
-    Rows rows {
-      Row parts { item: "Parts"; cost: "40" }
-      Row build { item: "Build"; cost: "60" }
-    }
-    Footer total { item: "Total"; cost: "100" }
-    layout { position: 40, 360; size: 260, 160 }
-  }
 }

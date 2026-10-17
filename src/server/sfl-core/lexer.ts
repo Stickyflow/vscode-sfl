@@ -23,8 +23,20 @@ export type TokenType =
   | 'semi'      // ; — alternative property separator, §5/§16
   | 'dot'       // .
   | 'amp'       // & (composition-list separator, §4/§16)
+  | 'bind'      // <-  (binding, handler assignment)
+  | 'bind2'     // <-> (two-way binding)
+  | 'action'    // ->  (action binding)
+  | 'op'        // expression operator: + - * / > < >= <= == != && || !
   | 'newline'
   | 'eof';
+
+// Longest first, so `<->` wins over `<-` and `>=` over `>`. Mirrors OPERATORS
+// in stickyflow.js's src/sflLanguage/lexing/operators.ts.
+const OPERATORS: ReadonlyArray<[string, TokenType]> = [
+  ['<->', 'bind2'], ['<-', 'bind'], ['->', 'action'],
+  ['&&', 'op'], ['||', 'op'], ['>=', 'op'], ['<=', 'op'], ['==', 'op'], ['!=', 'op'],
+  ['+', 'op'], ['-', 'op'], ['*', 'op'], ['/', 'op'], ['>', 'op'], ['<', 'op'], ['!', 'op'],
+];
 
 export interface Token {
   type: TokenType;
@@ -102,7 +114,7 @@ export function tokenize(input: string): Token[] {
     if (ch === ':') { advance(); tokens.push({ type: 'colon', value: ':', line: startLine, col: startCol }); continue; }
     if (ch === ',') { advance(); tokens.push({ type: 'comma', value: ',', line: startLine, col: startCol }); continue; }
     if (ch === ';') { advance(); tokens.push({ type: 'semi', value: ';', line: startLine, col: startCol }); continue; }
-    if (ch === '&') { advance(); tokens.push({ type: 'amp', value: '&', line: startLine, col: startCol }); continue; }
+    if (ch === '&' && peek(1) !== '&') { advance(); tokens.push({ type: 'amp', value: '&', line: startLine, col: startCol }); continue; }
 
     // Strings
     if (ch === '"') {
@@ -126,6 +138,15 @@ export function tokenize(input: string): Token[] {
 
     // Dot (path separator; number-decimals are consumed above, so a bare dot is a path dot)
     if (ch === '.') { advance(); tokens.push({ type: 'dot', value: '.', line: startLine, col: startCol }); continue; }
+
+    // Operators. A `-` right before a digit was read as a negative number above.
+    const operator = OPERATORS.find(([text]) => input.startsWith(text, i));
+    if (operator) {
+      const [text, type] = operator;
+      for (let k = 0; k < text.length; k++) advance();
+      tokens.push({ type, value: text, line: startLine, col: startCol });
+      continue;
+    }
 
     // Identifiers  letter { letter | digit | _ }  (§4.3)
     if (isLetter(ch)) {

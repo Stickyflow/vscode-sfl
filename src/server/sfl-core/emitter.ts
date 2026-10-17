@@ -7,7 +7,8 @@
 // exactly what a formatter is supposed to do.
 
 import type {
-  SflDocument, SflBlock, SflProperty, SflLayout, SflStyle, SflValue, BlockKind,
+  SflDocument, SflBlock, SflEntry, SflProperty, SflLayout, SflStyle, SflValue, BlockKind,
+  SflData, SflBinding, SflHandler, SflAssignment, SflExpr,
 } from './ast';
 
 const INDENT = '  '; // two spaces per level (§15.1)
@@ -97,50 +98,68 @@ function emitBlock(block: SflBlock, depth: number, kindOf: Map<string, BlockKind
   const pad = INDENT.repeat(depth);
   const header = `${block.kind} ${block.name}${emitComposition(block.composition, kindOf)} {`;
 
-  const properties = block.entries.filter(e => e.type === 'property').map(e => (e as any).property as SflProperty);
-  const nestedBlocks = block.entries.filter(e => e.type === 'block').map(e => (e as any).block as SflBlock);
-  const layoutEntry = block.entries.find(e => e.type === 'layout') as { type: 'layout'; layout: SflLayout } | undefined;
-  const styleEntry = block.entries.find(e => e.type === 'style') as { type: 'style'; style: SflStyle } | undefined;
-
   // A reusable Layout/Style block only ever holds properties (§5, Table 4)
   // and orders them like layout{}/style{}, not id/kind/text/alpha.
   const propComparator = block.kind === 'Layout' ? compareLayoutProps
     : block.kind === 'Style' ? compareStyleProps
     : compareProps;
+  const properties = block.entries.filter(e => e.type === 'property').map(e => (e as any).property as SflProperty);
   const sortedProps = [...properties].sort((a, b) => propComparator(a.key, b.key));
 
   const isCompactDefinition = (block.kind === 'Layout' || block.kind === 'Style')
-    && !nestedBlocks.length && !layoutEntry && !styleEntry
+    && block.entries.every(e => e.type === 'property')
     && sortedProps.length <= COMPACT_MAX_PROPS;
   if (isCompactDefinition) {
     const body = sortedProps.map(emitProperty).join('; ');
     return body ? `${pad}${header} ${body} }` : `${pad}${header} }`;
   }
 
-  const innerPad = INDENT.repeat(depth + 1);
-  const propLines = sortedProps.map(p => `${innerPad}${emitProperty(p)}`);
-
-  // Properties, then (blank line) nested blocks — Layout/Style grouped+
-  // headered, others one-blank-line-separated, §15.4/§15.7 — then `layout {}`
-  // and `style {}` attach directly (single newline, no blank line): they read
-  // as trailing metadata of THIS block, not as siblings of equal weight.
-  let inner = propLines.join('\n');
-  if (nestedBlocks.length) {
-    const nestedStr = joinSiblingBlocks(nestedBlocks, depth + 1, kindOf);
-    inner = inner ? `${inner}\n\n${nestedStr}` : nestedStr;
-  }
-  if (layoutEntry) {
-    const layoutStr = emitLayout(layoutEntry.layout, depth + 1);
-    inner = inner ? `${inner}\n${layoutStr}` : layoutStr;
-  }
-  if (styleEntry) {
-    const styleStr = emitStyle(styleEntry.style, depth + 1);
-    inner = inner ? `${inner}\n${styleStr}` : styleStr;
-  }
-
+  const inner = emitBody(block.entries, sortedProps, depth, kindOf);
   return inner
     ? `${pad}${header}\n${inner}\n${pad}}`
     : `${pad}${header}\n${pad}}`;
+}
+
+// Properties, bindings and handlers, then (blank line) nested blocks —
+// Layout/Style grouped+headered, others one-blank-line-separated,
+// §15.4/§15.7 — then `fields {}`, `data {}`, `layout {}` and `style {}`
+// attach directly (single newline, no blank line): they read as trailing
+// metadata of THIS block, not as siblings of equal weight. Same order as
+// stickyflow.js's emitting/blocks.ts.
+function emitBody(entries: SflEntry[], sortedProps: SflProperty[], depth: number, kindOf: Map<string, BlockKind>): string {
+  const innerPad = INDENT.repeat(depth + 1);
+  const bindings = entries.flatMap(e => (e.type === 'binding' ? [e.binding] : []));
+  const handlers = entries.flatMap(e => (e.type === 'handler' ? [e.handler] : []));
+  const nestedBlocks = entries.flatMap(e => (e.type === 'block' ? [e.block] : []));
+
+  const lines = [
+    ...sortedProps.map(p => `${innerPad}${emitProperty(p)}`),
+    ...bindings.map(b => `${innerPad}${emitBinding(b)}`),
+    ...handlers.map(h => emitHandler(h, innerPad)),
+  ].join('\n');
+  const nested = joinSiblingBlocks(nestedBlocks, depth + 1, kindOf);
+  const primary = [lines, nested].filter(Boolean).join('\n\n');
+
+  const attached = [
+    ...entries.flatMap(e => (e.type === 'fields' ? [emitFields(e.fields, depth + 1)] : [])),
+    ...entries.flatMap(e => (e.type === 'data' ? [emitData(e.data, depth + 1, kindOf)] : [])),
+    ...entries.flatMap(e => (e.type === 'layout' ? [emitLayout(e.layout, depth + 1)] : [])),
+    ...entries.flatMap(e => (e.type === 'style' ? [emitStyle(e.style, depth + 1)] : [])),
+  ];
+  return [primary, ...attached].filter(Boolean).join('\n');
+}
+
+function emitFields(fields: SflProperty[], depth: number): string {
+  const pad = INDENT.repeat(depth);
+  const lines = fields.map(p => `${pad}${INDENT}${emitProperty(p)}`);
+  return lines.length ? `${pad}fields {\n${lines.join('\n')}\n${pad}}` : `${pad}fields {\n${pad}}`;
+}
+
+function emitData(data: SflData, depth: number, kindOf: Map<string, BlockKind>): string {
+  const pad = INDENT.repeat(depth);
+  const properties = data.entries.filter(e => e.type === 'property').map(e => (e as any).property as SflProperty);
+  const inner = emitBody(data.entries, [...properties].sort((a, b) => compareProps(a.key, b.key)), depth, kindOf);
+  return inner ? `${pad}data {\n${inner}\n${pad}}` : `${pad}data {\n${pad}}`;
 }
 
 function emitLayout(layout: SflLayout, depth: number): string {
@@ -158,6 +177,7 @@ function emitStyle(style: SflStyle, depth: number): string {
   const innerPad = INDENT.repeat(depth + 1);
   const sorted = [...style.properties].sort((a, b) => compareStyleProps(a.key, b.key));
   const lines = sorted.map(p => `${innerPad}${emitProperty(p)}`);
+  lines.push(...(style.bindings ?? []).map(b => `${innerPad}${emitBinding(b)}`));
   return lines.length
     ? `${pad}style {\n${lines.join('\n')}\n${pad}}`
     : `${pad}style {\n${pad}}`;
@@ -183,6 +203,44 @@ function emitValue(v: SflValue): string {
       return s;
     }
   }
+}
+
+// Expressions (bindings and handlers): parentheses only where precedence
+// needs them, like stickyflow.js's emitting/expressions.ts.
+const PRECEDENCE: Record<string, number> = {
+  '||': 1, '&&': 2,
+  '==': 3, '!=': 3, '>': 3, '<': 3, '>=': 3, '<=': 3,
+  '+': 4, '-': 4, '*': 5, '/': 5,
+};
+
+function emitExpression(expr: SflExpr, parentPrecedence = 0): string {
+  switch (expr.kind) {
+    case 'number': return formatNumber(expr.value);
+    case 'string': return emitString(expr.value);
+    case 'boolean': return String(expr.value);
+    case 'ref': return expr.path.join('.');
+    case 'unary': return `${expr.operator}${emitExpression(expr.operand, 6)}`;
+    case 'call': return `${expr.callee.join('.')}(${expr.args.map(a => emitExpression(a)).join(', ')})`;
+    case 'binary': {
+      const precedence = PRECEDENCE[expr.operator];
+      const text = `${emitExpression(expr.left, precedence)} ${expr.operator} ${emitExpression(expr.right, precedence + 1)}`;
+      return precedence < parentPrecedence ? `(${text})` : text;
+    }
+  }
+}
+
+function emitBinding(b: SflBinding): string {
+  return `${b.key}: ${b.operator} ${emitExpression(b.expr)}`;
+}
+
+function emitAssignment(a: SflAssignment): string {
+  return `${a.target.join('.')} <- ${emitExpression(a.expr)}`;
+}
+
+function emitHandler(h: SflHandler, pad: string): string {
+  if (h.assignments.length === 1) return `${pad}${h.event}: ${emitAssignment(h.assignments[0])}`;
+  const lines = h.assignments.map(a => `${pad}${INDENT}${emitAssignment(a)}`);
+  return [`${pad}${h.event} {`, ...lines, `${pad}}`].join('\n');
 }
 
 // §15.6: strings are always single-line in double quotes. Line breaks are

@@ -66,7 +66,7 @@ describe('sfl-core against fixtures/valid', () => {
 // shape and, like Entity, a valid link endpoint; the other four are leaves kept
 // out of the global bare-name index. The interesting bit is `entity.portName`:
 // a Link endpoint whose last segment names a Port on the Symbol the entity's
-// `shape:` points at. See fixtures/valid/{symbol-ports,path-choropleth,net-and-footer}.sfl.
+// `shape:` points at. See fixtures/valid/{symbol-ports,path-choropleth,net}.sfl.
 describe('Symbol / Port / Path / Net / Footer (SFL 1.4)', () => {
   const SAMPLE = `sfl 1.4
 
@@ -124,27 +124,13 @@ Model board {
     expect(errors.some(e => /endpoint 'amp1\.nonexistent' does not resolve/.test(e.message))).toBe(true);
   });
 
-  it('keeps Symbol/Port/Net/Footer out of the global bare-name index (Path stays in)', () => {
+  it('keeps Symbol/Port/Net out of the global bare-name index (Path stays in)', () => {
     // A bare `from: out` (a Port name) must not resolve; `from: region` (a Path) must.
     const badPort = SAMPLE.replace('from: amp1.out', 'from: out');
     expect(resolveDocument(parse(badPort)).errors.some(e => /does not resolve/.test(e.message))).toBe(true);
 
     const pathLink = SAMPLE.replace('to: region, left (0.5)', 'to: region');
     expect(resolveDocument(parse(pathLink)).errors).toEqual([]);
-  });
-
-  it('supports a Footer alongside Rows on a Table', () => {
-    const withFooter = `sfl 1.4
-
-Model m {
-  Table t {
-    Columns c { Column a { text: "A" } }
-    Rows r { Row r1 { a: "1" } }
-    Footer f { a: "total" }
-  }
-}
-`;
-    expect(resolveDocument(parse(withFooter)).errors).toEqual([]);
   });
 
   it('round-trips through emit() without resolver errors on the re-parsed output', () => {
@@ -334,58 +320,12 @@ Group g : Card {
   });
 });
 
-// Table (§12.1a) — added to the language after the initial 1.2 port; a leaf
-// like Entity (its own geometry, but no scope of its own — Column/Row names
-// aren't resolved through the normal container scope mechanism).
-describe('Table (§12.1a)', () => {
-  const TABLE_SAMPLE = `sfl 1.2
-
-Table users {
-  text: "Users"
-
-  Columns schema {
-    Column field {
-      text: "Field"
-      width: 160
-    }
-    Column type {
-      text: "Type"
-      width: 120
-    }
-  }
-
-  Rows data {
-    Row row_1 {
-      field: "id"
-      type: "uuid"
-    }
-  }
-
-  layout {
-    rowHeight: 28
-  }
-
-  style {
-    showHeader: true
-    headerFill: "#f1f5f9"
-    gridColor: "#cbd5e1"
-    gridWidth: 1
-    borderStyle: double
-    headerRuleStyle: double
-  }
-}
-`;
-
-  it('parses the spec example and resolves with zero errors', () => {
-    const doc = parse(TABLE_SAMPLE);
-    const { errors } = resolveDocument(doc);
-    expect(errors).toEqual([]);
-  });
-
-  it('is a leaf: Columns/Rows do not open a resolvable scope for from/to', () => {
-    const doc = parse(TABLE_SAMPLE);
-    const table = doc.blocks.find(b => b.name === 'users')!;
-    expect(table.kind).toBe('Table');
+// Table (§12.1a) was removed from stickyflow.js, along with its Columns/
+// Column/Rows/Row/Footer blocks. sfl-core rejects them with a message that
+// says so, and `Container name { kind: table … }` is an ordinary Container.
+describe('Table (removed)', () => {
+  it.each(['Table', 'Columns', 'Column', 'Rows', 'Row', 'Footer'])('rejects a %s block and says it was removed', (kind) => {
+    expect(() => parse(`sfl 1.4\n\n${kind} t {\n  text: "T"\n}\n`)).toThrow(/no longer supported by stickyflow\.js/);
   });
 
   it('legacy `Container name { kind: table … }` still parses and resolves cleanly', () => {
@@ -399,12 +339,5 @@ Container users {
     const doc = parse(legacy);
     const { errors } = resolveDocument(doc);
     expect(errors).toEqual([]);
-  });
-
-  it('round-trips through emit() without resolver errors on the re-parsed output', () => {
-    const doc = parse(TABLE_SAMPLE);
-    const emitted = emit(doc);
-    const reparsed = parse(emitted);
-    expect(resolveDocument(reparsed).errors).toEqual([]);
   });
 });

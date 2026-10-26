@@ -880,10 +880,9 @@
               <table>
                 <thead><tr><th>Contribution</th><th>Source</th><th>Effect</th></tr></thead>
                 <tbody>
-                  <tr><td><code>languages</code></td><td><code>language-configuration.json</code></td><td>Registers <code>sfl</code> for <code>.sfl</code> files with brackets and comment rules.</td></tr>
+                  <tr><td><code>languages</code></td><td><code>language-configuration.json</code></td><td>Registers <code>sfl</code> for <code>.sfl</code> files with brackets and comment rules, and <code>icons/sfl-file.svg</code> as their file icon in any file icon theme.</td></tr>
                   <tr><td><code>grammars</code></td><td><code>syntaxes/sfl.tmLanguage.json</code></td><td>Highlighting for headers, composition lists, sub-blocks, strings, numbers and comments. <code>npm run compile</code> fails if a block kind in <code>BLOCK_KINDS</code> has no header rule.</td></tr>
                   <tr><td><code>configurationDefaults</code></td><td><code>package.json</code></td><td>Pins token colors to the StickyFlow editor's dark palette.</td></tr>
-                  <tr><td><code>iconThemes</code></td><td><code>icons/sfl-icon-theme.json</code></td><td>Optional theme with the StickyFlow logo for <code>.sfl</code> files.</td></tr>
                   <tr><td><code>extensionPack</code></td><td><code>package.json</code></td><td>Installs vscode-sfl-preview alongside.</td></tr>
                 </tbody>
               </table>

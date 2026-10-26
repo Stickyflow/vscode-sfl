@@ -101,8 +101,8 @@ Model checkout {
   look back. Local overrides the template
   removed (`style { fill: ... }` on a block) and the yes/no branch nodes it
   added stay as they are; Ctrl+Z undoes those too.
-- An optional **file icon theme** that gives `.sfl` files the StickyFlow
-  logo (see [Notes](#notes)).
+- The StickyFlow logo as the file icon for `.sfl` files, on top of whatever
+  file icon theme you use (see [Notes](#notes)).
 
 Syntax errors come from the parser in [stickyflow.js](https://www.npmjs.com/package/stickyflow),
 the same one the renderer and the StickyFlow-Web Playground use, so VS Code
@@ -176,9 +176,10 @@ culprits.
 - **Colors are fixed to a dark palette.** Highlighting colors are pinned to
   match the StickyFlow editor, regardless of your VS Code theme. They look
   best on dark themes.
-- **The file icon theme replaces your current one.** VS Code can't add a
-  single icon to an existing theme, so enabling **SFL File Icons**
-  (Ctrl+Shift+P → *File Icon Theme*) swaps out your whole icon set.
+- **The `.sfl` icon is a language icon, not an icon theme.** It shows up as
+  soon as the extension is installed and leaves every other icon alone. VS
+  Code only uses it where your file icon theme has no icon of its own for
+  `.sfl` files, so a theme that ships one wins.
 
 ## 🙌 Contributing
 

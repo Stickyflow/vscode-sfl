@@ -7,6 +7,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- `.sfl` files get the StickyFlow logo as their file icon as soon as the
+  extension is installed, in whatever file icon theme you use. It's a
+  language icon now, so no other icons change.
+
 - Syntax errors come from the parser in stickyflow.js (`stickyflow` 0.3.0 from
   npm), the same one the renderer and the StickyFlow-Web Playground use.
   Documents that render no longer show false errors such as
@@ -31,6 +35,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+- The "SFL File Icons" file icon theme. It replaced your whole icon set to
+  show one icon; the language icon above does that without touching the
+  rest.
 - `Table`, `Columns`, `Column`, `Rows`, `Row` and `Footer`, which stickyflow.js
   removed. They are reported with a message that says so.
   `Container name { kind: table … }` is still an ordinary Container.

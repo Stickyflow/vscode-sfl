@@ -19,6 +19,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Style template **Poolside**: almond canvas, cinnabar start pill, keppel
   decisions, dim gray end, curved gray lines. It also styles decision, input
   and output.
+- Style template **Mint Lemonade**: pale mint canvas, white cards, mint
+  start pill, lemonade decisions, verbena end, curved mint lines. It also
+  styles decision, input and output.
 - The extension's parser copy (used for hover, rename, go-to-definition,
   outline and reference checks) knows stickyflow.js 0.3: `Text`, `Widget`,
   `Shader` and `DataSource` blocks, bindings (`key: <- expr`, `<->`, `->`),

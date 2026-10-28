@@ -16,7 +16,7 @@
 SFL is the text format behind [StickyFlow](https://github.com/Stickyflow)
 diagrams. This extension makes `.sfl` files feel like any other language in
 your editor: highlighting, errors as you type, completion, hover docs,
-go-to-definition, rename and formatting. It covers SFL 1.4, the same grammar
+go-to-definition, rename and formatting. It covers SFL 1.6, the same grammar
 [`stickyflow.js`](https://github.com/Stickyflow/stickyflow.js) renders.
 
 Want to see the diagram too? Installing this extension also installs its
@@ -37,7 +37,7 @@ the properties it inherits. Ctrl+click a link endpoint and land on the
 shape it connects to.
 
 ```sfl
-sfl 1.4
+sfl 1.6
 
 Style Pill {
   shape: pill
@@ -45,12 +45,12 @@ Style Pill {
 }
 
 Model checkout {
-  Entity add_products : Pill {
+  Shape add_products : Pill {
     kind: process
     text: "Add products"
   }
 
-  Entity pay : Pill {
+  Shape pay : Pill {
     kind: process
     text: "Pay"
   }
@@ -61,6 +61,125 @@ Model checkout {
   }
 }
 ```
+
+## Not just diagrams
+
+The same language draws buildings, posters, patterns and interface screens.
+Every piece below is a short file in [`examples/creative/`](examples/creative).
+Click one to read its source. Open it in VS Code and everything above
+applies: hover a style to see what it sets, rename a block with F2, and
+with the preview to the side, watch the piece redraw as you type.
+
+### Architecture in isometric
+
+Eight buildings, each in a palette of its own. `Isometric` blocks are the
+walls, roofs and floors. A `Symbol` outline extruded by its height makes
+the eight-sided lighthouse and minarets, and `shape: sphere` the domes and
+palm crowns. The repeated parts are SFL 1.6 `Repeat` blocks: the balconies
+of the brutalist block, the lit windows of the night towers, the stair of
+the ziggurat. The toy city is one `Template` placed in every cell of a
+`Repeat` with a random height and color.
+
+<table>
+  <tr>
+    <td align="center" width="25%">
+      <a href="examples/creative/brutalist-block.sfl"><img src="assets/creative/brutalist-block.png" alt="Isometric concrete housing slab with a grid of deep balconies and rust-red doors" width="200"></a><br>
+      <sub><b>Brutalist Block</b> · Concrete & Rust</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/canal-houses.sfl"><img src="assets/creative/canal-houses.png" alt="A row of narrow pastel houses on a canal with small boats" width="200"></a><br>
+      <sub><b>Canal Houses</b> · Burano</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/desert-villa.sfl"><img src="assets/creative/desert-villa.png" alt="A flat-roofed modernist villa with a teal pool and two palms on sand" width="200"></a><br>
+      <sub><b>Desert Villa</b> · Palm Springs</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/night-towers.sfl"><img src="assets/creative/night-towers.png" alt="Dark glass towers at night with yellow, pink and green lit windows" width="200"></a><br>
+      <sub><b>Night Towers</b> · Neon Night</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="25%">
+      <a href="examples/creative/lighthouse.sfl"><img src="assets/creative/lighthouse.png" alt="A red and white striped octagonal lighthouse on grey rocks in the sea" width="200"></a><br>
+      <sub><b>Lighthouse</b> · Nordic Coast</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/ziggurat.sfl"><img src="assets/creative/ziggurat.png" alt="Three stacked terracotta terraces with a long stair up to a shrine" width="200"></a><br>
+      <sub><b>Ziggurat</b> · Terracotta</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/pavilion.sfl"><img src="assets/creative/pavilion.png" alt="A domed hall with a golden sphere, blue friezes and four corner towers" width="200"></a><br>
+      <sub><b>Pavilion</b> · Marrakech</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/toy-city.sfl"><img src="assets/creative/toy-city.png" alt="A grid of blocks of random heights in fluorescent pink, blue, yellow and green" width="200"></a><br>
+      <sub><b>Toy City</b> · Risograph</sub>
+    </td>
+  </tr>
+</table>
+
+### From the Creative Work page
+
+Posters, patterns, an interface screen and an isometric scene from the
+[Creative Work](https://stickyflow.org/creative-work) page of StickyFlow.
+
+<table>
+  <tr>
+    <td align="center" width="25%">
+      <a href="examples/creative/bauhaus-study.sfl"><img src="assets/creative/bauhaus-study.png" alt="Bauhaus composition of a navy and a red circle, a black bar and three outlined shapes on peach" width="200"></a><br>
+      <sub><b>Bauhaus study</b> · Shapes</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/after-hours.sfl"><img src="assets/creative/after-hours.png" alt="Poster of a red sun setting into a dark sea, titled After Hours" width="200"></a><br>
+      <sub><b>After Hours</b> · Poster</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/three-towers.sfl"><img src="assets/creative/three-towers.png" alt="Three isometric towers in navy, blue and red on peach" width="200"></a><br>
+      <sub><b>Three towers</b> · Isometric</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/swiss-type.sfl"><img src="assets/creative/swiss-type.png" alt="Swiss-style type poster with a red block and the word SFL set big" width="200"></a><br>
+      <sub><b>Swiss Type</b> · Type poster</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="25%">
+      <a href="examples/creative/golden-hour.sfl"><img src="assets/creative/golden-hour.png" alt="A music player screen with a sunset gradient, a progress bar, a Play button and a toggle" width="200"></a><br>
+      <sub><b>Golden Hour</b> · Interface</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/dawn-hills.sfl"><img src="assets/creative/dawn-hills.png" alt="Layered hills in mauve and plum under an orange sun" width="200"></a><br>
+      <sub><b>Dawn Hills</b> · Landscape</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/3am.sfl"><img src="assets/creative/3am.png" alt="Poster of a night skyline with lit windows under a pale blue moon, titled 3AM" width="200"></a><br>
+      <sub><b>3AM</b> · Poster</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/rings.sfl"><img src="assets/creative/rings.png" alt="A grid of concentric rings in navy, red and yellow" width="200"></a><br>
+      <sub><b>Rings</b> · Pattern</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="25%">
+      <a href="examples/creative/fire-hydrant.sfl"><img src="assets/creative/fire-hydrant.png" alt="Poster of a red fire hydrant on grey paving, titled Fire Hydrant" width="200"></a><br>
+      <sub><b>Fire Hydrant</b> · Poster</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/repeat-pattern.sfl"><img src="assets/creative/repeat-pattern.png" alt="A repeating pattern of hexagons, diamonds and circles on navy" width="200"></a><br>
+      <sub><b>Repeat pattern</b> · Pattern</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/eclipse.sfl"><img src="assets/creative/eclipse.png" alt="Translucent arches stacked from warm yellow to deep blue" width="200"></a><br>
+      <sub><b>Eclipse</b> · Layered glass</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/dusk.sfl"><img src="assets/creative/dusk.png" alt="Type poster with the word DUSK cut by a red horizon" width="200"></a><br>
+      <sub><b>Dusk</b> · Type poster</sub>
+    </td>
+  </tr>
+</table>
 
 ## Features
 

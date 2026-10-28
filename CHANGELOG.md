@@ -11,8 +11,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   extension is installed, in whatever file icon theme you use. It's a
   language icon now, so no other icons change.
 
-- Syntax errors come from the parser in stickyflow.js (`stickyflow` 0.3.0 from
-  npm), the same one the renderer and the StickyFlow-Web Playground use.
+- Syntax errors come from the parser in stickyflow.js (`stickyflow` 0.10.0 from
+  npm, SFL 1.6), the same one the renderer and the StickyFlow-Web Playground use.
   Documents that render no longer show false errors such as
   `unknown block kind 'Text'`.
 - Format Document uses stickyflow.js's `canonicalize()`, so it can't drop
@@ -20,6 +20,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Twenty creative examples in `examples/creative/`, shown in the README
+  under *Not just diagrams*: eight isometric buildings in palettes of their
+  own (written with SFL 1.6 `Repeat`, `Template`, extruded `Symbol` outlines
+  and `shape: sphere`), and twelve posters, patterns and screens from the
+  StickyFlow Creative Work page.
 - Style template **Poolside**: almond canvas, cinnabar start pill, keppel
   decisions, dim gray end, curved gray lines. It also styles decision, input
   and output.

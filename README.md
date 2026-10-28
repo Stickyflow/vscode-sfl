@@ -16,7 +16,7 @@
 SFL is the text format behind [StickyFlow](https://github.com/Stickyflow)
 diagrams. This extension makes `.sfl` files feel like any other language in
 your editor: highlighting, errors as you type, completion, hover docs,
-go-to-definition, rename and formatting. It covers SFL 1.4, the same grammar
+go-to-definition, rename and formatting. It covers SFL 1.6, the same grammar
 [`stickyflow.js`](https://github.com/Stickyflow/stickyflow.js) renders.
 
 Want to see the diagram too? Installing this extension also installs its
@@ -37,7 +37,7 @@ the properties it inherits. Ctrl+click a link endpoint and land on the
 shape it connects to.
 
 ```sfl
-sfl 1.4
+sfl 1.6
 
 Style Pill {
   shape: pill
@@ -45,12 +45,12 @@ Style Pill {
 }
 
 Model checkout {
-  Entity add_products : Pill {
+  Shape add_products : Pill {
     kind: process
     text: "Add products"
   }
 
-  Entity pay : Pill {
+  Shape pay : Pill {
     kind: process
     text: "Pay"
   }

@@ -20,6 +20,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Twelve creative examples in `examples/creative/` (posters, patterns, an
+  interface screen, an isometric scene) from the StickyFlow Creative Work
+  page, shown in the README under *Not just diagrams*.
 - Style template **Poolside**: almond canvas, cinnabar start pill, keppel
   decisions, dim gray end, curved gray lines. It also styles decision, input
   and output.

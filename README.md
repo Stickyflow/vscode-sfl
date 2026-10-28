@@ -62,6 +62,73 @@ Model checkout {
 }
 ```
 
+## Not just diagrams
+
+The same language draws posters, patterns, interface screens and isometric
+scenes. The pieces below come from the
+[Creative Work](https://stickyflow.org/creative-work) page of StickyFlow,
+and each one is a short file in [`examples/creative/`](examples/creative).
+Click a piece to read its source. Open one in VS Code and everything above
+applies: hover a style to see what it sets, rename a shape with F2, and
+with the preview to the side, watch the piece redraw as you type.
+
+<table>
+  <tr>
+    <td align="center" width="25%">
+      <a href="examples/creative/bauhaus-study.sfl"><img src="assets/creative/bauhaus-study.png" alt="Bauhaus composition of a navy and a red circle, a black bar and three outlined shapes on peach" width="200"></a><br>
+      <sub><b>Bauhaus study</b> · Shapes</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/after-hours.sfl"><img src="assets/creative/after-hours.png" alt="Poster of a red sun setting into a dark sea, titled After Hours" width="200"></a><br>
+      <sub><b>After Hours</b> · Poster</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/three-towers.sfl"><img src="assets/creative/three-towers.png" alt="Three isometric towers in navy, blue and red on peach" width="200"></a><br>
+      <sub><b>Three towers</b> · Isometric</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/swiss-type.sfl"><img src="assets/creative/swiss-type.png" alt="Swiss-style type poster with a red block and the word SFL set big" width="200"></a><br>
+      <sub><b>Swiss Type</b> · Type poster</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="25%">
+      <a href="examples/creative/golden-hour.sfl"><img src="assets/creative/golden-hour.png" alt="A music player screen with a sunset gradient, a progress bar, a Play button and a toggle" width="200"></a><br>
+      <sub><b>Golden Hour</b> · Interface</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/dawn-hills.sfl"><img src="assets/creative/dawn-hills.png" alt="Layered hills in mauve and plum under an orange sun" width="200"></a><br>
+      <sub><b>Dawn Hills</b> · Landscape</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/3am.sfl"><img src="assets/creative/3am.png" alt="Poster of a night skyline with lit windows under a pale blue moon, titled 3AM" width="200"></a><br>
+      <sub><b>3AM</b> · Poster</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/rings.sfl"><img src="assets/creative/rings.png" alt="A grid of concentric rings in navy, red and yellow" width="200"></a><br>
+      <sub><b>Rings</b> · Pattern</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="25%">
+      <a href="examples/creative/fire-hydrant.sfl"><img src="assets/creative/fire-hydrant.png" alt="Poster of a red fire hydrant on grey paving, titled Fire Hydrant" width="200"></a><br>
+      <sub><b>Fire Hydrant</b> · Poster</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/repeat-pattern.sfl"><img src="assets/creative/repeat-pattern.png" alt="A repeating pattern of hexagons, diamonds and circles on navy" width="200"></a><br>
+      <sub><b>Repeat pattern</b> · Pattern</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/eclipse.sfl"><img src="assets/creative/eclipse.png" alt="Translucent arches stacked from warm yellow to deep blue" width="200"></a><br>
+      <sub><b>Eclipse</b> · Layered glass</sub>
+    </td>
+    <td align="center" width="25%">
+      <a href="examples/creative/dusk.sfl"><img src="assets/creative/dusk.png" alt="Type poster with the word DUSK cut by a red horizon" width="200"></a><br>
+      <sub><b>Dusk</b> · Type poster</sub>
+    </td>
+  </tr>
+</table>
+
 ## Features
 
 - **Syntax highlighting** for block headers, composition lists

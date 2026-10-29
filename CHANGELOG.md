@@ -14,6 +14,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Format Document uses stickyflow.js's `canonicalize()`, so it can't drop
   anything the extension's own parser copy doesn't know yet.
 
+### Fixed
+
+- Applying a style template adds the yes/no branch circles also when the
+  decision links live at Model level and the shapes sit in a Container. The
+  circle goes into the shapes' block, right after the decision.
+
 ### Added
 
 - Style template **Poolside**: almond canvas, cinnabar start pill, keppel

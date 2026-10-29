@@ -10,9 +10,11 @@
 //   Link l2_b { from: nuevo_no, right; to: sesion }
 //
 // Only links leaving a `kind: decision` shape whose label is a yes or no word
-// are split, and only when the decision, the target and the link sit in the
-// same block, so the circle can be placed in the same coordinates. The circle
-// lands in the gap between the two, lined up with the target. Applying a
+// are split, and only when the decision and the target sit in the same block,
+// so the circle can be placed in the same coordinates. The link itself may
+// live elsewhere (e.g. at Model level while the shapes sit in a Container);
+// the circle then goes into the shapes' block, right after the decision. The
+// circle lands in the gap between the two, lined up with the target. Applying a
 // template runs this first; the restyle that follows styles the new blocks
 // like any other (`kind: yes` / `kind: no` pick the template's branch styles).
 
@@ -37,6 +39,7 @@ export function addBranchNodes(source: string): { text: string; added: number } 
   const eol = eolOf(source);
   const all = walk(doc.blocks);
   const taken = new Set(all.map((b) => b.block.name));
+  const byName = new Map(all.map((entry) => [entry.block.name, entry]));
   const edits: Edit[] = [];
   let added = 0;
 
@@ -49,10 +52,16 @@ export function addBranchNodes(source: string): { text: string; added: number } 
     const to = endpointName(toProperty?.value);
     if (!label || !answer || !from || !to || !toProperty?.keyRange || !label.keyRange) continue;
 
-    const siblings = new Map(childBlocks(parent, doc.blocks).map((b) => [b.name, b]));
-    const decision = siblings.get(from);
-    const target = siblings.get(to);
-    if (!decision || !isShape(decision) || kindOf(decision) !== 'decision' || !target) continue;
+    // Prefer the link's siblings (the common case), then fall back to the
+    // whole document; either way the two shapes must share a parent.
+    const siblings = new Map(childBlocks(parent, doc.blocks).map((b) => [b.name, { block: b, parent }]));
+    const found = siblings.has(from) && siblings.has(to) ? siblings : byName;
+    const decisionEntry = found.get(from);
+    const targetEntry = found.get(to);
+    if (!decisionEntry || !targetEntry || decisionEntry.parent !== targetEntry.parent) continue;
+    const decision = decisionEntry.block;
+    const target = targetEntry.block;
+    if (!isShape(decision) || kindOf(decision) !== 'decision' || !decision.range) continue;
     const a = boxOf(decision);
     const b = boxOf(target);
     if (!a || !b) continue;
@@ -60,18 +69,23 @@ export function addBranchNodes(source: string): { text: string; added: number } 
     const { box, inSide, outSide } = place(a, b);
     const name = unique(`${decision.name}_${answer}`, taken);
     const linkStart = at(link.range.start);
-    const lineStart = source.lastIndexOf('\n', linkStart - 1) + 1;
     const indent = indentAt(source, linkStart);
     const text = JSON.stringify((label.value as { value: string }).value);
     const toValue = propertyValue(source, at(toProperty.keyRange.start));
     const originalTo = source.slice(toValue.start, toValue.end);
     const secondLink = unique(`${link.name}_b`, taken);
 
-    edits.push({
-      start: lineStart,
-      end: lineStart,
-      text: `${indent}Shape ${name} { kind: ${answer}; shape: oval; text: ${text}; layout { position: ${box.x}, ${box.y}; size: ${SIZE}, ${SIZE} } }${eol}`,
-    });
+    if (decisionEntry.parent === parent) {
+      // Same block as the link: the circle goes on the line above it.
+      const lineStart = source.lastIndexOf('\n', linkStart - 1) + 1;
+      edits.push({ start: lineStart, end: lineStart, text: `${indent}${circle(name, answer, text, box)}${eol}` });
+    } else {
+      // The link lives elsewhere: the circle joins the decision's block so
+      // its position is in the same coordinates as the decision's.
+      const decisionEnd = at(decision.range.end);
+      const shapeIndent = indentAt(source, at(decision.range.start));
+      edits.push({ start: decisionEnd, end: decisionEnd, text: `${eol}${shapeIndent}${circle(name, answer, text, box)}` });
+    }
     edits.push({ start: toValue.start, end: toValue.end, text: `${name}, ${inSide}` });
     edits.push(propertyRemoval(source, at(label.keyRange.start)));
     const linkEnd = at(link.range.end);
@@ -80,6 +94,10 @@ export function addBranchNodes(source: string): { text: string; added: number } 
   }
 
   return { text: applyEdits(source, edits), added };
+}
+
+function circle(name: string, answer: 'yes' | 'no', text: string, box: { x: number; y: number }): string {
+  return `Shape ${name} { kind: ${answer}; shape: oval; text: ${text}; layout { position: ${box.x}, ${box.y}; size: ${SIZE}, ${SIZE} } }`;
 }
 
 function classify(label: string): 'yes' | 'no' | undefined {

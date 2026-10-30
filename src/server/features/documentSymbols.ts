@@ -34,6 +34,10 @@ const SYMBOL_KIND: Record<BlockKind, SymbolKind> = {
   Widget: SymbolKind.Object,
   Shader: SymbolKind.Class,
   DataSource: SymbolKind.Variable,
+  Dimension: SymbolKind.Field,
+  Repeat: SymbolKind.Array,
+  Template: SymbolKind.Class,
+  Use: SymbolKind.Object,
 };
 
 function detailFor(block: SflBlock): string | undefined {

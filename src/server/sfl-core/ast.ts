@@ -69,6 +69,21 @@ export interface SflRange {
 // Any block may now also hold bindings (`key: <- expr`), event handlers
 // (`onTap: target <- expr`) and a `data { }` entry, see SflEntry.
 //
+// The SFL 1.6 batch:
+//   • `Dimension`: a measure line between `start` and `end`, `offset` away,
+//     labelled with the length plus `unit` (or `text`). Leaf.
+//   • `Repeat`: puts the blocks in it on a grid (`columns`/`rows` or
+//     `count`, `step`, `origin`), once per cell. Inside it a property value
+//     can be computed (`position: col * 25, row * 12`), see SflExprValue.
+//     stickyflow.js expands it when a document is read; here it stays as
+//     written and opens a scope of its own, as its children are templates,
+//     not canvas objects.
+//   • `Template`: blocks described once; its own properties are parameters
+//     with default values. Opens a scope, like Repeat.
+//   • `Use`: makes a Template's blocks again (`Use oak : tree`), with `at`
+//     for the place and a value per parameter. Its composition names the
+//     Template, not a Style or Layout. Leaf.
+//
 // BLOCK_KINDS is the single list of block keywords: BlockKind is derived from
 // it, the Record<BlockKind, …> tables (outline symbols, hover docs) fail to
 // compile when a kind is missing, and scripts/check-grammar.mjs fails the
@@ -80,6 +95,7 @@ export const BLOCK_KINDS = [
   'Path', 'Symbol', 'Port', 'Net',
   'Isometric', 'Connection',
   'Text', 'Widget', 'Shader', 'DataSource',
+  'Dimension', 'Repeat', 'Template', 'Use',
 ] as const;
 
 /** Block keywords stickyflow.js used to parse and has dropped, with what to use instead. */
@@ -212,7 +228,17 @@ export type SflValue =
   | SflTupleValue
   | SflListValue
   | SflIdentValue
-  | SflEndpointValue;
+  | SflEndpointValue
+  | SflExprValue;
+
+/**
+ * A computed value, like `col * 25, row * 12` (SFL 1.6). Only valid inside a
+ * `Repeat` or a `Template`, which work it out per cell or per Use.
+ */
+export interface SflExprValue {
+  type: 'expr';
+  items: SflExpr[];
+}
 
 export interface SflStringValue {
   type: 'string';

@@ -8,7 +8,7 @@
 // in-app editor never needed position hit-testing.
 
 import type {
-  SflDocument, SflBlock, SflEntry, SflProperty, SflPosition, SflRange, SflValue, BlockKind,
+  SflDocument, SflBlock, SflEntry, SflProperty, SflPosition, SflRange, SflValue, SflExpr, BlockKind,
 } from './ast';
 import type { ResolveResult } from './resolver';
 
@@ -129,7 +129,27 @@ export function valueToDisplayString(value: SflValue): string {
       }
       return s;
     }
+    case 'expr': return value.items.map(expressionToDisplayString).join(', ');
   }
+}
+
+function expressionToDisplayString(expr: SflExpr): string {
+  switch (expr.kind) {
+    case 'number': return String(expr.value);
+    case 'string': return `"${expr.value}"`;
+    case 'boolean': return String(expr.value);
+    case 'ref': return expr.path.join('.');
+    case 'unary': return `${expr.operator}${expressionToDisplayString(expr.operand)}`;
+    case 'call': return `${expr.callee.join('.')}(${expr.args.map(expressionToDisplayString).join(', ')})`;
+    case 'binary': return `(${expressionToDisplayString(expr.left)} ${expr.operator} ${expressionToDisplayString(expr.right)})`;
+  }
+}
+
+/** A Template's parameters with their default values, one `key: value` per line. */
+export function templateParameters(template: SflBlock): string {
+  return template.entries
+    .flatMap(e => (e.type === 'property' ? [`${e.property.key}: ${valueToDisplayString(e.property.value)}`] : []))
+    .join('\n');
 }
 
 // Document-wide name → kind index (mirrors emitter.ts's buildKindIndex): used

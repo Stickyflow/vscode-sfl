@@ -14,7 +14,7 @@ import { CompletionItem, CompletionItemKind, Position } from 'vscode-languageser
 import type { DocumentModel } from '../documentModel';
 import {
   allBlocks, BLOCK_KINDS, collectBlockNames, compositionParentRef, effectiveLayoutProperties, effectiveStyleProperties,
-  valueToDisplayString, type BlockKind,
+  templateParameters, valueToDisplayString, type BlockKind,
 } from '../sfl-core';
 import { BLOCK_KIND_DOCS, PROPERTY_DOCS } from './sflDocs';
 
@@ -29,6 +29,7 @@ export const PROPERTY_KEYS = [
   'type', 'stacked', 'categories', 'min', 'max', 'step', 'unit', 'label', 'values', 'error', 'at',
   'points', 'closed', 'value', 'tension', 'members',
   'fromFace', 'toFace', 'labelOffsetX', 'labelOffsetY', 'labelBackground',
+  'columns', 'rows', 'count', 'origin', 'seed', 'jitter', 'chance', 'where', 'start', 'end', 'offset',
 ];
 export const VALUE_SUGGESTIONS: Record<string, string[]> = {
   kind: ['process', 'decision', 'start', 'end', 'note', 'frame', 'swimlane', 'input', 'output', 'yes', 'no', 'highlight'],
@@ -72,7 +73,8 @@ export function computeCompletions(model: DocumentModel, docText: string, positi
   const linePrefix = before.slice(0, before.length - word.length);
 
   if (HEADER_COMPOSITION_RE.test(linePrefix)) {
-    return compositionRefItems(model);
+    // `Use oak : ` names a Template, every other header a Style or Layout.
+    return /^\s*Use\s/.test(linePrefix) ? templateItems(model) : compositionRefItems(model);
   }
 
   const propMatch = linePrefix.match(PROPERTY_VALUE_RE);
@@ -112,6 +114,16 @@ function compositionRefItems(model: DocumentModel): CompletionItem[] {
       documentation: preview || undefined,
     };
   });
+}
+
+function templateItems(model: DocumentModel): CompletionItem[] {
+  if (!model.doc) return [];
+  return allBlocks(model.doc).filter(b => b.kind === 'Template').map(template => ({
+    label: template.name,
+    kind: CompletionItemKind.Class,
+    detail: 'Template',
+    documentation: templateParameters(template) || undefined,
+  }));
 }
 
 function referenceableBlockItems(model: DocumentModel): CompletionItem[] {

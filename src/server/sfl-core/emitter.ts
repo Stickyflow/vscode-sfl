@@ -24,7 +24,7 @@ const LAYOUT_ORDER = ['position', 'size', 'rotation', 'order'];
 const STYLE_ORDER = [
   'shape', 'fill', 'stroke', 'strokeWidth', 'strokeStyle', 'textColor', 'color',
   'fontSize', 'fontWeight', 'fontFamily', 'textAlign', 'verticalAlign',
-  'cornerRadius', 'dash', 'shadow', 'opacity', 'icon', 'route', 'marker',
+  'cornerRadius', 'dash', 'shadow', 'opacity', 'blur', 'blend', 'icon', 'route', 'marker',
   'markerStart', 'markerEnd', 'asset',
 ];
 
@@ -202,10 +202,11 @@ function emitValue(v: SflValue): string {
       }
       return s;
     }
+    case 'expr': return v.items.map(item => emitExpression(item)).join(', ');
   }
 }
 
-// Expressions (bindings and handlers): parentheses only where precedence
+// Expressions (bindings, handlers and computed values): parentheses only where precedence
 // needs them, like stickyflow.js's emitting/expressions.ts.
 const PRECEDENCE: Record<string, number> = {
   '||': 1, '&&': 2,

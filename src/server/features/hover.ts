@@ -15,12 +15,15 @@ import { Hover, MarkupKind, Position } from 'vscode-languageserver/node';
 import type { DocumentModel } from '../documentModel';
 import {
   findAtPosition, effectiveLayoutProperties, effectiveStyleProperties, compositionParentRef,
-  valueToDisplayString, type SflBlock,
+  templateParameters, valueToDisplayString, type SflBlock,
 } from '../sfl-core';
 import { BLOCK_KIND_DOCS, PROPERTY_DOCS, KIND_VALUE_DOCS } from './sflDocs';
 import { VALUE_SUGGESTIONS } from './completion';
 
 function compositionHoverMarkdown(model: DocumentModel, target: SflBlock): string {
+  if (target.kind === 'Template') {
+    return `**Template** \`${target.name}\`\n\n\`\`\`\n${templateParameters(target)}\n\`\`\``;
+  }
   const doc = model.doc!;
   const props = target.kind === 'Style' ? effectiveStyleProperties(doc, target) : effectiveLayoutProperties(doc, target);
   const lines = [...props.entries()].map(([k, v]) => `${k}: ${valueToDisplayString(v)}`);
@@ -63,7 +66,7 @@ export function computeHover(model: DocumentModel, position: Position): Hover | 
   }
 
   if (hit.type === 'blockName') {
-    const md = (hit.block.kind === 'Style' || hit.block.kind === 'Layout')
+    const md = (hit.block.kind === 'Style' || hit.block.kind === 'Layout' || hit.block.kind === 'Template')
       ? compositionHoverMarkdown(model, hit.block)
       : blockHoverMarkdown(hit.block);
     return { contents: { kind: MarkupKind.Markdown, value: md }, range: hit.block.nameRange };

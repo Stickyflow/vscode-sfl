@@ -16,7 +16,7 @@
 SFL is the text format behind [StickyFlow](https://github.com/Stickyflow)
 diagrams. This extension makes `.sfl` files feel like any other language in
 your editor: highlighting, errors as you type, completion, hover docs,
-go-to-definition, rename and formatting. It covers SFL 1.4, the same grammar
+go-to-definition, rename and formatting. It covers SFL 1.6, the same grammar
 [`stickyflow.js`](https://github.com/Stickyflow/stickyflow.js) renders.
 
 Want to see the diagram too? Installing this extension also installs its
@@ -108,11 +108,13 @@ Syntax errors come from the parser in [stickyflow.js](https://www.npmjs.com/pack
 the same one the renderer and the StickyFlow-Web Playground use, so VS Code
 accepts exactly what renders. Format Document uses its `canonicalize()`.
 
-All block kinds of stickyflow.js 0.3 are supported: the chart kinds
+All block kinds of stickyflow.js 0.10 are supported: the chart kinds
 (`Chart`, `Axis`, `Series`, `Rule`, and series in `data { }`), `Path`,
 `Symbol` / `Port`, `Net`, the isometric kinds `Isometric` and `Connection`,
-`Text`, `Widget`, `Shader` and `DataSource`, plus bindings (`value: <- expr`)
-and handlers (`onTap: target <- expr`). `Table` and its `Columns` / `Rows` /
+`Text`, `Widget`, `Shader`, `DataSource` and `Dimension`, plus bindings
+(`value: <- expr`) and handlers (`onTap: target <- expr`). The SFL 1.6 blocks
+`Repeat`, `Template` and `Use` are supported too, with computed values such as
+`position: col * 25, row * 12` inside them. `Table` and its `Columns` / `Rows` /
 `Footer` blocks were removed from stickyflow.js and are reported as errors.
 
 ## Installation

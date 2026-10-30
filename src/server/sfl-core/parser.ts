@@ -325,11 +325,38 @@ class Parser {
     return { segments, ranges };
   }
 
-  // ─── value = string | list | tuple | number | path | keyword ─────────────
+  // ─── computed value (SFL 1.6), like stickyflow.js's parsing/values.ts ────
+  // A value is computed when, before the end of the line, it has an operator
+  // or a call, or a name after a comma, or it starts with one (or with `-`).
+  // No value that was valid before has any of these.
+  private startsComputed(): boolean {
+    const first = this.peek();
+    if (first.type === 'op' && first.value === '-') return true;
+    if (first.type !== 'number' && first.type !== 'ident' && first.type !== 'lparen') return false;
+    for (let o = 0; ; o++) {
+      const t = this.peek(o);
+      if (t.type === 'newline' || t.type === 'semi' || t.type === 'rbrace' || t.type === 'eof') return false;
+      if (t.type === 'lparen' || (t.type === 'op' && t.value !== '!')) return true;
+      if (t.type === 'ident' && o > 0 && this.peek(o - 1).type === 'comma') return true;
+      if (o === 0 && t.type === 'ident' && this.peek(1).type === 'comma') return true;
+    }
+  }
+
+  private parseComputed(): SflValue {
+    const items = [this.parseExpression()];
+    while (this.at('comma')) {
+      this.next();
+      items.push(this.parseExpression());
+    }
+    return { type: 'expr', items };
+  }
+
+  // ─── value = string | list | tuple | number | path | keyword | computed ──
   // `allowTuple` is only true at property level. INSIDE a list, a comma is
   // always a list separator, never a tuple — otherwise `[150, "x"]` would be
   // misread as the tuple `150, "x"`.
   private parseValue(allowTuple = true): SflValue {
+    if (allowTuple && this.startsComputed()) return this.parseComputed();
     const t = this.peek();
     switch (t.type) {
       case 'string':

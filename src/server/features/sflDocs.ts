@@ -37,6 +37,10 @@ export const BLOCK_KIND_DOCS: Record<BlockKind, string> = {
   Widget: 'A live control on the canvas, picked by `type:` (`rollingNumber`, `tickScale`, `ruler`). Its value can be bound to a DataSource field (`value: <- source.field`).',
   Shader: 'A reusable shader surface: `program:` plus its parameters. Referenced by name from a style\'s `shader:` property.',
   DataSource: 'Typed data a document can bind to: a `fields { }` block with one `name: type` per field, and optional `data { }` rows. Bindings and handlers read it as `source.field`.',
+  Dimension: 'A measure line (SFL 1.6) with an arrow at each end, extension lines and a label. `start` and `end` are the measured points, `offset` the distance of the line (positive to the left of the direction). Without `text` the label is the measured length, rounded to one decimal, followed by `unit`.',
+  Repeat: 'Puts the blocks in it on a grid, once for every cell (SFL 1.6). `columns` and `rows` (or `count`) set the grid, `step` the distance between cells, `origin` where it starts. Inside, a value can be computed from `col`, `row`, `index`, `x` and `y`, as in `position: x, y + row * 4`, with `+ - * /`, comparisons and functions like `floor`, `round`, `min`, `max`, `sin`, `cos`, `when(c, a, b)`, `random(lo, hi)`, `pick(a, b)`, `mix(c1, c2, t)`, `shade(c, f)`. `seed`, `jitter`, `chance`, `where` and `order: diagonal` shape the cells. Any other computed property is a name for the blocks inside. The blocks made are named `name_col` or `name_col_row`.',
+  Template: 'Describes blocks once (SFL 1.6), so every `Use` of it makes them again at another place. Its own properties are the parameters with their default values; in its blocks, `x` and `y` are the place of the Use and the parameters are names for computed values.',
+  Use: 'Makes the blocks of a Template again (SFL 1.6): `Use oak : tree { at: 120, 80; height: 40 }`. `at` is the place, `seed` the random seed, and any other property gives a value to the Template parameter of that name. The blocks made are named after the Use, as `oak_trunk`. A Use can sit in a Repeat.',
 };
 
 interface PropertyDoc {
@@ -101,12 +105,25 @@ export const PROPERTY_DOCS: Record<string, PropertyDoc> = {
   categories: { description: 'The ordered category labels for a categorical `Axis` (e.g. a bar chart\'s x-axis).', appliesTo: 'Axis' },
   min: { description: 'Lower bound of a numeric `Axis`.', appliesTo: 'Axis' },
   max: { description: 'Upper bound of a numeric `Axis`.', appliesTo: 'Axis' },
-  step: { description: 'Tick interval of a numeric `Axis`.', appliesTo: 'Axis' },
-  unit: { description: 'Unit suffix shown on a numeric `Axis`\'s tick labels (e.g. `"k€"`).', appliesTo: 'Axis' },
+  step: { description: 'Tick interval of a numeric `Axis`. On a `Repeat`: the distance between cells, `x, y` (one value is used for both).', appliesTo: 'Axis, Repeat' },
+  unit: { description: 'Unit suffix shown on a numeric `Axis`\'s tick labels (e.g. `"k€"`), or after the measured length of a `Dimension`.', appliesTo: 'Axis, Dimension' },
   label: { description: 'The visible label of an `Axis` or a `Series`.', appliesTo: 'Axis, Series' },
   values: { description: 'The data points of a `Series` — a list of numbers, one per category.', appliesTo: 'Series' },
   error: { description: 'Per-point error-bar magnitudes for a `Series`, aligned with `values`; `none` skips a point.', appliesTo: 'Series' },
-  at: { description: 'A `Rule` reference line: the axis value it is drawn at. A `Port`: its normalized (0..1) position on the owning Symbol.', appliesTo: 'Rule, Port' },
+  at: { description: 'A `Rule` reference line: the axis value it is drawn at. A `Port`: its normalized (0..1) position on the owning Symbol. A `Use`: the place `x, y` its Template is made at.', appliesTo: 'Rule, Port, Use' },
+
+  // Repeat / Use / Dimension (SFL 1.6)
+  columns: { description: 'Number of cells across the grid of a `Repeat`. Defaults to 1.', appliesTo: 'Repeat' },
+  rows: { description: 'Number of cells down the grid of a `Repeat`. Defaults to 1.', appliesTo: 'Repeat' },
+  count: { description: 'A one-row `Repeat` of this many cells, in place of `columns` and `rows`.', appliesTo: 'Repeat' },
+  origin: { description: 'Where the grid of a `Repeat` starts, `x, y`. The cell at `col`, `row` sits at `origin + step * (col, row)`.', appliesTo: 'Repeat' },
+  seed: { description: 'Seed for `random()` and `pick()`, so they give the same result every time.', appliesTo: 'Repeat, Use' },
+  jitter: { description: 'Shifts every cell of a `Repeat` by up to this many units in x and y.', appliesTo: 'Repeat' },
+  chance: { description: 'The share (0..1) of the cells of a `Repeat` that are kept, picked at random.', appliesTo: 'Repeat' },
+  where: { description: 'A computed condition: a `Repeat` keeps only the cells for which it is true, as in `where: dist(col, row, 4, 4) < 4`.', appliesTo: 'Repeat' },
+  start: { description: 'The first measured point of a `Dimension`, `x, y`.', appliesTo: 'Dimension' },
+  end: { description: 'The second measured point of a `Dimension`, `x, y`.', appliesTo: 'Dimension' },
+  offset: { description: 'Distance of the measure line of a `Dimension` from the measured points, positive to the left of the direction from `start` to `end`.', appliesTo: 'Dimension' },
 
   // Path / Symbol / Net (SFL 1.4 §3.3 / §5.5 / §3.5)
   points: { description: 'An explicit list of `[x, y]` coordinate pairs — the polyline of a `Path` (diagram units) or of a `Symbol` (normalized 0..1 of the referencing instance\'s box).', appliesTo: 'Path, Symbol' },

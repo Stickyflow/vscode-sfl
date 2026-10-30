@@ -54,6 +54,13 @@ export interface ResolveResult {
 // resolution below, not a dot-path descent through the Symbol.
 const CONTAINER_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>(['Project', 'Model', 'Group', 'Container']);
 
+// `Repeat` and `Template` (SFL 1.6) hold templates for blocks that
+// stickyflow.js makes when it reads the document (`win_0_1`, `oak_trunk`),
+// not canvas objects of their own. Each opens a scope, so two Repeats may
+// both hold a `win`, but nothing descends into one by dot-path, and what
+// they hold stays out of the global name index.
+const TEMPLATE_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>(['Repeat', 'Template']);
+
 // Required-field rules per block kind (§14, Table 8), checked directly on a
 // block's own properties — this is validation, not name resolution. `shape`
 // joins the set for SFL 1.4: an entity that only carries `shape:` (a built-in
@@ -71,6 +78,7 @@ const ENTITY_CONTENT_KEYS = ['text', 'kind', 'asset', 'shape'] as const;
 const NON_GLOBAL_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>([
   'Style', 'Layout', 'Shader',
   'Axis', 'Series', 'Rule', 'Symbol', 'Port', 'Net',
+  'Dimension', 'Repeat', 'Template', 'Use',
 ]);
 
 interface Scope {
@@ -91,9 +99,13 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
   const root: Scope = { childrenByName: new Map(), scopeByBlock: new Map() };
 
   // ── Phase A: build the scope tree, catch duplicate names ────────────────
-  const build = (blocks: SflBlock[], scope: Scope) => {
+  // Blocks inside a Repeat or Template, which stickyflow.js makes again under other names.
+  const templated = new Set<SflBlock>();
+
+  const build = (blocks: SflBlock[], scope: Scope, inTemplate = false) => {
     for (const block of blocks) {
-      if (!NON_GLOBAL_KINDS.has(block.kind) && !globalByName.has(block.name)) globalByName.set(block.name, block);
+      if (inTemplate) templated.add(block);
+      else if (!NON_GLOBAL_KINDS.has(block.kind) && !globalByName.has(block.name)) globalByName.set(block.name, block);
       if (scope.childrenByName.has(block.name)) {
         errors.push({
           message: `duplicate name '${block.name}' in the same scope`,
@@ -105,14 +117,14 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
         scope.childrenByName.set(block.name, block);
       }
 
-      if (CONTAINER_KINDS.has(block.kind)) {
+      if (CONTAINER_KINDS.has(block.kind) || TEMPLATE_KINDS.has(block.kind)) {
         const child: Scope = { block, parent: scope, childrenByName: new Map(), scopeByBlock: new Map() };
         scope.scopeByBlock.set(block, child);
         scopeOfBlock.set(block, child);
         const nested = block.entries
           .filter(e => e.type === 'block')
           .map(e => (e as any).block as SflBlock);
-        build(nested, child);
+        build(nested, child, inTemplate || TEMPLATE_KINDS.has(block.kind));
       } else {
         // Non-container blocks still belong to this scope for lookups, but
         // define no inner scope.
@@ -162,6 +174,25 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
   const styleBlocksByName = collectBlocksByKind(doc, 'Style');
   const layoutBlocksByName = collectBlocksByKind(doc, 'Layout');
   const symbolBlocksByName = collectBlocksByKind(doc, 'Symbol');
+  // stickyflow.js collects every Template in the document by name, wherever it sits.
+  const templateBlocksByName = collectBlocksByKind(doc, 'Template');
+
+  // Names of the blocks stickyflow.js makes from a Repeat (`win_0`, `win_2_1`)
+  // or a Use (`oak_trunk`), so a Link may point at one without an error.
+  const madeNames = new Set<string>();
+  const madePatterns: RegExp[] = [];
+  const escape = (name: string) => name.replace(/[^A-Za-z0-9_]/g, '\\$&');
+  walkAll(doc.blocks, (block) => {
+    const children = block.entries.flatMap(e => (e.type === 'block' ? [e.block] : []));
+    if (block.kind === 'Repeat') {
+      for (const child of children) madePatterns.push(new RegExp(`^${escape(child.name)}_\\d+(?:_\\d+)?(?:_[A-Za-z0-9_]+)?$`));
+    } else if (block.kind === 'Use' && block.composition.length === 1) {
+      const template = templateBlocksByName.get(block.composition[0]);
+      for (const e of template?.entries ?? []) if (e.type === 'block') madeNames.add(`${block.name}_${e.block.name}`);
+    }
+  });
+  const isMadeName = (segments: string[]): boolean =>
+    segments.length === 1 && (madeNames.has(segments[0]) || madePatterns.some(re => re.test(segments[0])));
 
   // Named-port endpoint (§3.5): `entity.portName` — the last segment names a
   // `Port` on the `Symbol` that the entity's `shape:` points at. It is a
@@ -223,8 +254,14 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
     return styleRef ? styleBlocksByName.get(styleRef) : undefined;
   };
 
-  const walkValidate = (blocks: SflBlock[]) => {
+  const walkValidate = (blocks: SflBlock[], parent?: SflBlock) => {
     for (const block of blocks) {
+      validateRepeatAndTemplate(block, parent);
+      if (block.kind === 'Use') {
+        // A Use's composition names its Template (`Use oak : tree`), not a Style or Layout.
+        walkValidate(block.entries.flatMap(e => (e.type === 'block' ? [e.block] : [])), block);
+        continue;
+      }
       const { layoutRef } = classifyComposition(block);
 
       // Group is purely semantic re: GEOMETRY (§11): no Layout reference, no
@@ -251,7 +288,7 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
           }
           if (entry.value.type === 'endpoint') {
             const target = resolve(block, entry.value.segments);
-            if (!target && !isNamedPortEndpoint(entry.value.segments)) {
+            if (!target && !isNamedPortEndpoint(entry.value.segments) && !isMadeName(entry.value.segments)) {
               const ranges = entry.value.segmentRanges;
               const range = ranges && ranges.length > 0
                 ? { start: ranges[0].start, end: ranges[ranges.length - 1].end }
@@ -265,9 +302,12 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
       // Required content (§14, Table 8): an Entity needs a name plus at
       // least one of text/kind/asset so it isn't an anonymous canvas object.
       // Keys inherited through the Style chain count too (`Shape s : Face`
-      // where Face sets `shape: circle`), same as stickyflow.js.
-      if (isShapeKind(block.kind)) {
-        const props = block.entries.filter(e => e.type === 'property').map(e => (e as any).property as SflProperty);
+      // where Face sets `shape: circle`), same as stickyflow.js, and so do
+      // keys of a local style {} (`style { shape: rectangle; fill: … }`).
+      // Not checked inside a Repeat or Template, whose parts are often plain
+      // filled boxes (a tree trunk, a window).
+      if (isShapeKind(block.kind) && !templated.has(block)) {
+        const props = block.entries.flatMap(e => (e.type === 'property' ? [e.property] : e.type === 'style' ? e.style.properties : []));
         const seen = new Set<SflBlock>();
         for (let style = styleOf(block); style && !seen.has(style); style = styleOf(style)) {
           seen.add(style);
@@ -279,9 +319,48 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
       }
 
       const nested = block.entries.filter(e => e.type === 'block').map(e => (e as any).block as SflBlock);
-      walkValidate(nested);
+      walkValidate(nested, block);
     }
   };
+
+  // SFL 1.6 rules stickyflow.js enforces when it expands a document: where a
+  // computed value may stand, what a Repeat or Template may hold, and that a
+  // Use names one existing Template.
+  const seenTemplates = new Set<string>();
+  function validateRepeatAndTemplate(block: SflBlock, parent: SflBlock | undefined): void {
+    if (!templated.has(block) && !TEMPLATE_KINDS.has(block.kind) && block.kind !== 'Use') {
+      const properties = block.entries.flatMap(e =>
+        e.type === 'property' ? [e.property] : e.type === 'layout' ? e.layout.properties : e.type === 'style' ? e.style.properties : []);
+      for (const property of properties) {
+        if (property.value.type !== 'expr') continue;
+        errors.push({
+          message: `${block.kind} '${block.name}': ${property.key} is computed, and only a Repeat or a Template can work out a computed value`,
+          ref: block.name, block, range: property.keyRange ?? block.nameRange,
+        });
+      }
+    }
+    if (block.kind === 'Repeat' && parent?.kind === 'Repeat') {
+      errors.push({ message: `Repeat '${block.name}': a Repeat cannot hold another Repeat`, ref: block.name, block, range: block.kindRange });
+    }
+    if (block.kind === 'Repeat' && parent?.kind === 'Template') {
+      errors.push({ message: `Template '${parent.name}': a Template cannot hold a Repeat, a Repeat can hold a Use`, ref: block.name, block, range: block.kindRange });
+    }
+    if (block.kind === 'Template') {
+      if (seenTemplates.has(block.name)) {
+        errors.push({ message: `Template '${block.name}': there is another Template of this name`, ref: block.name, block, range: block.nameRange });
+      }
+      seenTemplates.add(block.name);
+    }
+    if (block.kind === 'Use') {
+      if (block.composition.length !== 1) {
+        errors.push({ message: `Use '${block.name}': a Use names one Template, as in Use oak : tree`, ref: block.name, block, range: block.nameRange });
+      } else if (!templateBlocksByName.has(block.composition[0])) {
+        const ref = block.composition[0];
+        errors.push({ message: `Use '${block.name}': there is no Template '${ref}'`, ref, block, range: refRange(block, ref) });
+      }
+    }
+  }
+
   walkValidate(doc.blocks);
 
   // Style-inheritance cycles (§9.2): flat single-parent, cycles are an error.
@@ -322,6 +401,7 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
   }
 
   const resolveCompositionRef = (fromBlock: SflBlock, name: string): SflBlock | undefined => {
+    if (fromBlock.kind === 'Use') return templateBlocksByName.get(name);
     const target = lookupFirst(scopeOfBlock.get(fromBlock) ?? root, name);
     return target && (target.kind === 'Style' || target.kind === 'Layout') ? target : undefined;
   };
@@ -331,12 +411,13 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
 
 function collectBlocksByKind(doc: SflDocument, kind: BlockKind): Map<string, SflBlock> {
   const map = new Map<string, SflBlock>();
-  const walk = (blocks: SflBlock[]) => {
-    for (const b of blocks) {
-      if (b.kind === kind) map.set(b.name, b);
-      walk(b.entries.filter(e => e.type === 'block').map(e => (e as any).block as SflBlock));
-    }
-  };
-  walk(doc.blocks);
+  walkAll(doc.blocks, (b) => { if (b.kind === kind) map.set(b.name, b); });
   return map;
+}
+
+function walkAll(blocks: SflBlock[], visit: (block: SflBlock) => void): void {
+  for (const b of blocks) {
+    visit(b);
+    walkAll(b.entries.filter(e => e.type === 'block').map(e => (e as any).block as SflBlock), visit);
+  }
 }

@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- SFL 1.6: the `Repeat`, `Template`, `Use` and `Dimension` blocks are
+  highlighted, show in the Outline, have hover docs and complete as
+  keywords, along with the properties of a Repeat (`columns`, `rows`,
+  `count`, `step`, `origin`, `seed`, `jitter`, `chance`, `where`), of a Use
+  (`at`, `seed`) and of a Dimension (`start`, `end`, `offset`, `unit`).
+  Computed values (`position: col * 25, row * 12`) are read as such.
+- After `Use oak :` completion offers the document's Templates, and hover,
+  go-to-definition and rename work on that Template name.
+- Errors for what stickyflow.js rejects when it expands a document: a
+  computed value outside a Repeat or Template, a Repeat inside a Repeat or a
+  Template, a Use that names no Template or one that doesn't exist, and two
+  Templates of the same name.
+
 ### Changed
 
 - The new flat violet StickyFlow logo, the same as stickyflow.org, replaces
@@ -23,6 +38,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- A Link to a block that a Repeat or a Use makes (`win_3`, `oak_trunk`) no
+  longer shows "endpoint does not resolve", and two Repeats or Templates may
+  hold blocks of the same name.
+- A Shape that gets its `shape` from a local `style { }`, or sits in a
+  Repeat or Template, no longer shows the false error "needs at least one of
+  text, kind, or asset".
 - A Shape that gets its `shape` or `kind` only from its Style (`Shape s : Face`
   with `shape: circle` in Face) no longer shows the false error "needs at
   least one of text, kind, or asset".

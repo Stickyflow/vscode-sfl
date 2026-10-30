@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- The new flat violet StickyFlow logo, the same as stickyflow.org, replaces
+  the blue-to-purple one as the extension icon and the `.sfl` file icon.
+
 - `.sfl` files get the StickyFlow logo as their file icon as soon as the
   extension is installed, in whatever file icon theme you use. It's a
   language icon now, so no other icons change.

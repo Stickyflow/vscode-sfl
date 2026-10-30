@@ -20,6 +20,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- A Shape that gets its `shape` or `kind` only from its Style (`Shape s : Face`
+  with `shape: circle` in Face) no longer shows the false error "needs at
+  least one of text, kind, or asset".
 - Applying a style template adds the yes/no branch circles also when the
   decision links live at Model level and the shapes sit in a Container. The
   circle goes into the shapes' block, right after the decision.

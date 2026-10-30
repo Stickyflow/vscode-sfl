@@ -218,6 +218,11 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
     return result;
   };
 
+  const styleOf = (block: SflBlock): SflBlock | undefined => {
+    const { styleRef } = classifyComposition(block);
+    return styleRef ? styleBlocksByName.get(styleRef) : undefined;
+  };
+
   const walkValidate = (blocks: SflBlock[]) => {
     for (const block of blocks) {
       const { layoutRef } = classifyComposition(block);
@@ -259,8 +264,15 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
 
       // Required content (§14, Table 8): an Entity needs a name plus at
       // least one of text/kind/asset so it isn't an anonymous canvas object.
+      // Keys inherited through the Style chain count too (`Shape s : Face`
+      // where Face sets `shape: circle`), same as stickyflow.js.
       if (isShapeKind(block.kind)) {
         const props = block.entries.filter(e => e.type === 'property').map(e => (e as any).property as SflProperty);
+        const seen = new Set<SflBlock>();
+        for (let style = styleOf(block); style && !seen.has(style); style = styleOf(style)) {
+          seen.add(style);
+          props.push(...style.entries.filter(e => e.type === 'property').map(e => (e as any).property as SflProperty));
+        }
         if (!ENTITY_CONTENT_KEYS.some(key => props.some(p => p.key === key))) {
           errors.push({ message: `${block.kind} '${block.name}' needs at least one of text, kind, or asset`, ref: block.name, block, range: block.nameRange });
         }
@@ -274,11 +286,7 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
 
   // Style-inheritance cycles (§9.2): flat single-parent, cycles are an error.
   // A Style's parent is whichever of its own composition refs resolves to
-  // another Style (`Style FilledPill : BasePill`).
-  const styleParent = (style: SflBlock): SflBlock | undefined => {
-    const { styleRef } = classifyComposition(style);
-    return styleRef ? styleBlocksByName.get(styleRef) : undefined;
-  };
+  // another Style (`Style FilledPill : BasePill`), see styleOf.
   for (const style of styleBlocksByName.values()) {
     const seen = new Set<string>();
     let cur: SflBlock | undefined = style;
@@ -289,7 +297,7 @@ export function resolveDocument(doc: SflDocument): ResolveResult {
         break;
       }
       seen.add(cur.name);
-      cur = styleParent(cur);
+      cur = styleOf(cur);
     }
   }
 

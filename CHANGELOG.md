@@ -11,7 +11,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   extension is installed, in whatever file icon theme you use. It's a
   language icon now, so no other icons change.
 
-- Syntax errors come from the parser in stickyflow.js (`stickyflow` 0.3.0 from
+- Syntax errors come from the parser in stickyflow.js (`stickyflow` 0.10.0 from
   npm), the same one the renderer and the StickyFlow-Web Playground use.
   Documents that render no longer show false errors such as
   `unknown block kind 'Text'`.

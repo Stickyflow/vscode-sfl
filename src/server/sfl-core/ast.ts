@@ -94,7 +94,7 @@ export const BLOCK_KINDS = [
   'Chart', 'Axis', 'Series', 'Rule',
   'Path', 'Symbol', 'Port', 'Net',
   'Isometric', 'Connection',
-  'Text', 'Widget', 'Shader', 'DataSource',
+  'Text', 'Image', 'Widget', 'Shader', 'DataSource',
   'Dimension', 'Repeat', 'Template', 'Use',
 ] as const;
 

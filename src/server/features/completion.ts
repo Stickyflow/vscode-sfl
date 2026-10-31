@@ -53,7 +53,7 @@ export const VALUE_SUGGESTIONS: Record<string, string[]> = {
 // `Isometric` object, the endpoint of a `Connection`. `Text`, `Widget` and
 // `Chart` are canvas objects in stickyflow.js and can be linked as well.
 const REFERENCEABLE_KINDS: readonly BlockKind[] = [
-  'Project', 'Model', 'Group', 'Container', 'Shape', 'Entity', 'Path', 'Isometric', 'Text', 'Widget', 'Chart',
+  'Project', 'Model', 'Group', 'Container', 'Shape', 'Entity', 'Path', 'Isometric', 'Text', 'Image', 'Widget', 'Chart',
 ];
 
 // Matches a block header up through ':' plus zero or more already-typed

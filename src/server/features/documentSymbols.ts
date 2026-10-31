@@ -31,6 +31,7 @@ const SYMBOL_KIND: Record<BlockKind, SymbolKind> = {
   Isometric: SymbolKind.Object,
   Connection: SymbolKind.Interface,
   Text: SymbolKind.String,
+  Image: SymbolKind.File,
   Widget: SymbolKind.Object,
   Shader: SymbolKind.Class,
   DataSource: SymbolKind.Variable,

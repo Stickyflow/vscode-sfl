@@ -7,6 +7,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- The block `Image`: highlighting, completion, hover docs, outline and go-to-definition.
+
 - SFL 1.6: the `Repeat`, `Template`, `Use` and `Dimension` blocks are
   highlighted, show in the Outline, have hover docs and complete as
   keywords, along with the properties of a Repeat (`columns`, `rows`,

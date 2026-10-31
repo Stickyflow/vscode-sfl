@@ -37,7 +37,7 @@ the properties it inherits. Ctrl+click a link endpoint and land on the
 shape it connects to.
 
 ```sfl
-sfl 1.4
+sfl 1.6
 
 Style Pill {
   shape: pill
@@ -111,7 +111,7 @@ accepts exactly what renders. Format Document uses its `canonicalize()`.
 All block kinds of stickyflow.js 0.10 are supported: the chart kinds
 (`Chart`, `Axis`, `Series`, `Rule`, and series in `data { }`), `Path`,
 `Symbol` / `Port`, `Net`, the isometric kinds `Isometric` and `Connection`,
-`Text`, `Widget`, `Shader`, `DataSource` and `Dimension`, plus bindings
+`Text`, `Image`, `Widget`, `Shader`, `DataSource` and `Dimension`, plus bindings
 (`value: <- expr`) and handlers (`onTap: target <- expr`). The SFL 1.6 blocks
 `Repeat`, `Template` and `Use` are supported too, with computed values such as
 `position: col * 25, row * 12` inside them. `Table` and its `Columns` / `Rows` /

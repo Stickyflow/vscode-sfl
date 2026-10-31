@@ -1,6 +1,7 @@
 // packages/vscode-sfl/src/server/sfl-core/ast.ts
 //
-// Ported from frontend/src/features/sfl-language/sfl/ast.ts (SFL 1.2 AST),
+// Ported from frontend/src/features/sfl-language/sfl/ast.ts (originally the
+// SFL 1.2 AST, since grown to follow stickyflow.js up to SFL 1.7),
 // the same way backend/app/services/ai/sfl/ast.py is a 1:1 port for the
 // backend. This copy adds one thing the frontend original doesn't need:
 // source Ranges on the nodes editor features (hover/definition/rename/
@@ -61,7 +62,8 @@ export interface SflRange {
 // The stickyflow.js 0.2 batch:
 //   • `Text`: a free text label on the canvas, no shape around it. Leaf.
 //   • `Widget`: a live control picked by `type:` (`rollingNumber`,
-//     `tickScale`, `ruler`). Leaf.
+//     `tickScale`, `ruler`). Leaf. Called `Component` since stickyflow.js
+//     0.5; both names are read.
 //   • `Shader`: a reusable shader surface (`program:` plus its parameters),
 //     referenced by name from a style's `shader:`. Leaf, like `Style`.
 //   • `DataSource`: typed `fields { }` a document can bind to. Expressions
@@ -88,13 +90,14 @@ export interface SflRange {
 // it, the Record<BlockKind, …> tables (outline symbols, hover docs) fail to
 // compile when a kind is missing, and scripts/check-grammar.mjs fails the
 // build when the TextMate grammar doesn't highlight one. It follows
-// NAMED_BLOCK_KINDS in stickyflow.js's src/sflLanguage/ast.ts.
+// NAMED_BLOCK_KINDS in stickyflow.js's src/sflLanguage/ast.ts, and
+// src/server/__tests__/blockKinds.test.ts fails when the two differ.
 export const BLOCK_KINDS = [
-  'Project', 'Model', 'Group', 'Container', 'Shape', 'Entity', 'Link', 'Layout', 'Style',
+  'Project', 'Model', 'Group', 'Container', 'Screen', 'Shape', 'Entity', 'Link', 'Layout', 'Style',
   'Chart', 'Axis', 'Series', 'Rule',
   'Path', 'Symbol', 'Port', 'Net',
   'Isometric', 'Connection',
-  'Text', 'Image', 'Widget', 'Shader', 'DataSource',
+  'Text', 'Image', 'Widget', 'Component', 'Shader', 'DataSource',
   'Dimension', 'Repeat', 'Template', 'Use',
 ] as const;
 
@@ -114,7 +117,7 @@ export type Side = 'top' | 'bottom' | 'left' | 'right';
 
 export const SIDES: readonly Side[] = ['top', 'bottom', 'left', 'right'];
 
-/** Document root: `sfl 1.2` header + a sequence of top-level blocks. */
+/** Document root: the `sfl <version>` header + a sequence of top-level blocks. */
 export interface SflDocument {
   version: string;
   blocks: SflBlock[];

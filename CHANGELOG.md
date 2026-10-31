@@ -8,6 +8,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - The block `Image`: highlighting, completion, hover docs, outline and go-to-definition.
+- SFL 1.7: the block `Screen`, a container, with the same support.
+- `Component`, the name stickyflow.js uses for `Widget` since 0.5, with the
+  same support. `Widget` still works.
+- A test that fails when the block keywords of the language server differ
+  from `NAMED_BLOCK_KINDS` in stickyflow.js.
 
 - SFL 1.6: the `Repeat`, `Template`, `Use` and `Dimension` blocks are
   highlighted, show in the Outline, have hover docs and complete as
@@ -31,7 +36,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   extension is installed, in whatever file icon theme you use. It's a
   language icon now, so no other icons change.
 
-- Syntax errors come from the parser in stickyflow.js (`stickyflow` 0.10.0 from
+- Syntax errors come from the parser in stickyflow.js (`stickyflow` 0.12.1 from
   npm), the same one the renderer and the StickyFlow-Web Playground use.
   Documents that render no longer show false errors such as
   `unknown block kind 'Text'`.

@@ -52,7 +52,7 @@ export interface ResolveResult {
 // endpoint, so a Chart opens no resolvable scope either. `Symbol` (§5.5) is
 // likewise a leaf: its `Port` children are reached through named-port endpoint
 // resolution below, not a dot-path descent through the Symbol.
-const CONTAINER_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>(['Project', 'Model', 'Group', 'Container']);
+const CONTAINER_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>(['Project', 'Model', 'Group', 'Container', 'Screen']);
 
 // `Repeat` and `Template` (SFL 1.6) hold templates for blocks that
 // stickyflow.js makes when it reads the document (`win_0_1`, `oak_trunk`),
@@ -74,7 +74,7 @@ const ENTITY_CONTENT_KEYS = ['text', 'kind', 'asset', 'shape'] as const;
 // Chart children) and `Symbol`/`Port`/`Net` (the rest of the 1.4 batch) are
 // kept out, and so is a `Shader`, which is only named from a style's
 // `shader:`. `Path` is *not* listed — it is a freeform shape and a valid link
-// endpoint, like `Entity`; so are `Text` and `Widget`.
+// endpoint, like `Entity`; so are `Text`, `Widget` and `Component`.
 const NON_GLOBAL_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>([
   'Style', 'Layout', 'Shader',
   'Axis', 'Series', 'Rule', 'Symbol', 'Port', 'Net',

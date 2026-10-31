@@ -28,8 +28,8 @@
       }
     },
     "block-header-container": {
-      "comment": "Project/Model/Group/Container/Chart/Symbol/Repeat/Template — blocks that may contain nested blocks (kwc). Chart (SFL 1.4 §5.4) nests Axis/Series/Rule; Symbol (§5.5) nests Port; Repeat and Template (SFL 1.6) hold the blocks they make again.",
-      "begin": "^\\s*\\b(Project|Model|Group|Container|Chart|Symbol|Repeat|Template)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "comment": "Project/Model/Group/Container/Screen/Chart/Symbol/Repeat/Template — blocks that may contain nested blocks (kwc). Chart (SFL 1.4 §5.4) nests Axis/Series/Rule; Symbol (§5.5) nests Port; Repeat and Template (SFL 1.6) hold the blocks they make again. Screen (SFL 1.7) holds the objects placed on it.",
+      "begin": "^\\s*\\b(Project|Model|Group|Container|Screen|Chart|Symbol|Repeat|Template)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
       "beginCaptures": {
         "1": { "name": "keyword.control.container.sfl" },
         "2": { "name": "entity.name.function.sfl" }
@@ -40,7 +40,7 @@
     },
     "block-header-leaf": {
       "comment": "Shape/Entity/Link/Layout/Style/Axis/Series/Rule/Path/Net/Port/Isometric/Connection/Text/Widget/Shader/DataSource — leaf blocks (kw). The Chart child kinds and the rest of the SFL 1.4 batch (Path §3.3, Net §3.5, Port §3.5) hold a fixed schema or no children rather than free content, so they're colored like Entity, not like a container keyword. The stickyflow.js 0.2 kinds (Text, Widget, Shader, DataSource) are leaves too.",
-      "begin": "^\\s*\\b(Shape|Entity|Link|Layout|Style|Axis|Series|Rule|Path|Net|Port|Isometric|Connection|Text|Image|Widget|Shader|DataSource|Dimension|Use)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "begin": "^\\s*\\b(Shape|Entity|Link|Layout|Style|Axis|Series|Rule|Path|Net|Port|Isometric|Connection|Text|Image|Widget|Component|Shader|DataSource|Dimension|Use)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
       "beginCaptures": {
         "1": { "name": "keyword.control.sfl" },
         "2": { "name": "entity.name.function.sfl" }

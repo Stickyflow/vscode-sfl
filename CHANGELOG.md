@@ -41,7 +41,7 @@ published from packaged .vsix files without a section of their own.
   extension is installed, in whatever file icon theme you use. It's a
   language icon now, so no other icons change.
 
-- Syntax errors come from the parser in stickyflow.js (`stickyflow` 0.12.1 from
+- Syntax errors come from the parser in stickyflow.js (`stickyflow` 0.12.2 from
   npm), the same one the renderer and the StickyFlow-Web Playground use.
   Documents that render no longer show false errors such as
   `unknown block kind 'Text'`.

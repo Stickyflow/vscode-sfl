@@ -2,7 +2,7 @@
   "name": "vscode-sfl",
   "displayName": "StickyFlow SFL",
   "description": "Write diagrams as code: highlighting, diagnostics, completion, rename and formatting for SFL (.sfl) files.",
-  "version": "0.1.1",
+  "version": "0.4.0",
   "license": "Apache-2.0",
   "icon": "icons/icon.png",
   "publisher": "StickyFlowLab",

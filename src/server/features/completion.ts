@@ -50,10 +50,10 @@ export const VALUE_SUGGESTIONS: Record<string, string[]> = {
 
 // Kinds whose names a `from:`/`to:` endpoint (or dot-path) can target. `Path`
 // (SFL 1.4 §3.3) is a freeform shape and, like an Entity, linkable; so is an
-// `Isometric` object, the endpoint of a `Connection`. `Text`, `Widget` and
+// `Isometric` object, the endpoint of a `Connection`. `Text`, `Widget`, `Component`, `Screen` and
 // `Chart` are canvas objects in stickyflow.js and can be linked as well.
 const REFERENCEABLE_KINDS: readonly BlockKind[] = [
-  'Project', 'Model', 'Group', 'Container', 'Shape', 'Entity', 'Path', 'Isometric', 'Text', 'Widget', 'Chart',
+  'Project', 'Model', 'Group', 'Container', 'Screen', 'Shape', 'Entity', 'Path', 'Isometric', 'Text', 'Image', 'Widget', 'Component', 'Chart',
 ];
 
 // Matches a block header up through ':' plus zero or more already-typed

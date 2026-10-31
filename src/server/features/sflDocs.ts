@@ -1,9 +1,9 @@
 // packages/vscode-sfl/src/server/features/sflDocs.ts
 //
-// Hover/completion documentation content for SFL 1.2 — what each block kind
-// and property key means and how it's used. Sourced from
-// StickyFlow-Web/src/pages/SFLLanguage.tsx (the canonical, currently-1.2
-// SFL language reference rendered on the landing page), specifically §6
+// Hover/completion documentation content for SFL up to 1.7 — what each block
+// kind and property key means and how it's used. The base was sourced from
+// StickyFlow-Web/src/pages/SFLLanguage.tsx (the SFL 1.2 language reference
+// rendered on the landing page), specifically §6
 // (layout properties, Table 5), §8 (block types), §9 (styles), §11
 // (endpoints), and §12 (the kind axis, Table 7). Properties without a direct
 // spec table entry (most `style {}` fields, plus renderer-specific ones like
@@ -18,6 +18,7 @@ export const BLOCK_KIND_DOCS: Record<BlockKind, string> = {
   Model: 'One coherent information visualization — a model section, diagram, knowledge structure, process view, or board-level unit. A Project may contain several.',
   Group: 'A semantic structure for scoping and analysis. Collects related Entities, Links, and nested Groups as one logical unit — not positioned or styled directly. Use a Container instead when the collection needs geometry or appearance.',
   Container: 'A spatial structure (frame, swimlane, region, board area) with visible appearance or concrete placement. Use Container instead of Group whenever the block itself needs a `layout`/`style`.',
+  Screen: 'A screen area (SFL 1.7) with a position and a size. It shows nothing but its area unless it gets a `fill`, a `stroke`, a label or a shadow. `device` names an optional device frame, and `clip: true` cuts what lies inside at its edge. Positions inside it are relative to it, and a document can hold several.',
   Shape: 'The universal domain element (the current keyword; `Entity` is an equivalent alias). A step, decision, note, input, output, component, asset, or other information carrier. Its precise semantic role is expressed through `kind`, independent of its visual `shape`.',
   Entity: 'Legacy alias for `Shape`, still accepted and treated identically. The universal domain element — a step, decision, note, input, output, component, asset, or other information carrier. Its precise semantic role is expressed through `kind`, independent of its visual `shape`.',
   Link: 'Connects two endpoints (`from`/`to`) through stable name references, making the relationship analyzable. May carry `text`, a `condition`, and route/marker styling.',
@@ -33,8 +34,10 @@ export const BLOCK_KIND_DOCS: Record<BlockKind, string> = {
   Net: 'A multi-terminal net (SFL 1.4 §3.5, "pattern C") — authored once via a `members` list instead of N-1 hand-written Links. Parse-only: the renderer star-decomposes it (first member = hub) into ordinary links.',
   Isometric: "A 3D box drawn in isometric projection. `layout { size: width, height, depth }` takes a third value for its depth (default 24). Only `fill` is set: the side faces are derived shades of it. Carries `text` and an optional `icon`, and is a valid `from:`/`to:` endpoint.",
   Connection: "Connects two `Isometric` objects (`from`/`to`), attached to a cube face (`fromFace` / `toFace`: `top`, `bottom`, `front`, `back`, `left`, `right`; default `front`) instead of a 2D side. Takes the same line styling as a Link (`route`, `stroke`, `strokeWidth`, `strokeStyle`, `opacity`).",
+  Image: 'A picture on the canvas: `src` is the address of the file, `fit` is `cover`, `contain` or `fill`, and `imageSize` with `crop` show only a part of it. It moves, scales and layers like a shape.',
   Text: 'A free text label on the canvas with no shape around it. Carries `text`, a `layout` and typography in `style` (`fontSize`, `fontWeight`, `textColor`, `textAlign`). A valid `from:`/`to:` endpoint.',
-  Widget: 'A live control on the canvas, picked by `type:` (`rollingNumber`, `tickScale`, `ruler`). Its value can be bound to a DataSource field (`value: <- source.field`).',
+  Widget: 'A live control on the canvas, picked by `type:` (`rollingNumber`, `tickScale`, `ruler`). Its value can be bound to a DataSource field (`value: <- source.field`). Called `Component` since stickyflow.js 0.5, both names are read.',
+  Component: 'A component on the canvas, picked by `type:`: the live controls `rollingNumber`, `tickScale`, `ruler` and the inputs `switch`, `checkbox`, `toggleButton`, `button`. Its value can be bound both ways to a DataSource field (`value: <-> source.field`), and `onChange` runs when the user changes it. The new name of `Widget`.',
   Shader: 'A reusable shader surface: `program:` plus its parameters. Referenced by name from a style\'s `shader:` property.',
   DataSource: 'Typed data a document can bind to: a `fields { }` block with one `name: type` per field, and optional `data { }` rows. Bindings and handlers read it as `source.field`.',
   Dimension: 'A measure line (SFL 1.6) with an arrow at each end, extension lines and a label. `start` and `end` are the measured points, `offset` the distance of the line (positive to the left of the direction). Without `text` the label is the measured length, rounded to one decimal, followed by `unit`.',

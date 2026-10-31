@@ -619,7 +619,7 @@
               <span class="pill">Stateless server</span>
               <span class="pill">Self-contained parser</span>
               <span class="pill">One file per feature</span>
-              <span class="pill">SFL 1.4</span>
+              <span class="pill">SFL 1.7</span>
             </div>
           </header>
 
@@ -860,7 +860,7 @@
               <table>
                 <thead><tr><th>Module</th><th>Core function or type</th><th>Responsibility</th></tr></thead>
                 <tbody>
-                  <tr><td><code>ast.ts</code></td><td><code>SflDocument</code>, <code>SflBlock</code>, <code>BLOCK_KINDS</code></td><td>Syntax tree with name, header and property ranges. <code>BLOCK_KINDS</code> is the one list of block keywords; <code>BlockKind</code>, the outline and hover tables and the grammar check all derive from it.</td></tr>
+                  <tr><td><code>ast.ts</code></td><td><code>SflDocument</code>, <code>SflBlock</code>, <code>BLOCK_KINDS</code></td><td>Syntax tree with name, header and property ranges. <code>BLOCK_KINDS</code> is the one list of block keywords; <code>BlockKind</code>, the outline and hover tables and the grammar check all derive from it. <code>blockKinds.test.ts</code> fails when it differs from <code>NAMED_BLOCK_KINDS</code> in stickyflow.js.</td></tr>
                   <tr><td><code>lexer.ts</code></td><td><code>tokenize()</code></td><td>Text to tokens with line and column.</td></tr>
                   <tr><td><code>parser.ts</code></td><td><code>parse()</code>, <code>SflParseError</code></td><td>Tokens to AST. Throws on the first syntax error.</td></tr>
                   <tr><td><code>resolver.ts</code></td><td><code>resolveDocument()</code>, <code>resolveCompositionRef()</code></td><td>Scope-chain name resolution, dot paths, style inheritance, errors with block and range.</td></tr>
@@ -927,6 +927,7 @@
             <div class="checks">
               <div class="check">Every fixture in <code>fixtures/valid/</code> round-trips through parse and emit.</div>
               <div class="check">Diagnostics, hover docs, rename, references, symbols and formatting have focused Vitest suites.</div>
+              <div class="check">A test compares <code>BLOCK_KINDS</code> with the block keywords of the installed stickyflow.js, so the copied parser can't fall behind the library unnoticed.</div>
               <div class="check"><code>npm run compile</code> runs <code>check:grammar</code>: every block kind gets keyword highlighting.</div>
               <div class="check"><code>npm run test:integration</code> launches a real VS Code with the extension loaded.</div>
               <div class="check">Integration tests confirm activation and that the client actually talks to the server.</div>

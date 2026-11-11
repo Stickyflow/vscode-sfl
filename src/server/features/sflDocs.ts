@@ -44,6 +44,12 @@ export const BLOCK_KIND_DOCS: Record<BlockKind, string> = {
   Repeat: 'Puts the blocks in it on a grid, once for every cell (SFL 1.6). `columns` and `rows` (or `count`) set the grid, `step` the distance between cells, `origin` where it starts. Inside, a value can be computed from `col`, `row`, `index`, `x` and `y`, as in `position: x, y + row * 4`, with `+ - * /`, comparisons and functions like `floor`, `round`, `min`, `max`, `sin`, `cos`, `when(c, a, b)`, `random(lo, hi)`, `pick(a, b)`, `mix(c1, c2, t)`, `shade(c, f)`. `seed`, `jitter`, `chance`, `where` and `order: diagonal` shape the cells. Any other computed property is a name for the blocks inside. The blocks made are named `name_col` or `name_col_row`.',
   Template: 'Describes blocks once (SFL 1.6), so every `Use` of it makes them again at another place. Its own properties are the parameters with their default values; in its blocks, `x` and `y` are the place of the Use and the parameters are names for computed values.',
   Use: 'Makes the blocks of a Template again (SFL 1.6): `Use oak : tree { at: 120, 80; height: 40 }`. `at` is the place, `seed` the random seed, and any other property gives a value to the Template parameter of that name. The blocks made are named after the Use, as `oak_trunk`. A Use can sit in a Repeat.',
+  Parameters: 'The numbers a document is built from, one per line (SFL 1.8): `Parameters dims { width: 240; gap: 12 }`. Every computed value can use them by name. Since SFL 1.11 the block is also a record source, so bindings read it and controls write it.',
+  Scene: 'A 3D world in a place of the drawing (SFL 1.9). `x`, `y`, `width` and `height` set the place, `orbit` the view, `shadow`, `environment` and `exposure` the light. It holds Mesh, Canvas, Light and Ground, and objects that stay on the drawing over it.',
+  Mesh: 'A model from a file in a Scene (SFL 1.9), named by `asset`. `position`, `rotation` and `scale` place it in the world; `color`, `roughness`, `metallic`, `opacity` and `transmission` describe its material.',
+  Canvas: 'A flat surface in the world of a Scene with ordinary SFL on it (SFL 1.10), so text, shapes and charts can stand in 3D.',
+  Light: 'The sun of a Scene (SFL 1.10): where the light comes from, its colour and its strength.',
+  Ground: 'The floor of a Scene (SFL 1.10), with its shadows and reflections. A Ground counts only inside a Scene. A Scene has one ground, and the first one counts.',
 };
 
 interface PropertyDoc {

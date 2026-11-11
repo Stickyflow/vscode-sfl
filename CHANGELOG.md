@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-11
+
+### Added
+
+- SFL 1.8 to 1.11: the blocks `Parameters`, `Scene`, `Mesh`, `Canvas`,
+  `Light` and `Ground` are highlighted, show in the Outline, have hover docs
+  and complete as keywords. `Scene` and `Canvas` are containers.
+
+### Changed
+
+- Syntax errors come from stickyflow.js 0.19.0 (was 0.12.2), so the new
+  blocks and properties are accepted.
+
 ## [0.5.0] - 2026-10-31
 
 This section collects everything since 0.1.1. Versions 0.2.0 to 0.4.0 were

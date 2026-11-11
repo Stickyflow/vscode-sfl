@@ -86,6 +86,17 @@ export interface SflRange {
 //     for the place and a value per parameter. Its composition names the
 //     Template, not a Style or Layout. Leaf.
 //
+// SFL 1.8 to 1.11 and stickyflow.js 0.19:
+//   • `Parameters`: the numbers a document is built from, one per line. They
+//     count in every computed value, and since 1.11 the block is a record
+//     source that bindings read and controls write. Leaf.
+//   • `Scene`: a 3D world in a place of the drawing. Holds `Mesh`, `Canvas`,
+//     `Light`, `Ground` and objects that stay on the drawing over it.
+//   • `Mesh`: a model from a file, by `asset`. Leaf.
+//   • `Canvas`: a flat surface in the world with ordinary SFL on it.
+//   • `Light`: the sun of a Scene. Leaf.
+//   • `Ground`: the floor of a Scene, with its shadows and reflections. Leaf.
+//
 // BLOCK_KINDS is the single list of block keywords: BlockKind is derived from
 // it, the Record<BlockKind, …> tables (outline symbols, hover docs) fail to
 // compile when a kind is missing, and scripts/check-grammar.mjs fails the
@@ -99,6 +110,7 @@ export const BLOCK_KINDS = [
   'Isometric', 'Connection',
   'Text', 'Image', 'Widget', 'Component', 'Shader', 'DataSource',
   'Dimension', 'Repeat', 'Template', 'Use',
+  'Parameters', 'Scene', 'Mesh', 'Canvas', 'Light', 'Ground',
 ] as const;
 
 /** Block keywords stickyflow.js used to parse and has dropped, with what to use instead. */

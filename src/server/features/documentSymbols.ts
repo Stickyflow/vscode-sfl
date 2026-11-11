@@ -41,6 +41,12 @@ const SYMBOL_KIND: Record<BlockKind, SymbolKind> = {
   Repeat: SymbolKind.Array,
   Template: SymbolKind.Class,
   Use: SymbolKind.Object,
+  Parameters: SymbolKind.Variable,
+  Scene: SymbolKind.Namespace,
+  Mesh: SymbolKind.Object,
+  Canvas: SymbolKind.Struct,
+  Light: SymbolKind.Field,
+  Ground: SymbolKind.Field,
 };
 
 function detailFor(block: SflBlock): string | undefined {

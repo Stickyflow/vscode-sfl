@@ -50,6 +50,15 @@ export const BLOCK_KIND_DOCS: Record<BlockKind, string> = {
   Canvas: 'A flat surface in the world of a Scene with ordinary SFL on it (SFL 1.10), so text, shapes and charts can stand in 3D.',
   Light: 'The sun of a Scene (SFL 1.10): where the light comes from, its colour and its strength.',
   Ground: 'The floor of a Scene (SFL 1.10), with its shadows and reflections. A Ground counts only inside a Scene. A Scene has one ground, and the first one counts.',
+  Solid: 'A body in a Scene with exact edges (stickyflow.js 0.20), pulled up from a `Symbol` (or a block without one), or made from a `Sketch` with `sketch` and `pick`. `size` is its width, height and depth; `chamfer`, `edge: round`, `round`, `cut`, `taper`, `shift`, `loft` and `walls` shape its rims and walls, `mirror` makes it a second time. It holds `Cut`, `Add` and `Keep`, and is placed and painted like a Mesh.',
+  Facets: 'A body of flat faces between points in a Scene, as a folded sheet is (stickyflow.js 0.20). `points` are the points, `faces` name the points each face runs round. `symmetry` mirrors it, `thickness` makes it a shell, `bevel` lays a band along its edges. Placed and painted like a Mesh.',
+  Cut: 'A part cut out (stickyflow.js 0.20). In a `Symbol` it has points of its own, or lays another symbol in with `symbol`, `at` and `size`. In a `Solid` it is a body of its own, from a `symbol` or a block, placed with `layout`.',
+  Add: 'A part added (stickyflow.js 0.20). In a `Symbol` it has points of its own, or lays another symbol in with `symbol`, `at` and `size`. In a `Solid` it is a body of its own, from a `symbol` or a block, placed with `layout`.',
+  Keep: 'A body in a `Solid` (stickyflow.js 0.20): only what lies in both the Solid and the Keep stays. From a `symbol` or a block, placed with `layout`.',
+  Sketch: 'A plane in a Scene, placed and turned by its `layout`, with `Rect`, `Circle` and `Outline` drawn on it (stickyflow.js 0.20). `on` names the Solid it lies on. It is not drawn: a `Solid` is made from it with `sketch` and `pick`.',
+  Rect: 'A rectangle on a `Sketch` (stickyflow.js 0.20): `at`, `size`, and `radius` for its corners.',
+  Circle: 'A circle on a `Sketch` (stickyflow.js 0.20): `at` and `radius`.',
+  Outline: 'An outline on a `Sketch` (stickyflow.js 0.20): `points`, each of which may carry the radius its corner is rounded with as a third number.',
 };
 
 interface PropertyDoc {

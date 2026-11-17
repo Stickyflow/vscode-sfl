@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-17
+
+### Added
+
+- stickyflow.js 0.20: the blocks `Solid`, `Facets`, `Sketch` and the parts
+  `Cut`, `Add`, `Keep`, `Rect`, `Circle` and `Outline` are highlighted, show
+  in the Outline, have hover docs and complete as keywords. `Solid` and
+  `Sketch` are containers.
+
+### Changed
+
+- Syntax errors come from stickyflow.js 0.20.5 (was 0.19.0), so the new
+  blocks and properties are accepted.
+
 ## [0.6.0] - 2026-11-11
 
 ### Added

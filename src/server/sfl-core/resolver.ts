@@ -80,6 +80,7 @@ const NON_GLOBAL_KINDS: ReadonlySet<BlockKind> = new Set<BlockKind>([
   'Axis', 'Series', 'Rule', 'Symbol', 'Port', 'Net',
   'Dimension', 'Repeat', 'Template', 'Use',
   'Parameters', 'Light', 'Ground',
+  'Cut', 'Add', 'Keep', 'Rect', 'Circle', 'Outline',
 ]);
 
 interface Scope {

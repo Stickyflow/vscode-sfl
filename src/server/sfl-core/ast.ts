@@ -111,6 +111,7 @@ export const BLOCK_KINDS = [
   'Text', 'Image', 'Widget', 'Component', 'Shader', 'DataSource',
   'Dimension', 'Repeat', 'Template', 'Use',
   'Parameters', 'Scene', 'Mesh', 'Canvas', 'Light', 'Ground',
+  'Solid', 'Facets', 'Terrain', 'Sketch', 'Cut', 'Add', 'Keep', 'Rect', 'Circle', 'Outline',
 ] as const;
 
 /** Block keywords stickyflow.js used to parse and has dropped, with what to use instead. */
@@ -227,6 +228,8 @@ export interface SflProperty {
 /** The `layout { … }` sub-block — only properties, no nested blocks (§5). */
 export interface SflLayout {
   properties: SflProperty[];
+  /** Bound values, as `rotationY: <- arm.angle` on a Mesh (SFL 1.9). */
+  bindings?: SflBinding[];
 }
 
 /** The `style { … }` sub-block — properties and bindings, no nested blocks (§5). */
@@ -244,6 +247,7 @@ export type SflValue =
   | SflListValue
   | SflIdentValue
   | SflEndpointValue
+  | SflEachValue
   | SflExprValue;
 
 /**
@@ -288,6 +292,13 @@ export interface SflIdentValue {
   segments: string[];
   /** Range of each segment, parallel to `segments`. */
   segmentRanges?: SflRange[];
+}
+
+/** `each` of a Repeat only (SFL 1.12): `row in table`, a name for one row and the table DataSource it runs over. */
+export interface SflEachValue {
+  type: 'each';
+  row: string;
+  source: string;
 }
 
 /**

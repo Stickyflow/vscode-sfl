@@ -47,6 +47,16 @@ const SYMBOL_KIND: Record<BlockKind, SymbolKind> = {
   Canvas: SymbolKind.Struct,
   Light: SymbolKind.Field,
   Ground: SymbolKind.Field,
+  Solid: SymbolKind.Object,
+  Facets: SymbolKind.Object,
+  Terrain: SymbolKind.Object,
+  Sketch: SymbolKind.Struct,
+  Cut: SymbolKind.Operator,
+  Add: SymbolKind.Operator,
+  Keep: SymbolKind.Operator,
+  Rect: SymbolKind.Field,
+  Circle: SymbolKind.Field,
+  Outline: SymbolKind.Field,
 };
 
 function detailFor(block: SflBlock): string | undefined {

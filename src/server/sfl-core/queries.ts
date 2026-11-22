@@ -121,6 +121,7 @@ export function valueToDisplayString(value: SflValue): string {
     case 'tuple': return value.values.join(', ');
     case 'list': return `[${value.values.map(valueToDisplayString).join(', ')}]`;
     case 'ident': return value.segments.join('.');
+    case 'each': return `${value.row} in ${value.source}`;
     case 'endpoint': {
       let s = value.segments.join('.');
       if (value.side) {

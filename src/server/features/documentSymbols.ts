@@ -49,6 +49,7 @@ const SYMBOL_KIND: Record<BlockKind, SymbolKind> = {
   Ground: SymbolKind.Field,
   Solid: SymbolKind.Object,
   Facets: SymbolKind.Object,
+  Terrain: SymbolKind.Object,
   Cut: SymbolKind.Field,
   Add: SymbolKind.Field,
   Keep: SymbolKind.Field,

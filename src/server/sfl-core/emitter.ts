@@ -167,6 +167,7 @@ function emitLayout(layout: SflLayout, depth: number): string {
   const innerPad = INDENT.repeat(depth + 1);
   const sorted = [...layout.properties].sort((a, b) => compareLayoutProps(a.key, b.key));
   const lines = sorted.map(p => `${innerPad}${emitProperty(p)}`);
+  lines.push(...(layout.bindings ?? []).map(b => `${innerPad}${emitBinding(b)}`));
   return lines.length
     ? `${pad}layout {\n${lines.join('\n')}\n${pad}}`
     : `${pad}layout {\n${pad}}`;
@@ -194,6 +195,7 @@ function emitValue(v: SflValue): string {
     case 'tuple': return v.values.map(formatNumber).join(', ');
     case 'list': return `[${v.values.map(emitValue).join(', ')}]`;
     case 'ident': return v.segments.join('.');
+    case 'each': return `${v.row} in ${v.source}`;
     case 'endpoint': {
       let s = v.segments.join('.');
       if (v.side) {

@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- stickyflow.js 0.20.6: the block `Terrain` is highlighted, shows in the
+  Outline, has hover docs and completes as a keyword.
+- `each: row in table` on a `Repeat` is read, formatted and shown in hovers.
+
+### Changed
+
+- Syntax errors come from stickyflow.js 0.20.6 (was 0.20.5).
+
+### Fixed
+
+- A binding in a `layout` block, as `rotationY: <- arm.angle` on a Mesh, is
+  read and kept when a document is formatted. Before, it was a parse error.
+
 ## [0.7.0] - 2026-11-17
 
 ### Added

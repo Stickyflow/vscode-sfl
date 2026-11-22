@@ -231,11 +231,29 @@ class Parser {
     return this.peek(o).type === 'lbrace';
   }
 
+  /** `layout { … }`: properties, and since SFL 1.9 bindings such as `rotationY: <- arm.angle`. */
   private parseLayout(): SflLayout {
-    return { properties: this.parsePropertyBlock('layout') };
+    this.next(); // 'layout'
+    this.skipNewlines();
+    this.expect('lbrace', "'{'");
+    const properties: SflProperty[] = [];
+    const bindings: SflBinding[] = [];
+    this.skipNewlines();
+    while (!this.at('rbrace')) {
+      if (this.at('eof')) throw new SflParseError('unterminated layout block', this.peek().line, this.peek().col);
+      if (this.atBinding()) {
+        bindings.push(this.parseBinding());
+        if (this.at('newline') || this.at('semi')) this.next();
+      } else {
+        properties.push(this.parseProperty());
+      }
+      this.skipNewlines();
+    }
+    this.expect('rbrace', "'}'");
+    return bindings.length ? { properties, bindings } : { properties };
   }
 
-  /** `layout { … }` / `fields { … }`: the keyword, then properties only. */
+  /** `fields { … }`: the keyword, then properties only. */
   private parsePropertyBlock(what: 'layout' | 'fields'): SflProperty[] {
     this.next(); // the keyword
     this.skipNewlines();
@@ -277,9 +295,20 @@ class Parser {
     const keyTok = this.expect('ident', 'property key');
     const key = keyTok.value;
     this.expect('colon', "':'");
-    const value = (key === 'from' || key === 'to') ? this.parseEndpoint() : this.parseValue();
+    const value = (key === 'from' || key === 'to') ? this.parseEndpoint() : this.atEach(key) ? this.parseEach() : this.parseValue();
     this.consumeTerminator();
     return { key, keyRange: tokenRange(keyTok), value };
+  }
+
+  /** `each: row in table` (SFL 1.12): three words, the middle one `in`. */
+  private atEach(key: string): boolean {
+    return key === 'each' && this.at('ident') && this.peek(1).type === 'ident' && this.peek(1).value === 'in' && this.peek(2).type === 'ident';
+  }
+
+  private parseEach(): SflValue {
+    const row = this.next().value;
+    this.next();
+    return { type: 'each', row, source: this.next().value };
   }
 
   /** A property terminates at newline, ";", or the closing brace / EOF (§5). */

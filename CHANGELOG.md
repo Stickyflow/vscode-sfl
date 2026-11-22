@@ -7,19 +7,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- SFL 1.11 and 1.12: the blocks `Solid`, `Facets`, `Terrain` and `Sketch`,
-  with `Cut`, `Add`, `Keep`, `Rect`, `Circle` and `Outline`, are highlighted,
-  show in the Outline and have hover docs. `Solid` and `Sketch` are containers.
+- stickyflow.js 0.20.6: the block `Terrain` is highlighted, shows in the
+  Outline, has hover docs and completes as a keyword.
 - `each: row in table` on a `Repeat` is read, formatted and shown in hovers.
 
 ### Changed
 
-- The bundled stickyflow.js is 0.20.6.
+- Syntax errors come from stickyflow.js 0.20.6 (was 0.20.5).
 
 ### Fixed
 
 - A binding in a `layout` block, as `rotationY: <- arm.angle` on a Mesh, is
   read and kept when a document is formatted. Before, it was a parse error.
+
+## [0.7.0] - 2026-11-17
+
+### Added
+
+- stickyflow.js 0.20: the blocks `Solid`, `Facets`, `Sketch` and the parts
+  `Cut`, `Add`, `Keep`, `Rect`, `Circle` and `Outline` are highlighted, show
+  in the Outline, have hover docs and complete as keywords. `Solid` and
+  `Sketch` are containers.
+
+### Changed
+
+- Syntax errors come from stickyflow.js 0.20.5 (was 0.19.0), so the new
+  blocks and properties are accepted.
 
 ## [0.6.0] - 2026-11-11
 

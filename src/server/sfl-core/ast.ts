@@ -97,6 +97,16 @@ export interface SflRange {
 //   • `Light`: the sun of a Scene. Leaf.
 //   • `Ground`: the floor of a Scene, with its shadows and reflections. Leaf.
 //
+// stickyflow.js 0.20:
+//   • `Solid`: a body in a Scene, pulled up from a `Symbol` or a `Sketch`, with
+//     exact edges. Holds `Cut`, `Add` and `Keep`.
+//   • `Facets`: a body of flat faces between points in a Scene. Leaf.
+//   • `Cut`, `Add`, `Keep`: parts of a `Symbol` (Cut, Add) or a `Solid` that are
+//     cut out, added, or kept where both are. Leaf.
+//   • `Sketch`: a plane in a Scene with `Rect`, `Circle` and `Outline` on it,
+//     which Solids are made from. Not drawn itself.
+//   • `Rect`, `Circle`, `Outline`: the shapes of a Sketch. Leaf.
+//
 // BLOCK_KINDS is the single list of block keywords: BlockKind is derived from
 // it, the Record<BlockKind, …> tables (outline symbols, hover docs) fail to
 // compile when a kind is missing, and scripts/check-grammar.mjs fails the
@@ -111,7 +121,7 @@ export const BLOCK_KINDS = [
   'Text', 'Image', 'Widget', 'Component', 'Shader', 'DataSource',
   'Dimension', 'Repeat', 'Template', 'Use',
   'Parameters', 'Scene', 'Mesh', 'Canvas', 'Light', 'Ground',
-  'Solid', 'Facets', 'Terrain', 'Sketch', 'Cut', 'Add', 'Keep', 'Rect', 'Circle', 'Outline',
+  'Solid', 'Facets', 'Terrain', 'Cut', 'Add', 'Keep', 'Sketch', 'Rect', 'Circle', 'Outline',
 ] as const;
 
 /** Block keywords stickyflow.js used to parse and has dropped, with what to use instead. */
@@ -294,7 +304,7 @@ export interface SflIdentValue {
   segmentRanges?: SflRange[];
 }
 
-/** `each` of a Repeat only (SFL 1.12): `row in table`, a name for one row and the table DataSource it runs over. */
+/** `each` of a Repeat only (stickyflow.js 0.20.6): `row in table`, a name for one row and the table DataSource it runs over. */
 export interface SflEachValue {
   type: 'each';
   row: string;

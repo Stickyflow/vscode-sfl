@@ -108,7 +108,7 @@ Syntax errors come from the parser in [stickyflow.js](https://www.npmjs.com/pack
 the same one the renderer and the StickyFlow-Web Playground use, so VS Code
 accepts exactly what renders. Format Document uses its `canonicalize()`.
 
-All block kinds of stickyflow.js 0.12 are supported: the chart kinds
+All block kinds of stickyflow.js 0.23 are supported: the chart kinds
 (`Chart`, `Axis`, `Series`, `Rule`, and series in `data { }`), `Path`,
 `Symbol` / `Port`, `Net`, the isometric kinds `Isometric` and `Connection`,
 `Text`, `Image`, `Widget` / `Component`, `Shader`, `DataSource`, `Dimension`

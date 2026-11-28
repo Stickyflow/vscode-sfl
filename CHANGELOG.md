@@ -5,18 +5,39 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-28
+
 ### Added
 
 - stickyflow.js 0.20.6: the block `Terrain` is highlighted, shows in the
   Outline, has hover docs and completes as a keyword.
 - `each: row in table` on a `Repeat` is read, formatted and shown in hovers.
+- stickyflow.js 0.23: the handlers `onPress`, `onRelease`, `onTap`, `onDrag`,
+  `onChange`, `onFocus`, `onBlur`, `onSubmit` and `onTick` are highlighted and
+  complete with their docs, also when written as a block (`onTap { ... }`).
+  The binding operators `<-`, `<->` and `->` are highlighted.
+- stickyflow.js 0.23: the words of the Solid edges (`chamfer`, `fillet`,
+  `chamferEdges`, `filletEdges`, `chamferTop`, `chamferBottom`, `filletTop`,
+  `filletBottom`), `mirror`, `sequence` on a `Repeat`, `elevation` on a
+  `Light`, `writable` and `mode` on a `DataSource`, and the properties of
+  `Terrain`, `Facets` and `Sketch` complete and show hover docs.
 
 ### Changed
 
-- Syntax errors come from stickyflow.js 0.20.6 (was 0.20.5).
+- Syntax errors come from stickyflow.js 0.23.2 (was 0.20.5).
+- `shape`, the chart `type` and the component `type` complete from the
+  values stickyflow.js exports (`SHAPE_TYPES`, `CHART_TYPES`,
+  `componentTypes()`), so a new form is offered without an update here. In a
+  `Chart` `type` offers the chart forms, in a `Component` or `Widget` the
+  controls.
+- The hover of `Symbol` says a Shape is drawn by `symbol:`.
 
 ### Fixed
 
+- `shape` offered `ellipse`, which stickyflow.js does not know (it is
+  `oval`), and missed most of its forms.
+- `type` offered `matrix` and `grid`, which are not chart types, and missed
+  `radialBar` and `polarArea`.
 - A binding in a `layout` block, as `rotationY: <- arm.angle` on a Mesh, is
   read and kept when a document is formatted. Before, it was a parse error.
 

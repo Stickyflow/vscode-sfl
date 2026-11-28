@@ -2,7 +2,7 @@
   "name": "vscode-sfl",
   "displayName": "StickyFlow SFL",
   "description": "Write diagrams as code: highlighting, diagnostics, completion, rename and formatting for SFL (.sfl) files.",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "license": "Apache-2.0",
   "icon": "icons/icon.png",
   "publisher": "StickyFlowLab",
@@ -122,6 +122,19 @@
             }
           },
           {
+            "scope": "keyword.other.event.sfl",
+            "settings": {
+              "foreground": "#e06c75",
+              "fontStyle": "bold"
+            }
+          },
+          {
+            "scope": "keyword.operator.binding.sfl",
+            "settings": {
+              "foreground": "#56b6c2"
+            }
+          },
+          {
             "scope": [
               "string.quoted.double.sfl",
               "string.quoted.triple.sfl",
@@ -181,7 +194,7 @@
     "package": "vsce package"
   },
   "dependencies": {
-    "stickyflow": "0.20.6",
+    "stickyflow": "0.23.2",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.11"

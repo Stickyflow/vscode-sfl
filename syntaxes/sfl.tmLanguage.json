@@ -9,6 +9,8 @@
     { "include": "#block-header-container" },
     { "include": "#block-header-leaf" },
     { "include": "#subblock-header" },
+    { "include": "#handler-block" },
+    { "include": "#handler-line" },
     { "include": "#property" },
     { "include": "#strings" },
     { "include": "#numbers" },
@@ -63,7 +65,7 @@
       "captures": { "1": { "name": "keyword.other.subblock.sfl" } }
     },
     "property": {
-      "comment": "`key: value` through end of line or ';' (§5). Values are colored uniformly as `const`, matching the app's own lexical (non-resolving) highlighter — see semanticTokens.ts for why this deliberately isn't refined further.",
+      "comment": "`key: value` through end of line or ';' (§5). Values are colored uniformly as `const`, matching the app's own lexical (non-resolving) highlighter; see semanticTokens.ts for why this deliberately isn't refined further. A binding `key: <- expr` gets its operator marked.",
       "begin": "^\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*(:)",
       "beginCaptures": {
         "1": { "name": "variable.other.property.sfl" },
@@ -71,11 +73,51 @@
       },
       "end": "(?=;)|$",
       "patterns": [
+        { "include": "#binding-operator" },
         { "include": "#strings" },
         { "include": "#numbers" },
         { "match": "[.,()\\[\\]&]", "name": "punctuation.sfl" },
         { "match": "[A-Za-z_][A-Za-z0-9_]*", "name": "constant.language.sfl" }
       ]
+    },
+    "handler-line": {
+      "comment": "`onTap: target <- expr`: an event handler, with the event named and its assignment read as a change of fields (stickyflow.js 0.21).",
+      "begin": "^\\s*(onPress|onRelease|onTap|onDrag|onChange|onFocus|onBlur|onSubmit|onTick)\\s*(:)",
+      "beginCaptures": {
+        "1": { "name": "keyword.other.event.sfl" },
+        "2": { "name": "punctuation.separator.colon.sfl" }
+      },
+      "end": "(?=;)|$",
+      "patterns": [
+        { "include": "#binding-operator" },
+        { "include": "#strings" },
+        { "include": "#numbers" },
+        { "match": "[.,()\\[\\]&]", "name": "punctuation.accessor.sfl" },
+        { "match": "[A-Za-z_][A-Za-z0-9_]*", "name": "variable.other.property.sfl" }
+      ]
+    },
+    "handler-block": {
+      "comment": "`onTap { target <- expr }`, one assignment per line, closed by its brace.",
+      "begin": "^\\s*(onPress|onRelease|onTap|onDrag|onChange|onFocus|onBlur|onSubmit|onTick)\\s*(\\{)",
+      "beginCaptures": {
+        "1": { "name": "keyword.other.event.sfl" },
+        "2": { "name": "punctuation.definition.block.begin.sfl" }
+      },
+      "end": "\\}",
+      "endCaptures": { "0": { "name": "punctuation.definition.block.end.sfl" } },
+      "patterns": [
+        { "include": "#comments" },
+        { "include": "#binding-operator" },
+        { "include": "#strings" },
+        { "include": "#numbers" },
+        { "match": "[.,()\\[\\]&]", "name": "punctuation.accessor.sfl" },
+        { "match": "[A-Za-z_][A-Za-z0-9_]*", "name": "variable.other.property.sfl" }
+      ]
+    },
+    "binding-operator": {
+      "comment": "`<-` (a binding or an assignment), `<->` (two-way, a writable value) and `->` (reserved).",
+      "match": "<->|<-|->",
+      "name": "keyword.operator.binding.sfl"
     },
     "strings": {
       "patterns": [
